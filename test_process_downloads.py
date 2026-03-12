@@ -12,6 +12,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 from process_downloads import (
     LINE_RE,
+    GDRIVE_VIRUS_PAGE_RE,
     classify_url,
     extract_filename_from_url,
     extract_google_drive_id,
@@ -208,6 +209,47 @@ class TestMediaFireFilename(unittest.TestCase):
         self.assertIsNone(filename_from_mediafire_url(url))
 
 
+# ─── GDRIVE_VIRUS_PAGE_RE – filename from virus-scan HTML ───────────
+
+class TestGDriveVirusPageRegex(unittest.TestCase):
+    """Verify the regex extracts filenames from real Google Drive HTML."""
+
+    REAL_HTML = (
+        '<span class="uc-name-size">'
+        '<a href="/open?id=16zQzcw27200Nzt747TfQ7PmTLbrRk7xs">'
+        'Samsung SM-A045F_A045FXXSEEZB1_BIT-15_KNOX_OFF_ROM.rar</a>'
+        ' (4.3G)</span>'
+    )
+
+    def test_extracts_real_filename(self):
+        m = GDRIVE_VIRUS_PAGE_RE.search(self.REAL_HTML)
+        self.assertIsNotNone(m)
+        self.assertEqual(m.group(1), "Samsung SM-A045F_A045FXXSEEZB1_BIT-15_KNOX_OFF_ROM.rar")
+
+    def test_extracts_zip_filename(self):
+        html = '<a href="/open?id=abc123">RMX3842_firmware_v2.zip</a>'
+        m = GDRIVE_VIRUS_PAGE_RE.search(html)
+        self.assertIsNotNone(m)
+        self.assertEqual(m.group(1), "RMX3842_firmware_v2.zip")
+
+    def test_extracts_tar_gz(self):
+        html = '<a href="/open?id=xyz">vivo_mtk6582.tar.gz</a>'
+        m = GDRIVE_VIRUS_PAGE_RE.search(html)
+        self.assertIsNotNone(m)
+        # .gz is the extension matched
+        self.assertIn("vivo_mtk6582.tar", m.group(1))
+
+    def test_no_match_without_open_id(self):
+        html = '<a href="/download?id=abc">firmware.zip</a>'
+        m = GDRIVE_VIRUS_PAGE_RE.search(html)
+        self.assertIsNone(m)
+
+    def test_no_match_without_extension(self):
+        html = '<a href="/open?id=abc">no_extension_here</a>'
+        m = GDRIVE_VIRUS_PAGE_RE.search(html)
+        self.assertIsNone(m)
+
+
 # ─── extract_filename_from_url ───────────────────────────────────────
 
 class TestExtractFilenameFromUrl(unittest.TestCase):
@@ -331,6 +373,32 @@ class TestResolveGoogleDrive(unittest.TestCase):
         )
         self.assertTrue(alive)
         self.assertIsNone(name)
+
+    def test_alive_virus_scan_page_extracts_filename(self):
+        """Real virus-scan HTML: should extract the filename from <a href="/open?id=...">"""
+        html = (
+            b'<html><head><title>Google Drive - Virus scan warning</title></head>'
+            b'<body><div class="uc-main"><div id="uc-text">'
+            b'<p class="uc-warning-caption">Google Drive can\'t scan this file for viruses.</p>'
+            b'<p class="uc-warning-subcaption"><span class="uc-name-size">'
+            b'<a href="/open?id=16zQzcw27200Nzt747TfQ7PmTLbrRk7xs">'
+            b'Samsung SM-A045F_A045FXXSEEZB1_BIT-15_KNOX_OFF_ROM.rar</a>'
+            b' (4.3G)</span> is too large for Google to scan.</p>'
+            b'<form id="download-form" action="https://drive.usercontent.google.com/download">'
+            b'<input type="hidden" name="id" value="16zQzcw27200Nzt747TfQ7PmTLbrRk7xs">'
+            b'</form></div></div></body></html>'
+        )
+        resp = _make_mock_response(
+            200,
+            headers={"Content-Type": "text/html; charset=utf-8"},
+            body=html,
+        )
+        session = _make_mock_session(resp)
+        alive, name = asyncio.get_event_loop().run_until_complete(
+            resolve_google_drive(session, "https://drive.google.com/uc?id=16zQzcw27200Nzt747TfQ7PmTLbrRk7xs&export=download")
+        )
+        self.assertTrue(alive)
+        self.assertEqual(name, "Samsung SM-A045F_A045FXXSEEZB1_BIT-15_KNOX_OFF_ROM.rar")
 
     def test_dead_404(self):
         resp = _make_mock_response(404)
@@ -502,6 +570,7 @@ class TestProcessEntry(unittest.TestCase):
     def _run(self, resolver_return, url, original_name):
         sem = asyncio.Semaphore(1)
         session = MagicMock()
+        cache: dict = {}
 
         async def fake_resolver(sess, u):
             return resolver_return
@@ -509,7 +578,7 @@ class TestProcessEntry(unittest.TestCase):
         patched = {k: fake_resolver for k in ("gdrive", "mediafire", "mega", "gdocs", "onedrive", "other")}
         with patch("process_downloads.RESOLVERS", patched):
             result = asyncio.get_event_loop().run_until_complete(
-                process_entry(session, sem, original_name, url, 1)
+                process_entry(session, sem, original_name, url, 1, cache)
             )
         return result
 
@@ -550,6 +619,31 @@ class TestProcessEntry(unittest.TestCase):
             "firmware_99",
         )
         self.assertFalse(alive)
+
+    def test_cache_avoids_duplicate_requests(self):
+        """Two entries with the same Google Drive ID should only trigger one HTTP call."""
+        sem = asyncio.Semaphore(1)
+        session = MagicMock()
+        cache: dict = {}
+        call_count = 0
+
+        async def counting_resolver(sess, u):
+            nonlocal call_count
+            call_count += 1
+            return True, "cached_name.zip"
+
+        patched = {k: counting_resolver for k in ("gdrive", "mediafire", "mega", "gdocs", "onedrive", "other")}
+        with patch("process_downloads.RESOLVERS", patched):
+            loop = asyncio.get_event_loop()
+            r1 = loop.run_until_complete(
+                process_entry(session, sem, "fw_1", "https://drive.google.com/uc?id=SAME_ID&export=download", 1, cache)
+            )
+            r2 = loop.run_until_complete(
+                process_entry(session, sem, "fw_2", "https://drive.usercontent.google.com/download?id=SAME_ID&confirm=t", 2, cache)
+            )
+        self.assertEqual(call_count, 1, "Resolver should only be called once for same GDrive ID")
+        self.assertEqual(r1[1], "cached_name.zip")
+        self.assertEqual(r2[1], "cached_name.zip")
 
 
 # ─── End-to-end pipeline with mocked HTTP ────────────────────────────

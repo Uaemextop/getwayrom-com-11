@@ -18,9 +18,16 @@ import aiohttp
 
 INPUT_FILE = "download_urls.md"
 OUTPUT_FILE = "firmware_ok.md"
-CONCURRENCY = 20
-REQUEST_TIMEOUT = 30
-PROGRESS_INTERVAL = 500
+CONCURRENCY = 80
+REQUEST_TIMEOUT = 15
+PROGRESS_INTERVAL = 1000
+
+# Regex to extract the real filename from Google Drive virus-scan page:
+#   <a href="/open?id=...">REAL_FILENAME</a>
+GDRIVE_VIRUS_PAGE_RE = re.compile(
+    r'<a\s[^>]*href="/open\?id=[^"]*"[^>]*>([^<]+\.[a-zA-Z0-9]{1,10})</a>',
+    re.I,
+)
 
 logging.basicConfig(
     level=logging.INFO,
@@ -123,6 +130,10 @@ async def resolve_google_drive(
     """
     Check a Google Drive link.
     Returns (is_alive, resolved_filename_or_None).
+
+    Extracts the real filename from:
+      1. Content-Disposition header (small files served directly)
+      2. The virus-scan warning HTML page (large files)
     """
     file_id = extract_google_drive_id(url)
     if not file_id:
@@ -138,28 +149,28 @@ async def resolve_google_drive(
             if resp.status >= 400:
                 return False, None
 
-            # Check Content-Disposition first
+            # 1) Content-Disposition header (direct download)
             cd = resp.headers.get("Content-Disposition", "")
             fname = parse_content_disposition(cd) if cd else None
-
-            # Google may serve an HTML "virus scan" warning page for big files.
-            # In that case Content-Type will be text/html and there is no
-            # Content-Disposition.  The file is still alive.
-            ct = resp.headers.get("Content-Type", "")
             if fname:
                 return True, fname
+
+            ct = resp.headers.get("Content-Type", "")
             if "text/html" in ct:
-                # Read a snippet to see if it's the download-warning page
-                body = await resp.content.read(4096)
+                body = await resp.content.read(8192)
                 text = body.decode("utf-8", errors="replace")
+
+                # 2) Virus-scan page: extract filename from anchor tag
+                m = GDRIVE_VIRUS_PAGE_RE.search(text)
+                if m:
+                    return True, m.group(1).strip()
+
                 if "download" in text.lower() and file_id in text:
-                    # Still alive, just needs confirmation
                     return True, None
-                # Could be an error page
                 if "not found" in text.lower() or "sorry" in text.lower():
                     return False, None
                 return True, None
-            # Non-HTML, non-CD (shouldn't happen, but treat as alive)
+            # Non-HTML, no CD
             return True, fname
     except Exception:
         return False, None
@@ -290,21 +301,30 @@ async def process_entry(
     original_name: str,
     url: str,
     line_num: int,
+    cache: dict[str, tuple[bool, str | None]],
 ) -> tuple[int, str, str, bool] | None:
     """
     Process one entry: resolve filename, check liveness.
     Returns (line_num, final_name, url, alive) or None on parse error.
+    Uses *cache* keyed by canonical URL to avoid duplicate HTTP requests.
     """
     svc = classify_url(url)
     resolver = RESOLVERS.get(svc, resolve_other)
 
-    async with semaphore:
-        alive, resolved_name = await resolver(session, url)
+    # Build a cache key: for Google Drive use the file ID, otherwise
+    # use the full URL so identical links are only checked once.
+    if svc == "gdrive":
+        cache_key = extract_google_drive_id(url) or url
+    else:
+        cache_key = url
 
-    # Determine final filename:
-    #   1. Use HTTP-resolved name if available
-    #   2. Use URL-extracted name (e.g. MediaFire) if available
-    #   3. Fall back to original name from the markdown
+    if cache_key in cache:
+        alive, resolved_name = cache[cache_key]
+    else:
+        async with semaphore:
+            alive, resolved_name = await resolver(session, url)
+        cache[cache_key] = (alive, resolved_name)
+
     url_name = extract_filename_from_url(url)
     final_name = resolved_name or url_name or original_name
 
@@ -343,14 +363,22 @@ async def main() -> None:
 
     # ── Resolve & check ──────────────────────────────────────────────
     sem = asyncio.Semaphore(CONCURRENCY)
-    connector = aiohttp.TCPConnector(limit=CONCURRENCY, force_close=True)
+    timeout = aiohttp.ClientTimeout(total=REQUEST_TIMEOUT, connect=10)
+    connector = aiohttp.TCPConnector(
+        limit=CONCURRENCY,
+        limit_per_host=10,
+        ttl_dns_cache=600,
+        enable_cleanup_closed=True,
+    )
 
     async with aiohttp.ClientSession(
         connector=connector,
+        timeout=timeout,
         headers={"User-Agent": "Mozilla/5.0"},
     ) as session:
+        cache: dict[str, tuple[bool, str | None]] = {}
         tasks = [
-            process_entry(session, sem, name, url, ln)
+            process_entry(session, sem, name, url, ln, cache)
             for ln, name, url in entries
         ]
 

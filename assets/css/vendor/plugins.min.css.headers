@@ -1,0 +1,19 @@
+{
+  "url": "https://getwayrom.com/assets/css/vendor/plugins.min.css",
+  "status_code": 200,
+  "headers": {
+    "Connection": "Keep-Alive",
+    "Keep-Alive": "timeout=5, max=100",
+    "Cache-Control": "public, max-age=604800",
+    "Expires": "Thu, 19 Mar 2026 21:01:10 GMT",
+    "Content-Type": "text/css",
+    "Last-Modified": "Sun, 21 Jul 2024 06:14:06 GMT",
+    "Accept-Ranges": "bytes",
+    "Content-Encoding": "br",
+    "Vary": "Accept-Encoding",
+    "Content-Length": "54702",
+    "Date": "Thu, 12 Mar 2026 21:01:10 GMT",
+    "Server": "LiteSpeed",
+    "alt-svc": "h3=\":443\"; ma=2592000, h3-29=\":443\"; ma=2592000, h3-Q050=\":443\"; ma=2592000, h3-Q046=\":443\"; ma=2592000, h3-Q043=\":443\"; ma=2592000, quic=\":443\"; ma=2592000; v=\"43,46\""
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://getwayrom.com/upload/resellers/1756550329_68b2d4b9622ab.jpg",
+  "status_code": 200,
+  "headers": {
+    "Connection": "Keep-Alive",
+    "Keep-Alive": "timeout=5, max=100",
+    "Cache-Control": "public, max-age=604800",
+    "Expires": "Thu, 19 Mar 2026 21:01:10 GMT",
+    "Content-Type": "image/jpeg",
+    "Last-Modified": "Sat, 30 Aug 2025 10:38:49 GMT",
+    "Accept-Ranges": "bytes",
+    "Content-Length": "94627",
+    "Date": "Thu, 12 Mar 2026 21:01:10 GMT",
+    "Server": "LiteSpeed",
+    "alt-svc": "h3=\":443\"; ma=2592000, h3-29=\":443\"; ma=2592000, h3-Q050=\":443\"; ma=2592000, h3-Q046=\":443\"; ma=2592000, h3-Q043=\":443\"; ma=2592000, quic=\":443\"; ma=2592000; v=\"43,46\""
+  }
+}

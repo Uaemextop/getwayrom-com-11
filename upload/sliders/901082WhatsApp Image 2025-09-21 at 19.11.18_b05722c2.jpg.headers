@@ -1,0 +1,17 @@
+{
+  "url": "https://getwayrom.com/upload/sliders/901082WhatsApp Image 2025-09-21 at 19.11.18_b05722c2.jpg",
+  "status_code": 200,
+  "headers": {
+    "Connection": "Keep-Alive",
+    "Keep-Alive": "timeout=5, max=100",
+    "Cache-Control": "public, max-age=604800",
+    "Expires": "Thu, 19 Mar 2026 20:50:29 GMT",
+    "Content-Type": "image/jpeg",
+    "Last-Modified": "Sun, 21 Sep 2025 14:14:12 GMT",
+    "Accept-Ranges": "bytes",
+    "Content-Length": "65255",
+    "Date": "Thu, 12 Mar 2026 20:50:29 GMT",
+    "Server": "LiteSpeed",
+    "alt-svc": "h3=\":443\"; ma=2592000, h3-29=\":443\"; ma=2592000, h3-Q050=\":443\"; ma=2592000, h3-Q046=\":443\"; ma=2592000, h3-Q043=\":443\"; ma=2592000, quic=\":443\"; ma=2592000; v=\"43,46\""
+  }
+}

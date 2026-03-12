@@ -17,12 +17,33 @@
   }
 
   /**
+   * Build a combo string from a keyboard event.
+   */
+  function comboKey(e) {
+    var parts = [];
+    if (e.ctrlKey || e.metaKey) parts.push('Ctrl');
+    if (e.altKey) parts.push('Alt');
+    if (e.shiftKey) parts.push('Shift');
+    var key = e.key;
+    if (key !== 'Control' && key !== 'Alt' && key !== 'Shift' && key !== 'Meta') {
+      parts.push(key);
+    }
+    return parts.join('+');
+  }
+
+  /**
    * Initialize the keyboard shortcut listener.
    */
   function init() {
     document.addEventListener('keydown', function (e) {
-      // Don't fire shortcuts when user is typing in a form field
       if (isTyping()) return;
+
+      var combo = comboKey(e);
+      if (shortcuts[combo]) {
+        e.preventDefault();
+        shortcuts[combo].callback();
+        return;
+      }
 
       var key = e.key;
       if (shortcuts[key]) {

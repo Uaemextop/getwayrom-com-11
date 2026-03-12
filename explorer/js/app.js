@@ -864,7 +864,7 @@
       dom.nextPage.click();
     });
 
-    Keyboard.register('Backspace', 'Go up one folder', function () {
+    Keyboard.register('Alt+ArrowUp', 'Go up one folder', function () {
       if (state.folderPath.length > 0) {
         state.folderPath.pop();
         applyFiltersAndSearch();

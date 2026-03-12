@@ -86,7 +86,7 @@ function detectFileType(extension) {
     exe: 'executable', msi: 'executable', bat: 'executable',
     bin: 'binary', mbn: 'binary', dat: 'binary', elf: 'binary',
     md: 'document', txt: 'document', pdf: 'document',
-    scatter: 'scatter', txt: 'document',
+    scatter: 'scatter',
     xml: 'config', json: 'config', cfg: 'config', ini: 'config',
     pac: 'flash', ozip: 'archive', ofp: 'flash', ops: 'flash',
   };

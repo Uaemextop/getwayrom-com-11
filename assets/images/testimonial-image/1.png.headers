@@ -1,0 +1,17 @@
+{
+  "url": "https://getwayrom.com/assets/images/testimonial-image/1.png",
+  "status_code": 200,
+  "headers": {
+    "Connection": "Keep-Alive",
+    "Keep-Alive": "timeout=5, max=100",
+    "Cache-Control": "public, max-age=604800",
+    "Expires": "Thu, 19 Mar 2026 21:01:21 GMT",
+    "Content-Type": "image/png",
+    "Last-Modified": "Sun, 07 Jul 2024 16:53:54 GMT",
+    "Accept-Ranges": "bytes",
+    "Content-Length": "20309",
+    "Date": "Thu, 12 Mar 2026 21:01:21 GMT",
+    "Server": "LiteSpeed",
+    "alt-svc": "h3=\":443\"; ma=2592000, h3-29=\":443\"; ma=2592000, h3-Q050=\":443\"; ma=2592000, h3-Q046=\":443\"; ma=2592000, h3-Q043=\":443\"; ma=2592000, quic=\":443\"; ma=2592000; v=\"43,46\""
+  }
+}

@@ -3,8 +3,6 @@ name: Deploy File Explorer to GitHub Pages
 on:
   push:
     branches: [main]
-  release:
-    types: [published]
   workflow_dispatch:
 
 permissions:
@@ -32,24 +30,21 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Download firmware_ok.md from latest release
+      - name: Ensure files.json exists
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          mkdir -p explorer/data
-          RELEASE_TAG=$(gh release list --limit 1 --json tagName -q '.[0].tagName' 2>/dev/null || echo "")
-          if [ -n "$RELEASE_TAG" ]; then
-            echo "Downloading firmware_ok.md from release: $RELEASE_TAG"
-            gh release download "$RELEASE_TAG" --pattern "firmware_ok.md" --dir explorer/data/ || true
-          fi
-
-      - name: Build file data
-        run: |
-          if [ -f explorer/data/firmware_ok.md ]; then
-            echo "Using firmware_ok.md from release"
-            node scripts/build-data.js --test
+          if [ -f explorer/data/files.json ]; then
+            echo "Using committed files.json"
+            FILE_COUNT=$(node -e "const d=require('./explorer/data/files.json'); console.log(d.totalFiles)")
+            echo "files.json contains $FILE_COUNT files"
           else
-            echo "Building from download_urls.md"
+            echo "files.json not found — generating from latest release"
+            mkdir -p explorer/data
+            RELEASE_TAG=$(gh release list --limit 1 --json tagName -q '.[0].tagName' 2>/dev/null || echo "")
+            if [ -n "$RELEASE_TAG" ]; then
+              gh release download "$RELEASE_TAG" --pattern "firmware_ok.md" --dir explorer/data/ || true
+            fi
             node scripts/build-data.js --test
           fi
 

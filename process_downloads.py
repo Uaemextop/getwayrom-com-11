@@ -18,6 +18,7 @@ INPUT_FILE = "download_urls.md"
 OUTPUT_FILE = "firmware_ok.md"
 CONCURRENCY = 20
 REQUEST_TIMEOUT = 30
+PROGRESS_INTERVAL = 500
 
 logging.basicConfig(
     level=logging.INFO,
@@ -69,18 +70,23 @@ def filename_from_mega_url(url: str) -> str | None:
     return None
 
 
+def _host_matches(host: str, domain: str) -> bool:
+    """Check that *host* is exactly *domain* or a subdomain of it."""
+    return host == domain or host.endswith("." + domain)
+
+
 def classify_url(url: str) -> str:
     """Return a service tag for the URL."""
-    host = urlparse(url).hostname or ""
-    if "drive.google.com" in host or "drive.usercontent.google.com" in host:
+    host = (urlparse(url).hostname or "").lower()
+    if host == "drive.google.com" or host == "drive.usercontent.google.com":
         return "gdrive"
-    if "docs.google.com" in host:
+    if host == "docs.google.com":
         return "gdocs"
-    if "mediafire.com" in host:
+    if _host_matches(host, "mediafire.com"):
         return "mediafire"
-    if "mega.nz" in host:
+    if host == "mega.nz":
         return "mega"
-    if "onedrive.live.com" in host:
+    if host == "onedrive.live.com":
         return "onedrive"
     return "other"
 
@@ -354,7 +360,7 @@ async def main() -> None:
         for coro in asyncio.as_completed(tasks):
             result = await coro
             done += 1
-            if done % 500 == 0 or done == total:
+            if done % PROGRESS_INTERVAL == 0 or done == total:
                 log.info("Progress: %d / %d checked.", done, total)
             if result is None:
                 continue

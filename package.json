@@ -1,0 +1,14 @@
+{
+  "name": "getwayrom-file-explorer",
+  "version": "1.0.0",
+  "description": "Professional file explorer for GetwayROM firmware downloads",
+  "scripts": {
+    "build:data": "node scripts/build-data.js",
+    "test": "node scripts/build-data.js --test"
+  },
+  "dependencies": {
+    "fuse.js": "^7.0.0"
+  },
+  "devDependencies": {},
+  "license": "MIT"
+}

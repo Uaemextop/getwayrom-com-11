@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.cache/
+*.log
+.DS_Store
+Thumbs.db
+explorer/data/firmware_ok.md
+*.bak

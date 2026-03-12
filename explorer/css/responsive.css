@@ -1,0 +1,158 @@
+/* ============================================
+   GetwayROM File Explorer - Responsive Styles
+   Mobile, tablet, and desktop breakpoints
+   ============================================ */
+
+/* --- Large screens (>1200px) --- */
+@media (min-width: 1200px) {
+    .file-grid {
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    }
+}
+
+/* --- Tablet (<= 1024px) --- */
+@media (max-width: 1024px) {
+    .sidebar {
+        position: fixed;
+        top: var(--header-height);
+        left: 0;
+        bottom: 0;
+        z-index: var(--z-overlay);
+        box-shadow: var(--shadow-xl);
+        transform: translateX(-100%);
+    }
+
+    .sidebar.open {
+        transform: translateX(0);
+    }
+
+    .sidebar.collapsed {
+        transform: translateX(-100%);
+    }
+
+    .file-grid {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    }
+
+    .header-left {
+        min-width: auto;
+    }
+
+    .logo-text {
+        display: none;
+    }
+}
+
+/* --- Small Tablet & large phone (<=768px) --- */
+@media (max-width: 768px) {
+    .header {
+        padding: 0 var(--space-1);
+    }
+
+    .header-center {
+        margin: 0 var(--space-1);
+    }
+
+    .search-container {
+        height: 40px;
+    }
+
+    .content {
+        padding: 0 var(--space-3) var(--space-3);
+    }
+
+    .file-grid {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: var(--space-2);
+    }
+
+    .file-card {
+        padding: var(--space-3);
+    }
+
+    .file-card-icon {
+        width: 44px;
+        height: 44px;
+        font-size: 22px;
+    }
+
+    .list-col-brand,
+    .list-row-brand {
+        display: none;
+    }
+
+    .content-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--space-2);
+    }
+
+    .filter-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* --- Phone (<= 480px) --- */
+@media (max-width: 480px) {
+    :root {
+        --header-height: 56px;
+    }
+
+    .file-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--space-2);
+    }
+
+    .file-card-name {
+        font-size: var(--font-size-xs);
+        -webkit-line-clamp: 2;
+    }
+
+    .list-col-ext,
+    .list-row-ext {
+        display: none;
+    }
+
+    .search-filter-btn {
+        display: none;
+    }
+
+    .view-toggle {
+        display: none;
+    }
+
+    .header-right {
+        min-width: auto;
+    }
+
+    .pagination {
+        gap: var(--space-2);
+    }
+
+    .page-info {
+        min-width: auto;
+        font-size: var(--font-size-sm);
+    }
+
+    .btn {
+        padding: var(--space-2) var(--space-3);
+        font-size: var(--font-size-sm);
+    }
+}
+
+/* --- Very small screens (<= 360px) --- */
+@media (max-width: 360px) {
+    .file-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .file-card-meta {
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .search-container {
+        height: 36px;
+        padding: 0 var(--space-2) 0 var(--space-3);
+    }
+}

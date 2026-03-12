@@ -66,8 +66,8 @@
 
     container.appendChild(toast);
 
-    // Trigger reflow, then animate in
-    var _ = toast.offsetHeight;
+    // Force a browser reflow so the slide-in transition plays
+    void toast.offsetHeight;
     toast.style.transform = 'translateX(0)';
     toast.style.opacity = '1';
 

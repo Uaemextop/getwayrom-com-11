@@ -5,7 +5,6 @@
   'use strict';
 
   var Utils = GWR.Utils;
-  var options = {};
   var overlayEl = null;
 
   // Brand-specific icons
@@ -49,8 +48,8 @@
   /**
    * Initialize sidebar with options.
    */
-  function init(opts) {
-    options = opts || {};
+  function init() {
+    // Reserved for future configuration
   }
 
   /**

@@ -13,7 +13,6 @@ permissions:
 jobs:
   process-and-release:
     runs-on: ubuntu-latest
-    timeout-minutes: 120
 
     steps:
       - name: Checkout repository
@@ -25,7 +24,9 @@ jobs:
           python-version: '3.12'
 
       - name: Install dependencies
-        run: pip install aiohttp==3.13.3
+        run: |
+          pip install aiohttp==3.13.3 cryptography playwright
+          python -m playwright install --with-deps chromium
 
       - name: Run process_downloads.py
         run: python process_downloads.py

@@ -5,51 +5,143 @@ remove dead/expired links, and save results to firmware_ok.md.
 
 Supports: Google Drive, MediaFire, Mega.nz, Google Docs, OneDrive.
 
-Requires Python 3.10+ (uses X | Y union type syntax).
+Requires Python 3.10+.
+Dependencies: aiohttp, cryptography, playwright
 """
 
+import base64
+import json
+import os
 import re
+import struct
 import sys
 import asyncio
-import logging
+import time
 from urllib.parse import urlparse, parse_qs, unquote
 
 import aiohttp
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 
 INPUT_FILE = "download_urls.md"
 OUTPUT_FILE = "firmware_ok.md"
-CONCURRENCY = 80
+CONCURRENCY = 100
 REQUEST_TIMEOUT = 15
-PROGRESS_INTERVAL = 1000
+BATCH_SIZE = 500
+PLAYWRIGHT_TIMEOUT = 20_000  # ms
 
-# Regex to extract the real filename from Google Drive virus-scan page:
-#   <a href="/open?id=...">REAL_FILENAME</a>
+# ── GitHub Actions log helpers ───────────────────────────────────────
+_CI = os.environ.get("CI") == "true" or os.environ.get("GITHUB_ACTIONS") == "true"
+
+_GREEN = "\033[32m"
+_RED = "\033[31m"
+_YELLOW = "\033[33m"
+_CYAN = "\033[36m"
+_BOLD = "\033[1m"
+_RESET = "\033[0m"
+_DIM = "\033[2m"
+
+
+def gh_group(title: str) -> None:
+    if _CI:
+        print(f"::group::{title}", flush=True)
+    else:
+        print(f"\n{'─'*60}\n{_BOLD}{title}{_RESET}", flush=True)
+
+
+def gh_endgroup() -> None:
+    if _CI:
+        print("::endgroup::", flush=True)
+    else:
+        print(f"{'─'*60}", flush=True)
+
+
+def gh_info(msg: str) -> None:
+    print(msg, flush=True)
+
+
+def gh_notice(msg: str) -> None:
+    if _CI:
+        print(f"::notice::{msg}", flush=True)
+    else:
+        print(f"  {_CYAN}ℹ{_RESET} {msg}", flush=True)
+
+
+def gh_warning(msg: str) -> None:
+    if _CI:
+        print(f"::warning::{msg}", flush=True)
+    else:
+        print(f"  {_YELLOW}⚠{_RESET} {msg}", flush=True)
+
+
+def gh_error(msg: str) -> None:
+    if _CI:
+        print(f"::error::{msg}", flush=True)
+    else:
+        print(f"  {_RED}✖{_RESET} {msg}", flush=True)
+
+
+# ── Regex patterns ───────────────────────────────────────────────────
+
+LINE_RE = re.compile(
+    r"^-\s+\*\*(.+?)\*\*\s*—\s*\[Download\]\((.+?)\)\s*$"
+)
+
 GDRIVE_VIRUS_PAGE_RE = re.compile(
     r'<a\s[^>]*href="/open\?id=[^"]*"[^>]*>([^<]+\.[a-zA-Z0-9]{1,10})</a>',
     re.I,
 )
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(message)s",
+MEDIAFIRE_FILENAME_RE = re.compile(
+    r'class="filename">([^<]+)',
+    re.I,
 )
-log = logging.getLogger(__name__)
 
-# ── Regex to parse each markdown line ────────────────────────────────
-LINE_RE = re.compile(
-    r"^-\s+\*\*(.+?)\*\*\s*—\s*\[Download\]\((.+?)\)\s*$"
+# OneDrive page: file info embedded in JS as JSON
+ONEDRIVE_FILENAME_RE = re.compile(
+    r'"fileName"\s*:\s*"([^"]+)"',
 )
+
+
+# ── Playwright singleton ─────────────────────────────────────────────
+
+_pw_browser = None
+_pw_context = None
+
+
+async def _get_playwright_page():
+    """Return a new Playwright page from a shared browser instance."""
+    global _pw_browser, _pw_context
+    if _pw_browser is None:
+        from playwright.async_api import async_playwright
+        pw = await async_playwright().start()
+        _pw_browser = await pw.chromium.launch(headless=True)
+        _pw_context = await _pw_browser.new_context(
+            user_agent=(
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) "
+                "Chrome/125.0.0.0 Safari/537.36"
+            ),
+            viewport={"width": 1280, "height": 720},
+            locale="en-US",
+        )
+    return await _pw_context.new_page()
+
+
+async def _close_playwright():
+    global _pw_browser, _pw_context
+    if _pw_browser:
+        await _pw_browser.close()
+        _pw_browser = None
+        _pw_context = None
 
 
 # ── Filename extraction helpers ──────────────────────────────────────
 
 def extract_google_drive_id(url: str) -> str | None:
-    """Return the Google Drive file ID from various URL forms."""
     parsed = urlparse(url)
     qs = parse_qs(parsed.query)
     if "id" in qs:
         return qs["id"][0]
-    # /d/FILE_ID/ pattern
     m = re.search(r"/d/([a-zA-Z0-9_-]+)", parsed.path)
     if m:
         return m.group(1)
@@ -57,35 +149,18 @@ def extract_google_drive_id(url: str) -> str | None:
 
 
 def filename_from_mediafire_url(url: str) -> str | None:
-    """
-    MediaFire URLs look like:
-      https://www.mediafire.com/file/<key>/<filename>/file
-    The filename is the second-to-last path segment (URL-encoded).
-    """
     parsed = urlparse(url)
     parts = [p for p in parsed.path.split("/") if p]
-    # Expected: ['file', '<key>', '<filename>', 'file']
     if len(parts) >= 4 and parts[0] == "file" and parts[-1] == "file":
         return unquote(parts[-2])
     return None
 
 
-def filename_from_mega_url(url: str) -> str | None:
-    """
-    Mega.nz URLs:  https://mega.nz/file/<handle>#<key>
-    We cannot resolve the real filename without the Mega SDK,
-    so we return None and will rely on the HTTP check later.
-    """
-    return None
-
-
 def _host_matches(host: str, domain: str) -> bool:
-    """Check that *host* is exactly *domain* or a subdomain of it."""
     return host == domain or host.endswith("." + domain)
 
 
 def classify_url(url: str) -> str:
-    """Return a service tag for the URL."""
     host = (urlparse(url).hostname or "").lower()
     if host == "drive.google.com" or host == "drive.usercontent.google.com":
         return "gdrive"
@@ -95,61 +170,107 @@ def classify_url(url: str) -> str:
         return "mediafire"
     if host == "mega.nz":
         return "mega"
-    if host == "onedrive.live.com":
+    if _host_matches(host, "onedrive.live.com") or _host_matches(host, "1drv.ms"):
         return "onedrive"
     return "other"
 
 
 def extract_filename_from_url(url: str) -> str | None:
-    """Try to extract a real filename from the URL alone (no HTTP)."""
     svc = classify_url(url)
     if svc == "mediafire":
         return filename_from_mediafire_url(url)
-    # For other services the filename is not embedded in the URL
     return None
 
 
 def parse_content_disposition(header: str) -> str | None:
-    """Extract filename from a Content-Disposition header value."""
-    # Try filename*= (RFC 5987)
     m = re.search(r"filename\*\s*=\s*(?:UTF-8''|utf-8'')(.+?)(?:;|$)", header, re.I)
     if m:
         return unquote(m.group(1).strip().strip('"'))
-    # Try plain filename=
     m = re.search(r'filename\s*=\s*"?([^";]+)"?', header, re.I)
     if m:
         return unquote(m.group(1).strip())
     return None
 
 
-# ── Async link-checking / filename resolution ────────────────────────
+def _onedrive_extract_resid(url: str) -> tuple[str | None, str | None]:
+    """Extract (cid, resid) from a OneDrive URL query string."""
+    parsed = urlparse(url)
+    qs = parse_qs(parsed.query)
+    cid = qs.get("cid", [None])[0]
+    resid = qs.get("id", qs.get("resid", [None]))[0]
+    return cid, resid
+
+
+# ── Mega.nz crypto helpers ───────────────────────────────────────────
+
+def _mega_base64_decode(s: str) -> bytes:
+    s = s.replace("-", "+").replace("_", "/")
+    s += "=" * ((4 - len(s) % 4) % 4)
+    return base64.b64decode(s)
+
+
+def _mega_parse_url(url: str) -> tuple[str | None, str | None]:
+    parsed = urlparse(url)
+    parts = [p for p in parsed.path.split("/") if p]
+    fragment = parsed.fragment
+    if len(parts) >= 2 and parts[0] == "file" and fragment:
+        return parts[1], fragment
+    return None, None
+
+
+def mega_decrypt_attrs(at_b64: str, key_b64: str) -> str | None:
+    try:
+        key_bytes = _mega_base64_decode(key_b64)
+        if len(key_bytes) < 32:
+            return None
+        k = struct.unpack(">4I", key_bytes[:16])
+        k2 = struct.unpack(">4I", key_bytes[16:32])
+        aes_key = struct.pack(
+            ">4I", k[0] ^ k2[0], k[1] ^ k2[1], k[2] ^ k2[2], k[3] ^ k2[3]
+        )
+        at_bytes = _mega_base64_decode(at_b64)
+        cipher = Cipher(algorithms.AES(aes_key), modes.CBC(b"\x00" * 16))
+        dec = cipher.decryptor()
+        plaintext = dec.update(at_bytes) + dec.finalize()
+        text = plaintext.decode("utf-8", errors="replace")
+        if text.startswith("MEGA{"):
+            text = text[4:]
+            depth, end = 0, 0
+            for i, c in enumerate(text):
+                if c == "{":
+                    depth += 1
+                elif c == "}":
+                    depth -= 1
+                if depth == 0:
+                    end = i + 1
+                    break
+            if end:
+                attrs = json.loads(text[:end])
+                return attrs.get("n")
+    except Exception:
+        pass
+    return None
+
+
+# ── Async resolvers ──────────────────────────────────────────────────
 
 async def resolve_google_drive(
     session: aiohttp.ClientSession, url: str
 ) -> tuple[bool, str | None]:
-    """
-    Check a Google Drive link.
-    Returns (is_alive, resolved_filename_or_None).
-
-    Extracts the real filename from:
-      1. Content-Disposition header (small files served directly)
-      2. The virus-scan warning HTML page (large files)
-    """
     file_id = extract_google_drive_id(url)
     if not file_id:
         return False, None
 
-    check_url = (
-        f"https://drive.google.com/uc?id={file_id}&export=download"
-    )
+    check_url = f"https://drive.google.com/uc?id={file_id}&export=download"
     try:
         async with session.get(
-            check_url, allow_redirects=True, timeout=aiohttp.ClientTimeout(total=REQUEST_TIMEOUT)
+            check_url,
+            allow_redirects=True,
+            timeout=aiohttp.ClientTimeout(total=REQUEST_TIMEOUT),
         ) as resp:
             if resp.status >= 400:
                 return False, None
 
-            # 1) Content-Disposition header (direct download)
             cd = resp.headers.get("Content-Disposition", "")
             fname = parse_content_disposition(cd) if cd else None
             if fname:
@@ -160,17 +281,19 @@ async def resolve_google_drive(
                 body = await resp.content.read(8192)
                 text = body.decode("utf-8", errors="replace")
 
-                # 2) Virus-scan page: extract filename from anchor tag
                 m = GDRIVE_VIRUS_PAGE_RE.search(text)
                 if m:
                     return True, m.group(1).strip()
 
+                if "quota exceeded" in text.lower():
+                    return True, None
+
                 if "download" in text.lower() and file_id in text:
                     return True, None
-                if "not found" in text.lower() or "sorry" in text.lower():
+                if "not found" in text.lower():
                     return False, None
+
                 return True, None
-            # Non-HTML, no CD
             return True, fname
     except Exception:
         return False, None
@@ -179,50 +302,68 @@ async def resolve_google_drive(
 async def resolve_mediafire(
     session: aiohttp.ClientSession, url: str
 ) -> tuple[bool, str | None]:
-    """Check MediaFire link liveness via HEAD."""
-    fname = filename_from_mediafire_url(url)
-    try:
-        async with session.head(
-            url,
-            allow_redirects=True,
-            timeout=aiohttp.ClientTimeout(total=REQUEST_TIMEOUT),
-        ) as resp:
-            if resp.status >= 400:
-                return False, fname
-            return True, fname
-    except Exception:
-        return False, fname
-
-
-async def resolve_mega(
-    session: aiohttp.ClientSession, url: str
-) -> tuple[bool, str | None]:
-    """
-    Check Mega.nz link.  Without the Mega SDK we do a simple GET
-    to see if the page returns a valid response or an error/expired page.
-    """
     try:
         async with session.get(
             url,
             allow_redirects=True,
             timeout=aiohttp.ClientTimeout(total=REQUEST_TIMEOUT),
         ) as resp:
-            if resp.status >= 400:
-                return False, None
-            body = await resp.content.read(8192)
+            final_url = str(resp.url)
+            if resp.status >= 400 or "error.php" in final_url:
+                return False, filename_from_mediafire_url(url)
+
+            body = await resp.content.read(65536)
             text = body.decode("utf-8", errors="replace")
-            # Mega shows specific error strings for expired/removed files
-            if any(
-                s in text.lower()
-                for s in [
-                    "the file you are trying to download is no longer available",
-                    "link not available",
-                    "file has been removed",
-                    "taken down",
-                ]
-            ):
+
+            if "invalid or deleted" in text.lower():
+                return False, filename_from_mediafire_url(url)
+
+            m = MEDIAFIRE_FILENAME_RE.search(text)
+            if m:
+                return True, m.group(1).strip()
+
+            return True, filename_from_mediafire_url(url)
+    except Exception:
+        return False, filename_from_mediafire_url(url)
+
+
+async def resolve_mega(
+    session: aiohttp.ClientSession, url: str
+) -> tuple[bool, str | None]:
+    handle, key_b64 = _mega_parse_url(url)
+    if not handle:
+        return False, None
+
+    try:
+        async with session.post(
+            "https://g.api.mega.co.nz/cs",
+            json=[{"a": "g", "g": 1, "p": handle}],
+            timeout=aiohttp.ClientTimeout(total=REQUEST_TIMEOUT),
+        ) as resp:
+            data = await resp.json(content_type=None)
+
+            if not isinstance(data, list) or len(data) == 0:
                 return False, None
-            return True, None
+
+            item = data[0]
+
+            if isinstance(item, int):
+                if item == -9:
+                    return False, None
+                if item == -16:
+                    return False, None
+                if item in (-11, -17):
+                    return True, None
+                return False, None
+
+            if isinstance(item, dict):
+                at_b64 = item.get("at", "")
+                fname = None
+                if at_b64 and key_b64:
+                    fname = mega_decrypt_attrs(at_b64, key_b64)
+                return True, fname
+
+            return False, None
     except Exception:
         return False, None
 
@@ -230,10 +371,6 @@ async def resolve_mega(
 async def resolve_gdocs(
     session: aiohttp.ClientSession, url: str
 ) -> tuple[bool, str | None]:
-    """
-    Google Docs links are documents, not firmware files.
-    We check if they are accessible but cannot extract a firmware filename.
-    """
     try:
         async with session.head(
             url,
@@ -248,26 +385,86 @@ async def resolve_gdocs(
 async def resolve_onedrive(
     session: aiohttp.ClientSession, url: str
 ) -> tuple[bool, str | None]:
-    """Check OneDrive link liveness."""
+    """
+    Resolve OneDrive links using Playwright (headless Chrome) to bypass
+    bot detection.  OneDrive SPAs require JS to render file information.
+
+    Strategy:
+      1. Open the URL in headless Chrome.
+      2. Wait for the page to load and JS to render.
+      3. Look for the filename in the page content or title.
+      4. Detect error pages (login redirect, 404, item-not-found).
+    """
+    page = None
     try:
-        async with session.head(
-            url,
-            allow_redirects=True,
-            timeout=aiohttp.ClientTimeout(total=REQUEST_TIMEOUT),
-        ) as resp:
-            if resp.status >= 400:
-                return False, None
-            cd = resp.headers.get("Content-Disposition", "")
-            fname = parse_content_disposition(cd) if cd else None
-            return True, fname
+        page = await _get_playwright_page()
+        resp = await page.goto(url, wait_until="domcontentloaded",
+                               timeout=PLAYWRIGHT_TIMEOUT)
+        final_url = page.url
+
+        # If redirected to login → requires auth, assume alive (private share)
+        if "login.live.com" in final_url or "login.microsoftonline.com" in final_url:
+            await page.close()
+            return True, None
+
+        # Wait a bit for SPA JS to render
+        await page.wait_for_timeout(3000)
+
+        # Check for error indicators
+        content = await page.content()
+        title = await page.title()
+
+        if any(s in content.lower() for s in [
+            "item might not exist",
+            "this item might have been deleted",
+            "isn't available",
+            "doesn't exist",
+            "item not found",
+        ]):
+            await page.close()
+            return False, None
+
+        # Extract filename from page content
+        fname = None
+
+        # Method 1: JS variable / JSON in page source
+        m = ONEDRIVE_FILENAME_RE.search(content)
+        if m:
+            fname = m.group(1)
+
+        # Method 2: Try to read the visible filename from the rendered DOM
+        if not fname:
+            try:
+                el = await page.query_selector('[data-automationid="FieldRenderer-name"]')
+                if el:
+                    fname = (await el.inner_text()).strip()
+            except Exception:
+                pass
+
+        # Method 3: Title often contains "filename - OneDrive"
+        if not fname and title and " - " in title:
+            candidate = title.rsplit(" - ", 1)[0].strip()
+            if candidate and candidate.lower() != "onedrive":
+                fname = candidate
+
+        await page.close()
+
+        # Determine liveness
+        if resp and resp.status >= 400:
+            return False, fname
+        return True, fname
     except Exception:
+        if page:
+            try:
+                await page.close()
+            except Exception:
+                pass
         return False, None
 
 
 async def resolve_other(
     session: aiohttp.ClientSession, url: str
 ) -> tuple[bool, str | None]:
-    """Generic HEAD check for unknown services."""
     try:
         async with session.head(
             url,
@@ -293,7 +490,7 @@ RESOLVERS = {
 }
 
 
-# ── Main processing ──────────────────────────────────────────────────
+# ── Entry processor ──────────────────────────────────────────────────
 
 async def process_entry(
     session: aiohttp.ClientSession,
@@ -302,19 +499,15 @@ async def process_entry(
     url: str,
     line_num: int,
     cache: dict[str, tuple[bool, str | None]],
-) -> tuple[int, str, str, bool] | None:
-    """
-    Process one entry: resolve filename, check liveness.
-    Returns (line_num, final_name, url, alive) or None on parse error.
-    Uses *cache* keyed by canonical URL to avoid duplicate HTTP requests.
-    """
+) -> tuple[int, str, str, str, bool]:
     svc = classify_url(url)
     resolver = RESOLVERS.get(svc, resolve_other)
 
-    # Build a cache key: for Google Drive use the file ID, otherwise
-    # use the full URL so identical links are only checked once.
     if svc == "gdrive":
         cache_key = extract_google_drive_id(url) or url
+    elif svc == "mega":
+        handle, _ = _mega_parse_url(url)
+        cache_key = handle or url
     else:
         cache_key = url
 
@@ -328,19 +521,24 @@ async def process_entry(
     url_name = extract_filename_from_url(url)
     final_name = resolved_name or url_name or original_name
 
-    return line_num, final_name, url, alive
+    return line_num, final_name, url, svc, alive
 
+
+# ── Main ─────────────────────────────────────────────────────────────
 
 async def main() -> None:
-    # ── Read input ────────────────────────────────────────────────────
+    wall_start = time.time()
+
+    # ── Read input ────────────────────────────────────────────────
+    gh_group("📂 Reading input file")
     try:
         with open(INPUT_FILE, encoding="utf-8") as f:
             lines = f.readlines()
     except FileNotFoundError:
-        log.error("Input file '%s' not found.", INPUT_FILE)
+        gh_error(f"Input file '{INPUT_FILE}' not found.")
         sys.exit(1)
 
-    entries: list[tuple[int, str, str]] = []  # (line_num, name, url)
+    entries: list[tuple[int, str, str]] = []
     skipped = 0
 
     for i, raw_line in enumerate(lines, start=1):
@@ -349,19 +547,22 @@ async def main() -> None:
             continue
         m = LINE_RE.match(line)
         if not m:
-            log.warning("Line %d: cannot parse – skipped.", i)
             skipped += 1
             continue
         entries.append((i, m.group(1), m.group(2)))
 
-    log.info(
-        "Parsed %d entries from %s (%d unparseable lines skipped).",
-        len(entries),
-        INPUT_FILE,
-        skipped,
-    )
+    svc_counts: dict[str, int] = {}
+    for _, _, url in entries:
+        svc = classify_url(url)
+        svc_counts[svc] = svc_counts.get(svc, 0) + 1
 
-    # ── Resolve & check ──────────────────────────────────────────────
+    gh_info(f"  {_BOLD}Total entries:{_RESET} {len(entries)}")
+    gh_info(f"  {_DIM}Unparseable lines skipped:{_RESET} {skipped}")
+    for svc, cnt in sorted(svc_counts.items(), key=lambda x: -x[1]):
+        gh_info(f"    {svc:<12} {cnt:>6}")
+    gh_endgroup()
+
+    # ── Process in parallel batches ───────────────────────────────
     sem = asyncio.Semaphore(CONCURRENCY)
     timeout = aiohttp.ClientTimeout(total=REQUEST_TIMEOUT, connect=10)
     connector = aiohttp.TCPConnector(
@@ -371,48 +572,112 @@ async def main() -> None:
         enable_cleanup_closed=True,
     )
 
+    alive_entries: list[tuple[int, str, str]] = []
+    dead_count = 0
+    svc_alive: dict[str, int] = {}
+    svc_dead: dict[str, int] = {}
+    renamed_count = 0
+
+    total = len(entries)
+    num_batches = (total + BATCH_SIZE - 1) // BATCH_SIZE
+
     async with aiohttp.ClientSession(
         connector=connector,
         timeout=timeout,
         headers={"User-Agent": "Mozilla/5.0"},
     ) as session:
         cache: dict[str, tuple[bool, str | None]] = {}
-        tasks = [
-            process_entry(session, sem, name, url, ln, cache)
-            for ln, name, url in entries
-        ]
 
-        alive_entries: list[tuple[int, str, str]] = []
-        dead_count = 0
-        done = 0
-        total = len(tasks)
+        for batch_idx in range(num_batches):
+            start = batch_idx * BATCH_SIZE
+            end = min(start + BATCH_SIZE, total)
+            batch = entries[start:end]
 
-        for coro in asyncio.as_completed(tasks):
-            result = await coro
-            done += 1
-            if done % PROGRESS_INTERVAL == 0 or done == total:
-                log.info("Progress: %d / %d checked.", done, total)
-            if result is None:
-                continue
-            ln, final_name, url, alive = result
-            if alive:
-                alive_entries.append((ln, final_name, url))
-            else:
-                dead_count += 1
+            pct_start = start * 100 // total
+            pct_end = end * 100 // total
+            gh_group(
+                f"🔍 Batch {batch_idx + 1}/{num_batches}  "
+                f"[{start + 1}–{end} of {total}]  ({pct_start}%–{pct_end}%)"
+            )
 
-    # Sort by original line number to preserve order
+            tasks = [
+                process_entry(session, sem, name, url, ln, cache)
+                for ln, name, url in batch
+            ]
+            results = await asyncio.gather(*tasks, return_exceptions=True)
+
+            for res in results:
+                if isinstance(res, Exception):
+                    dead_count += 1
+                    continue
+
+                ln, final_name, url, svc, alive = res
+
+                if alive:
+                    alive_entries.append((ln, final_name, url))
+                    svc_alive[svc] = svc_alive.get(svc, 0) + 1
+
+                    original = None
+                    for _ln, _name, _url in batch:
+                        if _ln == ln:
+                            original = _name
+                            break
+                    if original and final_name != original:
+                        renamed_count += 1
+                        gh_info(
+                            f"  {_GREEN}✔{_RESET} {_BOLD}{final_name}{_RESET}"
+                            f"  {_DIM}← {original}{_RESET}"
+                        )
+                    else:
+                        gh_info(
+                            f"  {_GREEN}✔{_RESET} {final_name}"
+                        )
+                else:
+                    dead_count += 1
+                    svc_dead[svc] = svc_dead.get(svc, 0) + 1
+                    gh_info(f"  {_RED}✖{_RESET} {_DIM}DEAD{_RESET} {url[:80]}")
+
+            gh_info(
+                f"  {_CYAN}Batch done:{_RESET} "
+                f"{_GREEN}{sum(1 for r in results if not isinstance(r, Exception) and r[4])} alive{_RESET}, "
+                f"{_RED}{sum(1 for r in results if isinstance(r, Exception) or not r[4])} dead{_RESET}"
+            )
+            gh_endgroup()
+
+    # Close Playwright if it was started
+    await _close_playwright()
+
     alive_entries.sort(key=lambda x: x[0])
 
-    # ── Write output ─────────────────────────────────────────────────
+    # ── Write output ──────────────────────────────────────────────
+    gh_group("💾 Writing output")
     with open(OUTPUT_FILE, "w", encoding="utf-8") as out:
-        for idx, (_, name, url) in enumerate(alive_entries, start=1):
+        for _, name, url in alive_entries:
             out.write(f"- **{name}** — [Download]({url})\n")
+    gh_info(f"  Wrote {len(alive_entries)} entries to {_BOLD}{OUTPUT_FILE}{_RESET}")
+    gh_endgroup()
 
-    log.info(
-        "Done. %d alive entries written to %s. %d dead/expired links removed.",
-        len(alive_entries),
-        OUTPUT_FILE,
-        dead_count,
+    # ── Summary ───────────────────────────────────────────────────
+    elapsed = time.time() - wall_start
+    gh_group("📊 Summary")
+    gh_info(f"  {_BOLD}Total processed:{_RESET}  {total}")
+    gh_info(f"  {_GREEN}Alive:{_RESET}             {len(alive_entries)}")
+    gh_info(f"  {_RED}Dead/expired:{_RESET}      {dead_count}")
+    gh_info(f"  {_CYAN}Renamed:{_RESET}           {renamed_count}")
+    gh_info(f"  {_DIM}Cache hits:{_RESET}        {total - len(cache)}")
+    gh_info(f"  {_DIM}Wall time:{_RESET}         {elapsed:.1f}s")
+    gh_info("")
+    gh_info(f"  {_BOLD}Per service (alive / dead):{_RESET}")
+    all_svcs = sorted(set(list(svc_alive.keys()) + list(svc_dead.keys())))
+    for svc in all_svcs:
+        a = svc_alive.get(svc, 0)
+        d = svc_dead.get(svc, 0)
+        gh_info(f"    {svc:<12} {_GREEN}{a:>6} ✔{_RESET}  {_RED}{d:>6} ✖{_RESET}")
+    gh_endgroup()
+
+    gh_notice(
+        f"Done: {len(alive_entries)} alive, {dead_count} dead, "
+        f"{renamed_count} renamed in {elapsed:.1f}s"
     )
 
 

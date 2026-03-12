@@ -506,7 +506,8 @@ class TestProcessEntry(unittest.TestCase):
         async def fake_resolver(sess, u):
             return resolver_return
 
-        with patch("process_downloads.RESOLVERS", {"gdrive": fake_resolver, "mediafire": fake_resolver, "mega": fake_resolver}):
+        patched = {k: fake_resolver for k in ("gdrive", "mediafire", "mega", "gdocs", "onedrive", "other")}
+        with patch("process_downloads.RESOLVERS", patched):
             result = asyncio.get_event_loop().run_until_complete(
                 process_entry(session, sem, original_name, url, 1)
             )
@@ -571,7 +572,9 @@ class TestEndToEnd(unittest.TestCase):
         in_file = tempfile.NamedTemporaryFile(mode="w", suffix=".md", delete=False)
         in_file.write(self.SAMPLE_INPUT)
         in_file.close()
-        out_file = tempfile.mktemp(suffix=".md")
+        out_tmp = tempfile.NamedTemporaryFile(mode="w", suffix=".md", delete=False)
+        out_file = out_tmp.name
+        out_tmp.close()
 
         # Patch module-level file paths
         orig_in, orig_out = pd.INPUT_FILE, pd.OUTPUT_FILE

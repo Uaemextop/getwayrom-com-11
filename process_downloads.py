@@ -4,6 +4,8 @@ Process download_urls.md: extract real filenames from download links,
 remove dead/expired links, and save results to firmware_ok.md.
 
 Supports: Google Drive, MediaFire, Mega.nz, Google Docs, OneDrive.
+
+Requires Python 3.10+ (uses X | Y union type syntax).
 """
 
 import re

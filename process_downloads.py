@@ -275,6 +275,28 @@ async def resolve_google_drive(
     if not file_id:
         return False, None
 
+    # Strategy 1: HEAD the direct usercontent download URL (with confirm=t).
+    # This returns Content-Disposition with the real filename and avoids
+    # the virus-scan HTML page entirely.
+    direct_url = (
+        f"https://drive.usercontent.google.com/download"
+        f"?id={file_id}&export=download&confirm=t"
+    )
+    try:
+        async with session.head(
+            direct_url,
+            allow_redirects=True,
+            timeout=aiohttp.ClientTimeout(total=REQUEST_TIMEOUT),
+        ) as resp:
+            if resp.status < 400:
+                cd = resp.headers.get("Content-Disposition", "")
+                fname = parse_content_disposition(cd) if cd else None
+                if fname:
+                    return True, fname
+    except Exception:
+        pass
+
+    # Strategy 2: GET via the /uc endpoint and parse virus-scan HTML page.
     check_url = f"https://drive.google.com/uc?id={file_id}&export=download"
     try:
         async with session.get(

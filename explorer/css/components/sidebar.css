@@ -1,0 +1,61 @@
+/* ============================================
+   GetwayROM File Explorer - Component: Sidebar
+   Navigation sidebar items and badges
+   ============================================ */
+
+.sidebar-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    width: 100%;
+    padding: var(--space-2) var(--space-3);
+    border: none;
+    background: transparent;
+    font-family: inherit;
+    font-size: var(--font-size-base);
+    color: var(--text-primary);
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    transition: background var(--transition-normal);
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.sidebar-item i {
+    font-size: 16px;
+    width: 20px;
+    text-align: center;
+    color: var(--text-secondary);
+    flex-shrink: 0;
+}
+
+.sidebar-item span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.sidebar-item:hover {
+    background: var(--bg-hover);
+}
+
+.sidebar-item.active {
+    background: var(--bg-active);
+    color: var(--color-primary);
+    font-weight: var(--font-weight-medium);
+}
+
+.sidebar-item.active i {
+    color: var(--color-primary);
+}
+
+.badge {
+    margin-left: auto;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--text-muted);
+    background: var(--bg-hover);
+    padding: 2px 8px;
+    border-radius: var(--radius-xl);
+    flex-shrink: 0;
+}

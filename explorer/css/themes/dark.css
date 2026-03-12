@@ -1,0 +1,76 @@
+/* ============================================
+   GetwayROM File Explorer - Dark Theme
+   Overrides CSS variables for dark mode
+   ============================================ */
+
+[data-theme="dark"] {
+    /* Background Colors */
+    --bg-primary: #1e1e1e;
+    --bg-secondary: #252526;
+    --bg-tertiary: #2d2d30;
+    --bg-hover: #2a2d2e;
+    --bg-active: #37373d;
+
+    /* Text Colors */
+    --text-primary: #cccccc;
+    --text-secondary: #9e9e9e;
+    --text-muted: #6e6e6e;
+    --text-inverse: #1e1e1e;
+
+    /* Border Colors */
+    --border-primary: #3e3e42;
+    --border-light: #2d2d30;
+    --border-focus: #007acc;
+
+    /* Primary Colors */
+    --color-primary: #4fc3f7;
+    --color-primary-hover: #29b6f6;
+    --color-primary-light: rgba(79, 195, 247, 0.15);
+    --color-primary-dark: #0288d1;
+
+    /* Semantic Colors */
+    --color-success: #66bb6a;
+    --color-warning: #ffa726;
+    --color-error: #ef5350;
+    --color-info: #42a5f5;
+
+    /* Shadows (darker) */
+    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.2);
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 2px 6px rgba(0, 0, 0, 0.3);
+    --shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.4);
+    --shadow-xl: 0 8px 24px rgba(0, 0, 0, 0.5);
+
+    /* File type colors (softer for dark mode) */
+    --color-archive-bg: rgba(198, 40, 40, 0.2);
+    --color-android-bg: rgba(46, 125, 50, 0.2);
+    --color-image-bg: rgba(21, 101, 192, 0.2);
+    --color-disk-bg: rgba(230, 81, 0, 0.2);
+    --color-executable-bg: rgba(106, 27, 154, 0.2);
+    --color-binary-bg: rgba(55, 71, 79, 0.3);
+    --color-document-bg: rgba(40, 53, 147, 0.2);
+    --color-file-bg: rgba(97, 97, 97, 0.2);
+
+    --color-archive: #ef9a9a;
+    --color-android: #a5d6a7;
+    --color-image: #90caf9;
+    --color-disk: #ffcc80;
+    --color-executable: #ce93d8;
+    --color-binary: #b0bec5;
+    --color-document: #9fa8da;
+    --color-file: #bdbdbd;
+}
+
+/* Dark mode scrollbar */
+[data-theme="dark"] ::-webkit-scrollbar-thumb {
+    background: #4a4a4a;
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+    background: #5a5a5a;
+}
+
+/* Dark mode selection */
+[data-theme="dark"] ::selection {
+    background: rgba(79, 195, 247, 0.3);
+}

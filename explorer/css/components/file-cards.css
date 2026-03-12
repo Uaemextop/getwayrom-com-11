@@ -1,0 +1,217 @@
+/* ============================================
+   GetwayROM File Explorer - Component: File Cards
+   Grid view cards and list view rows
+   ============================================ */
+
+/* --- File Grid --- */
+.file-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: var(--space-3);
+}
+
+.file-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-3);
+    cursor: pointer;
+    transition: all var(--transition-normal);
+    text-decoration: none;
+    color: inherit;
+    position: relative;
+    overflow: hidden;
+    animation: cardFadeIn var(--transition-fast) ease;
+}
+
+@keyframes cardFadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.file-card:hover {
+    border-color: var(--color-primary);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+
+.file-card:active {
+    transform: translateY(0);
+}
+
+.file-card-icon {
+    width: 56px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-sm);
+    font-size: 28px;
+    transition: transform var(--transition-normal);
+}
+
+.file-card:hover .file-card-icon {
+    transform: scale(1.05);
+}
+
+/* File type icon colors */
+.file-card-icon.archive { background: var(--color-archive-bg); color: var(--color-archive); }
+.file-card-icon.android { background: var(--color-android-bg); color: var(--color-android); }
+.file-card-icon.image { background: var(--color-image-bg); color: var(--color-image); }
+.file-card-icon.disk { background: var(--color-disk-bg); color: var(--color-disk); }
+.file-card-icon.executable { background: var(--color-executable-bg); color: var(--color-executable); }
+.file-card-icon.binary { background: var(--color-binary-bg); color: var(--color-binary); }
+.file-card-icon.document { background: var(--color-document-bg); color: var(--color-document); }
+.file-card-icon.file { background: var(--color-file-bg); color: var(--color-file); }
+
+.file-card-name {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    text-align: center;
+    word-break: break-word;
+    line-height: var(--line-height-normal);
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    max-width: 100%;
+}
+
+.file-card-meta {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
+}
+
+.file-card-brand {
+    padding: 2px 8px;
+    background: var(--bg-hover);
+    border-radius: 10px;
+    font-weight: var(--font-weight-medium);
+}
+
+.file-card-ext {
+    text-transform: uppercase;
+    font-weight: var(--font-weight-semibold);
+}
+
+.file-card-download {
+    display: none;
+    position: absolute;
+    bottom: var(--space-3);
+    right: var(--space-3);
+}
+
+.file-card:hover .file-card-download {
+    display: flex;
+}
+
+/* --- File List View --- */
+.file-list {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+}
+
+.file-list-header {
+    display: flex;
+    align-items: center;
+    padding: var(--space-3) var(--space-4);
+    background: var(--bg-tertiary);
+    border-bottom: 1px solid var(--border-light);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-bold);
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.list-col {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+}
+
+.list-col-name { flex: 1; min-width: 0; }
+.list-col-brand { width: 120px; flex-shrink: 0; }
+.list-col-ext { width: 80px; flex-shrink: 0; }
+.list-col-action { width: 110px; flex-shrink: 0; text-align: center; }
+
+.file-list-row {
+    display: flex;
+    align-items: center;
+    padding: 10px var(--space-4);
+    border-bottom: 1px solid var(--border-light);
+    transition: background var(--transition-normal);
+    text-decoration: none;
+    color: inherit;
+    animation: cardFadeIn var(--transition-fast) ease;
+}
+
+.file-list-row:hover {
+    background: var(--bg-hover);
+}
+
+.file-list-row:last-child {
+    border-bottom: none;
+}
+
+.list-row-icon {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    font-size: 16px;
+    margin-right: var(--space-3);
+    flex-shrink: 0;
+}
+
+.list-row-name {
+    flex: 1;
+    min-width: 0;
+    font-size: var(--font-size-base);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.list-row-brand {
+    width: 120px;
+    flex-shrink: 0;
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+}
+
+.list-row-ext {
+    width: 80px;
+    flex-shrink: 0;
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+
+.list-row-action {
+    width: 110px;
+    flex-shrink: 0;
+    text-align: center;
+}
+
+/* --- Highlight search matches --- */
+.highlight {
+    background: var(--color-accent);
+    padding: 0 2px;
+    border-radius: 2px;
+    color: var(--text-primary);
+}

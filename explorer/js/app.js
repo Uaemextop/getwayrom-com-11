@@ -1,10 +1,18 @@
 /**
- * GetwayROM File Explorer - Main Application
- * Professional file explorer with advanced search, filtering, and sorting
+ * GetwayROM File Explorer - Main Application Controller
+ * Orchestrates all modules: search, rendering, sidebar, theme, keyboard, notifications
  */
 
 (function () {
   'use strict';
+
+  var Utils = GWR.Utils;
+  var SearchEngine = GWR.SearchEngine;
+  var FileRenderer = GWR.FileRenderer;
+  var Sidebar = GWR.Sidebar;
+  var Theme = GWR.Theme;
+  var Keyboard = GWR.Keyboard;
+  var Toast = GWR.Toast;
 
   // --- Configuration ---
   var ITEMS_PER_PAGE = 60;
@@ -16,14 +24,13 @@
     filteredFiles: [],
     currentPage: 1,
     totalPages: 1,
-    viewMode: 'grid', // 'grid' or 'list'
+    viewMode: 'grid',
     sortBy: 'name-asc',
     searchQuery: '',
     filterBrand: '',
     filterExtension: '',
     filterName: '',
     sidebarFilter: 'all',
-    fuse: null,
     metadata: null
   };
 
@@ -64,44 +71,13 @@
     dom.pageInfo = document.getElementById('pageInfo');
     dom.pagination = document.getElementById('pagination');
     dom.content = document.getElementById('content');
+    dom.themeToggle = document.getElementById('themeToggle');
   }
-
-  // --- Icon Mapping ---
-  var FILE_ICONS = {
-    archive: 'fas fa-file-archive',
-    android: 'fab fa-android',
-    image: 'fas fa-compact-disc',
-    disk: 'fas fa-compact-disc',
-    executable: 'fas fa-cog',
-    binary: 'fas fa-microchip',
-    document: 'fas fa-file-alt',
-    file: 'fas fa-file'
-  };
-
-  var BRAND_ICONS = {
-    Samsung: 'fas fa-mobile-alt',
-    Xiaomi: 'fas fa-mobile-alt',
-    OPPO: 'fas fa-mobile-alt',
-    Realme: 'fas fa-mobile-alt',
-    Vivo: 'fas fa-mobile-alt',
-    Huawei: 'fas fa-mobile-alt',
-    Honor: 'fas fa-mobile-alt',
-    Nokia: 'fas fa-mobile-alt',
-    LG: 'fas fa-tv',
-    Motorola: 'fas fa-mobile-alt',
-    Sony: 'fas fa-mobile-alt',
-    Lenovo: 'fas fa-laptop',
-    OnePlus: 'fas fa-mobile-alt',
-    ASUS: 'fas fa-laptop',
-    Tecno: 'fas fa-mobile-alt',
-    Infinix: 'fas fa-mobile-alt',
-    Itel: 'fas fa-mobile-alt',
-    Jio: 'fas fa-mobile-alt',
-    Other: 'fas fa-folder'
-  };
 
   // --- Data Loading ---
   function loadData() {
+    FileRenderer.renderSkeletonGrid(dom.fileGrid, 12);
+
     var xhr = new XMLHttpRequest();
     xhr.open('GET', DATA_URL, true);
     xhr.onreadystatechange = function () {
@@ -123,9 +99,11 @@
 
   function showError(msg) {
     dom.loading.classList.add('hidden');
+    dom.fileGrid.innerHTML = '';
     dom.emptyState.classList.remove('hidden');
     dom.emptyState.querySelector('h3').textContent = 'Error';
     dom.emptyState.querySelector('p').textContent = msg;
+    Toast.error(msg);
   }
 
   // --- Initialization ---
@@ -138,70 +116,30 @@
       extensions: data.extensions
     };
 
-    // Initialize Fuse.js for fuzzy search
-    if (typeof Fuse !== 'undefined') {
-      state.fuse = new Fuse(state.allFiles, {
-        keys: [
-          { name: 'name', weight: 0.7 },
-          { name: 'brand', weight: 0.2 },
-          { name: 'extension', weight: 0.1 }
-        ],
-        threshold: 0.3,
-        distance: 100,
-        minMatchCharLength: 2,
-        includeScore: true,
-        includeMatches: true
-      });
-    }
+    // Initialize search engine
+    SearchEngine.init(state.allFiles);
 
-    populateSidebar();
+    // Populate sidebar using module
+    Sidebar.init({ onFilterChange: function () { applyFiltersAndSearch(); } });
+    Sidebar.populateBrands(dom.brandList, state.metadata.brands);
+    Sidebar.populateExtensions(dom.extensionList, state.metadata.extensions);
+
+    // Populate filter dropdowns
     populateFilters();
-    updateStats();
+
+    // Update stats
+    dom.totalCount.textContent = Utils.formatNumber(state.allFiles.length);
+    dom.fileStats.textContent = Utils.formatNumber(state.allFiles.length) + ' firmware files';
+
     applyFiltersAndSearch();
-
     dom.loading.classList.add('hidden');
-  }
 
-  // --- Sidebar Population ---
-  function populateSidebar() {
-    var brands = state.metadata.brands;
-    var sortedBrands = Object.entries(brands).sort(function (a, b) { return b[1] - a[1]; });
-
-    var brandHtml = '';
-    sortedBrands.forEach(function (entry) {
-      var brand = entry[0];
-      var count = entry[1];
-      var icon = BRAND_ICONS[brand] || 'fas fa-folder';
-      brandHtml += '<button class="sidebar-item" data-filter="brand:' + escapeHtml(brand) + '">' +
-        '<i class="' + icon + '"></i>' +
-        '<span>' + escapeHtml(brand) + '</span>' +
-        '<span class="badge">' + formatNumber(count) + '</span>' +
-        '</button>';
-    });
-    dom.brandList.innerHTML = brandHtml;
-
-    var extensions = state.metadata.extensions;
-    var sortedExts = Object.entries(extensions).sort(function (a, b) { return b[1] - a[1]; }).slice(0, 15);
-
-    var extHtml = '';
-    sortedExts.forEach(function (entry) {
-      var ext = entry[0];
-      var count = entry[1];
-      extHtml += '<button class="sidebar-item" data-filter="ext:' + escapeHtml(ext) + '">' +
-        '<i class="fas fa-file"></i>' +
-        '<span>.' + escapeHtml(ext) + '</span>' +
-        '<span class="badge">' + formatNumber(count) + '</span>' +
-        '</button>';
-    });
-    dom.extensionList.innerHTML = extHtml;
-
-    dom.totalCount.textContent = formatNumber(state.allFiles.length);
+    Toast.success('Loaded ' + Utils.formatNumber(state.allFiles.length) + ' firmware files');
   }
 
   function populateFilters() {
     var brands = state.metadata.brands;
-    var sortedBrands = Object.keys(brands).sort();
-    sortedBrands.forEach(function (brand) {
+    Object.keys(brands).sort().forEach(function (brand) {
       var opt = document.createElement('option');
       opt.value = brand;
       opt.textContent = brand + ' (' + brands[brand] + ')';
@@ -209,17 +147,12 @@
     });
 
     var extensions = state.metadata.extensions;
-    var sortedExts = Object.keys(extensions).sort();
-    sortedExts.forEach(function (ext) {
+    Object.keys(extensions).sort().forEach(function (ext) {
       var opt = document.createElement('option');
       opt.value = ext;
       opt.textContent = '.' + ext + ' (' + extensions[ext] + ')';
       dom.filterExtension.appendChild(opt);
     });
-  }
-
-  function updateStats() {
-    dom.fileStats.textContent = formatNumber(state.allFiles.length) + ' firmware files';
   }
 
   // --- Search & Filter ---
@@ -250,36 +183,10 @@
       results = results.filter(function (f) { return f.name.toLowerCase().indexOf(lowerFilter) !== -1; });
     }
 
-    // Apply search (fuzzy or exact)
+    // Apply search using the SearchEngine module
     if (state.searchQuery) {
-      var query = state.searchQuery.trim();
-
-      // Check for advanced search operators
-      if (query.indexOf(':') !== -1 || query.indexOf('"') !== -1) {
-        results = advancedSearch(results, query);
-      } else if (state.fuse && query.length >= 2) {
-        // Fuzzy search with Fuse.js
-        var fuseResults = state.fuse.search(query);
-        var matchedUrls = new Set();
-        fuseResults.forEach(function (r) { matchedUrls.add(r.item.url); });
-        results = results.filter(function (f) { return matchedUrls.has(f.url); });
-        // Sort by relevance
-        var urlOrder = {};
-        fuseResults.forEach(function (r, i) { urlOrder[r.item.url] = i; });
-        results.sort(function (a, b) {
-          var aIdx = urlOrder[a.url] !== undefined ? urlOrder[a.url] : 99999;
-          var bIdx = urlOrder[b.url] !== undefined ? urlOrder[b.url] : 99999;
-          return aIdx - bIdx;
-        });
-      } else {
-        // Simple exact search for short queries
-        var lowerQuery = query.toLowerCase();
-        results = results.filter(function (f) {
-          return f.name.toLowerCase().indexOf(lowerQuery) !== -1;
-        });
-      }
+      results = SearchEngine.search(results, state.searchQuery);
     } else {
-      // Apply sort if no search
       results = sortFiles(results, state.sortBy);
     }
 
@@ -290,56 +197,7 @@
     updateResultCount();
     renderFiles();
     updatePagination();
-  }
-
-  /**
-   * Advanced search with operators:
-   * - brand:Samsung → filter by brand
-   * - ext:zip → filter by extension
-   * - "exact phrase" → exact match
-   * - -keyword → exclude keyword
-   */
-  function advancedSearch(files, query) {
-    var tokens = [];
-    var regex = /(".*?"|[\S]+)/g;
-    var match;
-    while ((match = regex.exec(query)) !== null) {
-      tokens.push(match[1]);
-    }
-
-    var positiveTerms = [];
-    var negativeTerms = [];
-    var brandFilter = '';
-    var extFilter = '';
-
-    tokens.forEach(function (token) {
-      if (token.indexOf('brand:') === 0) {
-        brandFilter = token.substring(6).toLowerCase();
-      } else if (token.indexOf('ext:') === 0) {
-        extFilter = token.substring(4).toLowerCase().replace('.', '');
-      } else if (token.charAt(0) === '-' && token.length > 1) {
-        negativeTerms.push(token.substring(1).toLowerCase().replace(/"/g, ''));
-      } else {
-        positiveTerms.push(token.toLowerCase().replace(/"/g, ''));
-      }
-    });
-
-    return files.filter(function (f) {
-      var nameLower = f.name.toLowerCase();
-
-      if (brandFilter && f.brand.toLowerCase() !== brandFilter) return false;
-      if (extFilter && f.extension.toLowerCase() !== extFilter) return false;
-
-      for (var i = 0; i < negativeTerms.length; i++) {
-        if (nameLower.indexOf(negativeTerms[i]) !== -1) return false;
-      }
-
-      for (var j = 0; j < positiveTerms.length; j++) {
-        if (nameLower.indexOf(positiveTerms[j]) === -1) return false;
-      }
-
-      return true;
-    });
+    updateActiveFilterBadges();
   }
 
   // --- Sorting ---
@@ -364,7 +222,6 @@
         valA = a.name.toLowerCase();
         valB = b.name.toLowerCase();
       }
-
       if (valA < valB) return -1 * dir;
       if (valA > valB) return 1 * dir;
       return 0;
@@ -389,52 +246,18 @@
     dom.emptyState.classList.add('hidden');
 
     if (state.viewMode === 'grid') {
-      renderGrid(page);
+      FileRenderer.renderGrid(dom.fileGrid, page);
     } else {
-      renderList(page);
+      FileRenderer.renderList(dom.fileListBody, page);
     }
-  }
-
-  function renderGrid(files) {
-    var html = '';
-    files.forEach(function (file) {
-      var iconClass = FILE_ICONS[file.fileType] || FILE_ICONS.file;
-      html += '<a href="' + escapeAttr(file.url) + '" target="_blank" rel="noopener" class="file-card" title="' + escapeAttr(file.name) + '">' +
-        '<div class="file-card-icon ' + escapeAttr(file.fileType) + '">' +
-        '<i class="' + iconClass + '"></i></div>' +
-        '<div class="file-card-name">' + escapeHtml(file.name) + '</div>' +
-        '<div class="file-card-meta">' +
-        '<span class="file-card-brand">' + escapeHtml(file.brand) + '</span>' +
-        '<span class="file-card-ext">' + escapeHtml(file.extension) + '</span>' +
-        '</div>' +
-        '<div class="file-card-download"><i class="fas fa-download"></i></div>' +
-        '</a>';
-    });
-    dom.fileGrid.innerHTML = html;
-  }
-
-  function renderList(files) {
-    var html = '';
-    files.forEach(function (file) {
-      var iconClass = FILE_ICONS[file.fileType] || FILE_ICONS.file;
-      html += '<a href="' + escapeAttr(file.url) + '" target="_blank" rel="noopener" class="file-list-row" title="' + escapeAttr(file.name) + '">' +
-        '<div class="list-row-icon ' + escapeAttr(file.fileType) + '">' +
-        '<i class="' + iconClass + '"></i></div>' +
-        '<div class="list-row-name">' + escapeHtml(file.name) + '</div>' +
-        '<div class="list-row-brand">' + escapeHtml(file.brand) + '</div>' +
-        '<div class="list-row-ext">' + escapeHtml(file.extension) + '</div>' +
-        '<div class="list-row-action"><span class="btn-download">Download</span></div>' +
-        '</a>';
-    });
-    dom.fileListBody.innerHTML = html;
   }
 
   function updateResultCount() {
     var total = state.filteredFiles.length;
     if (state.searchQuery) {
-      dom.resultCount.textContent = formatNumber(total) + ' results for "' + state.searchQuery + '"';
+      dom.resultCount.textContent = Utils.formatNumber(total) + ' results for \u201c' + state.searchQuery + '\u201d';
     } else {
-      dom.resultCount.textContent = formatNumber(total) + ' files';
+      dom.resultCount.textContent = Utils.formatNumber(total) + ' files';
     }
   }
 
@@ -445,18 +268,60 @@
     dom.pagination.classList.toggle('hidden', state.totalPages <= 1);
   }
 
+  function updateActiveFilterBadges() {
+    var container = document.getElementById('activeFilters');
+    if (!container) return;
+    var html = '';
+
+    if (state.sidebarFilter !== 'all') {
+      html += '<span class="filter-badge"><i class="fas fa-filter"></i> ' +
+        Utils.escapeHtml(state.sidebarFilter.split(':').slice(1).join(':')) +
+        ' <button data-clear="sidebar"><i class="fas fa-times"></i></button></span>';
+    }
+    if (state.filterBrand) {
+      html += '<span class="filter-badge"><i class="fas fa-tag"></i> ' +
+        Utils.escapeHtml(state.filterBrand) +
+        ' <button data-clear="brand"><i class="fas fa-times"></i></button></span>';
+    }
+    if (state.filterExtension) {
+      html += '<span class="filter-badge"><i class="fas fa-file"></i> .' +
+        Utils.escapeHtml(state.filterExtension) +
+        ' <button data-clear="ext"><i class="fas fa-times"></i></button></span>';
+    }
+
+    container.innerHTML = html;
+
+    container.querySelectorAll('button[data-clear]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var type = this.getAttribute('data-clear');
+        if (type === 'sidebar') {
+          state.sidebarFilter = 'all';
+          Sidebar.setActiveItem('all');
+          dom.currentFilter.textContent = 'All Files';
+        } else if (type === 'brand') {
+          state.filterBrand = '';
+          dom.filterBrand.value = '';
+        } else if (type === 'ext') {
+          state.filterExtension = '';
+          dom.filterExtension.value = '';
+        }
+        applyFiltersAndSearch();
+      });
+    });
+  }
+
   // --- Event Handlers ---
   function bindEvents() {
-    // Search
-    var searchTimeout;
+    // Search (debounced)
+    var debouncedSearch = Utils.debounce(function (val) {
+      state.searchQuery = val;
+      applyFiltersAndSearch();
+    }, 300);
+
     dom.searchInput.addEventListener('input', function () {
-      clearTimeout(searchTimeout);
       var val = this.value;
       dom.searchClear.classList.toggle('hidden', !val);
-      searchTimeout = setTimeout(function () {
-        state.searchQuery = val;
-        applyFiltersAndSearch();
-      }, 300);
+      debouncedSearch(val);
     });
 
     dom.searchClear.addEventListener('click', function () {
@@ -522,8 +387,7 @@
     dom.sortMenu.addEventListener('click', function (e) {
       var item = e.target.closest('.dropdown-item');
       if (!item) return;
-      var sortKey = item.getAttribute('data-sort');
-      state.sortBy = sortKey;
+      state.sortBy = item.getAttribute('data-sort');
       dom.sortMenu.querySelectorAll('.dropdown-item').forEach(function (el) {
         el.classList.remove('active');
       });
@@ -533,14 +397,12 @@
     });
 
     // List header sort
-    var listHeaders = document.querySelectorAll('.file-list-header .list-col[data-sort]');
-    listHeaders.forEach(function (header) {
+    document.querySelectorAll('.file-list-header .list-col[data-sort]').forEach(function (header) {
       header.addEventListener('click', function () {
         var sortKey = this.getAttribute('data-sort');
-        // Toggle direction if already active
         if (state.sortBy === sortKey) {
-          var parts = sortKey.split('-');
-          sortKey = parts[0] + '-' + (parts[1] === 'asc' ? 'desc' : 'asc');
+          var p = sortKey.split('-');
+          sortKey = p[0] + '-' + (p[1] === 'asc' ? 'desc' : 'asc');
           this.setAttribute('data-sort', sortKey);
         }
         state.sortBy = sortKey;
@@ -548,43 +410,27 @@
       });
     });
 
-    // Sidebar
+    // Sidebar toggle
     dom.sidebarToggle.addEventListener('click', function () {
-      if (window.innerWidth <= 1024) {
-        dom.sidebar.classList.toggle('open');
-        toggleOverlay(dom.sidebar.classList.contains('open'));
-      } else {
-        dom.sidebar.classList.toggle('collapsed');
-      }
+      Sidebar.toggle(dom.sidebar);
     });
 
-    // Sidebar filter items
+    // Sidebar filter items (delegated)
     document.addEventListener('click', function (e) {
       var item = e.target.closest('.sidebar-item[data-filter]');
       if (item) {
         var filter = item.getAttribute('data-filter');
         state.sidebarFilter = filter;
+        Sidebar.setActiveItem(filter);
 
-        // Update active state
-        document.querySelectorAll('.sidebar-item').forEach(function (el) {
-          el.classList.remove('active');
-        });
-        item.classList.add('active');
-
-        // Update breadcrumb
-        if (filter === 'all') {
-          dom.currentFilter.textContent = 'All Files';
-        } else {
-          var parts = filter.split(':');
-          dom.currentFilter.textContent = parts.slice(1).join(':');
-        }
+        dom.currentFilter.textContent = filter === 'all'
+          ? 'All Files'
+          : filter.split(':').slice(1).join(':');
 
         applyFiltersAndSearch();
 
-        // Close sidebar on mobile
         if (window.innerWidth <= 1024) {
-          dom.sidebar.classList.remove('open');
-          toggleOverlay(false);
+          Sidebar.close(dom.sidebar);
         }
       }
     });
@@ -608,6 +454,14 @@
       }
     });
 
+    // Theme toggle
+    if (dom.themeToggle) {
+      dom.themeToggle.addEventListener('click', function () {
+        var newTheme = Theme.toggle();
+        Toast.info('Switched to ' + newTheme + ' mode');
+      });
+    }
+
     // Close dropdowns on outside click
     document.addEventListener('click', function (e) {
       if (!e.target.closest('.sort-dropdown')) {
@@ -617,63 +471,52 @@
         dom.advancedSearch.classList.add('hidden');
       }
     });
+  }
 
-    // Keyboard shortcut: focus search on /
-    document.addEventListener('keydown', function (e) {
-      if (e.key === '/' && document.activeElement !== dom.searchInput) {
-        e.preventDefault();
-        dom.searchInput.focus();
-      }
-      if (e.key === 'Escape') {
-        dom.searchInput.blur();
-        dom.advancedSearch.classList.add('hidden');
-        dom.sortMenu.classList.add('hidden');
-      }
+  // --- Keyboard Shortcuts ---
+  function setupKeyboardShortcuts() {
+    Keyboard.init();
+
+    Keyboard.register('/', 'Focus search bar', function () {
+      dom.searchInput.focus();
     });
-  }
 
-  // --- Overlay for mobile ---
-  function toggleOverlay(show) {
-    var overlay = document.querySelector('.sidebar-overlay');
-    if (!overlay && show) {
-      overlay = document.createElement('div');
-      overlay.className = 'sidebar-overlay active';
-      overlay.addEventListener('click', function () {
-        dom.sidebar.classList.remove('open');
-        toggleOverlay(false);
-      });
-      document.body.appendChild(overlay);
-    } else if (overlay) {
-      if (show) {
-        overlay.classList.add('active');
-      } else {
-        overlay.classList.remove('active');
-      }
-    }
-  }
+    Keyboard.register('Escape', 'Close menus and blur search', function () {
+      dom.advancedSearch.classList.add('hidden');
+      dom.sortMenu.classList.add('hidden');
+    });
 
-  // --- Utility Functions ---
-  function escapeHtml(str) {
-    var div = document.createElement('div');
-    div.appendChild(document.createTextNode(str));
-    return div.innerHTML;
-  }
+    Keyboard.register('g', 'Switch to grid view', function () {
+      dom.gridViewBtn.click();
+    });
 
-  function escapeAttr(str) {
-    return str.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  }
+    Keyboard.register('l', 'Switch to list view', function () {
+      dom.listViewBtn.click();
+    });
 
-  function formatNumber(n) {
-    if (n >= 1000) {
-      return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-    }
-    return n.toString();
+    Keyboard.register('t', 'Toggle dark/light theme', function () {
+      if (dom.themeToggle) dom.themeToggle.click();
+    });
+
+    Keyboard.register('?', 'Show keyboard shortcuts', function () {
+      Keyboard.showHelp();
+    });
+
+    Keyboard.register('ArrowLeft', 'Previous page', function () {
+      dom.prevPage.click();
+    });
+
+    Keyboard.register('ArrowRight', 'Next page', function () {
+      dom.nextPage.click();
+    });
   }
 
   // --- Init ---
   document.addEventListener('DOMContentLoaded', function () {
+    Theme.init();
     cacheDom();
     bindEvents();
+    setupKeyboardShortcuts();
     loadData();
   });
 

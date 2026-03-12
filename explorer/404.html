@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GetwayROM - Page Not Found</title>
+    <link rel="icon" href="../assets/images/logo/favicon.png" type="image/png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
+    <link rel="stylesheet" href="css/explorer.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-left">
+            <a href="index.html" class="btn-icon" aria-label="Back to explorer">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <div class="logo">
+                <i class="fas fa-microchip logo-icon"></i>
+                <span class="logo-text">GetwayROM</span>
+            </div>
+        </div>
+        <div class="header-center"></div>
+        <div class="header-right">
+            <button class="btn-icon" id="themeToggle" title="Toggle dark/light theme">
+                <i class="fas fa-moon"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- 404 Content -->
+    <div class="page-content">
+        <div class="page-container error-page">
+            <div class="error-icon">
+                <i class="fas fa-file-circle-xmark"></i>
+            </div>
+            <h1 class="error-code">404</h1>
+            <h2 class="error-title">Page Not Found</h2>
+            <p class="error-message">The page you are looking for does not exist or has been moved.</p>
+            <a href="index.html" class="btn btn-primary">
+                <i class="fas fa-home"></i> Back to Explorer
+            </a>
+        </div>
+    </div>
+
+    <!-- Footer Navigation -->
+    <footer class="footer-nav">
+        <div class="footer-nav-inner">
+            <a href="index.html" class="footer-link"><i class="fas fa-folder"></i> Explorer</a>
+            <a href="about.html" class="footer-link"><i class="fas fa-info-circle"></i> About</a>
+            <a href="help.html" class="footer-link"><i class="fas fa-keyboard"></i> Help</a>
+        </div>
+    </footer>
+
+    <script src="js/namespace.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/notifications.js"></script>
+    <script src="js/theme.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        GWR.Theme.init();
+        var toggle = document.getElementById('themeToggle');
+        if (toggle) {
+            toggle.addEventListener('click', function () {
+                GWR.Theme.toggle();
+            });
+        }
+    });
+    </script>
+</body>
+</html>

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GetwayROM - Help &amp; Keyboard Shortcuts</title>
+    <link rel="icon" href="../assets/images/logo/favicon.png" type="image/png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
+    <link rel="stylesheet" href="css/explorer.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-left">
+            <a href="index.html" class="btn-icon" aria-label="Back to explorer">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <div class="logo">
+                <i class="fas fa-microchip logo-icon"></i>
+                <span class="logo-text">GetwayROM</span>
+            </div>
+        </div>
+        <div class="header-center">
+            <h1 class="page-title">Help</h1>
+        </div>
+        <div class="header-right">
+            <button class="btn-icon" id="themeToggle" title="Toggle dark/light theme">
+                <i class="fas fa-moon"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Content -->
+    <div class="page-content">
+        <div class="page-container">
+            <div class="help-section">
+                <h2><i class="fas fa-keyboard"></i> Keyboard Shortcuts</h2>
+                <p>Use these shortcuts to navigate the file explorer quickly.</p>
+                <table class="shortcuts-table">
+                    <thead>
+                        <tr>
+                            <th>Key</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><kbd>/</kbd></td><td>Focus the search bar</td></tr>
+                        <tr><td><kbd>Escape</kbd></td><td>Close open menus and blur search</td></tr>
+                        <tr><td><kbd>g</kbd></td><td>Switch to grid view</td></tr>
+                        <tr><td><kbd>l</kbd></td><td>Switch to list view</td></tr>
+                        <tr><td><kbd>t</kbd></td><td>Toggle dark/light theme</td></tr>
+                        <tr><td><kbd>?</kbd></td><td>Show keyboard shortcuts modal</td></tr>
+                        <tr><td><kbd>&larr;</kbd></td><td>Go to previous page</td></tr>
+                        <tr><td><kbd>&rarr;</kbd></td><td>Go to next page</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="help-section">
+                <h2><i class="fas fa-search"></i> Search Tips</h2>
+                <p>The search bar supports both fuzzy matching and advanced filter operators.</p>
+
+                <div class="help-card">
+                    <h4>Fuzzy Search</h4>
+                    <p>Just type any part of a file name and the search engine will find approximate matches. For example, typing <code>samsung</code> will find all Samsung firmware files.</p>
+                </div>
+
+                <div class="help-card">
+                    <h4>Advanced Operators</h4>
+                    <p>Use these operators in the search bar for precise filtering:</p>
+                    <table class="shortcuts-table">
+                        <thead>
+                            <tr>
+                                <th>Operator</th>
+                                <th>Example</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td><code>brand:</code></td><td><code>brand:Samsung</code></td><td>Filter files by brand</td></tr>
+                            <tr><td><code>ext:</code></td><td><code>ext:zip</code></td><td>Filter files by extension</td></tr>
+                            <tr><td><code>type:</code></td><td><code>type:archive</code></td><td>Filter files by type</td></tr>
+                        </tbody>
+                    </table>
+                    <p>You can combine operators: <code>brand:Samsung ext:zip Android</code></p>
+                </div>
+            </div>
+
+            <div class="help-section">
+                <h2><i class="fas fa-filter"></i> Filtering &amp; Sorting</h2>
+
+                <div class="help-card">
+                    <h4>Sidebar Filters</h4>
+                    <p>Click on any brand or file type in the left sidebar to filter the file list. The count badge shows how many files match each filter.</p>
+                </div>
+
+                <div class="help-card">
+                    <h4>Advanced Filters</h4>
+                    <p>Click the <i class="fas fa-sliders-h"></i> icon next to the search bar to open the advanced filter panel. You can filter by extension, brand, or file name.</p>
+                </div>
+
+                <div class="help-card">
+                    <h4>Sorting</h4>
+                    <p>Click the <i class="fas fa-sort-amount-down"></i> sort icon in the header to sort files by name, extension, or brand in ascending or descending order. In list view, you can also click column headers to sort.</p>
+                </div>
+            </div>
+
+            <div class="help-section">
+                <h2><i class="fas fa-th"></i> View Modes</h2>
+
+                <div class="help-card">
+                    <h4>Grid View</h4>
+                    <p>Shows files as visual cards with large icons, file name, brand badge, and extension. Hover over a card to reveal the download button. Press <kbd>g</kbd> to activate.</p>
+                </div>
+
+                <div class="help-card">
+                    <h4>List View</h4>
+                    <p>Shows files in a compact table format with columns for name, brand, type, and download action. Press <kbd>l</kbd> to activate.</p>
+                </div>
+            </div>
+
+            <div class="help-section">
+                <h2><i class="fas fa-moon"></i> Themes</h2>
+                <p>GetwayROM supports both light and dark themes. Click the <i class="fas fa-moon"></i> moon icon in the header or press <kbd>t</kbd> to toggle. Your preference is saved automatically.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer Navigation -->
+    <footer class="footer-nav">
+        <div class="footer-nav-inner">
+            <a href="index.html" class="footer-link"><i class="fas fa-folder"></i> Explorer</a>
+            <a href="about.html" class="footer-link"><i class="fas fa-info-circle"></i> About</a>
+            <a href="help.html" class="footer-link active"><i class="fas fa-keyboard"></i> Help</a>
+        </div>
+    </footer>
+
+    <script src="js/namespace.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/notifications.js"></script>
+    <script src="js/theme.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        GWR.Theme.init();
+        var toggle = document.getElementById('themeToggle');
+        if (toggle) {
+            toggle.addEventListener('click', function () {
+                GWR.Theme.toggle();
+            });
+        }
+    });
+    </script>
+</body>
+</html>

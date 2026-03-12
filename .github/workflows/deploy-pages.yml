@@ -59,7 +59,7 @@ jobs:
 
       - name: Update Fuse.js reference for offline use
         run: |
-          sed -i 's|https://cdn.jsdelivr.net/npm/fuse.js@7.0.0/dist/fuse.min.js|js/fuse.min.js|g' explorer/index.html
+          find explorer -name '*.html' -exec sed -i 's|https://cdn.jsdelivr.net/npm/fuse.js@7.0.0/dist/fuse.min.js|js/fuse.min.js|g' {} +
 
       - name: Setup Pages
         uses: actions/configure-pages@v4

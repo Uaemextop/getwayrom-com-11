@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GetwayROM - Firmware Explorer</title>
+    <link rel="icon" href="../assets/images/logo/favicon.png" type="image/png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
+    <link rel="stylesheet" href="css/explorer.css">
+</head>
+<body>
+    <!-- Header / Toolbar -->
+    <header class="header">
+        <div class="header-left">
+            <button class="btn-icon sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="logo">
+                <i class="fas fa-microchip logo-icon"></i>
+                <span class="logo-text">GetwayROM</span>
+            </div>
+        </div>
+        <div class="header-center">
+            <div class="search-container" id="searchContainer">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" id="searchInput" class="search-input" placeholder="Search firmware files..." autocomplete="off">
+                <div class="search-options" id="searchOptions">
+                    <button class="btn-icon search-filter-btn" id="searchFilterBtn" title="Advanced search">
+                        <i class="fas fa-sliders-h"></i>
+                    </button>
+                </div>
+                <button class="btn-icon search-clear hidden" id="searchClear" title="Clear search">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <!-- Advanced Search Panel -->
+            <div class="advanced-search hidden" id="advancedSearch">
+                <div class="advanced-search-header">
+                    <h3><i class="fas fa-filter"></i> Advanced Search</h3>
+                    <button class="btn-icon" id="closeAdvancedSearch"><i class="fas fa-times"></i></button>
+                </div>
+                <div class="advanced-search-body">
+                    <div class="filter-group">
+                        <label>File Extension</label>
+                        <select id="filterExtension" class="filter-select">
+                            <option value="">All extensions</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Brand</label>
+                        <select id="filterBrand" class="filter-select">
+                            <option value="">All brands</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>File Name Contains</label>
+                        <input type="text" id="filterName" class="filter-input" placeholder="e.g. Android-12">
+                    </div>
+                    <div class="filter-actions">
+                        <button class="btn btn-secondary" id="clearFilters">Clear Filters</button>
+                        <button class="btn btn-primary" id="applyFilters">Apply Filters</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="header-right">
+            <button class="btn-icon" id="refreshBtn" title="Refresh file list from releases">
+                <i class="fas fa-sync-alt"></i>
+            </button>
+            <button class="btn-icon" id="themeToggle" title="Toggle dark/light theme">
+                <i class="fas fa-sun"></i>
+            </button>
+            <div class="view-toggle">
+                <button class="btn-icon active" id="gridViewBtn" title="Grid view">
+                    <i class="fas fa-th"></i>
+                </button>
+                <button class="btn-icon" id="listViewBtn" title="List view">
+                    <i class="fas fa-list"></i>
+                </button>
+            </div>
+            <div class="sort-dropdown">
+                <button class="btn-icon" id="sortBtn" title="Sort files">
+                    <i class="fas fa-sort-amount-down"></i>
+                </button>
+                <div class="dropdown-menu hidden" id="sortMenu">
+                    <div class="dropdown-header">Sort by</div>
+                    <button class="dropdown-item active" data-sort="name-asc">
+                        <i class="fas fa-sort-alpha-down"></i> Name (A-Z)
+                    </button>
+                    <button class="dropdown-item" data-sort="name-desc">
+                        <i class="fas fa-sort-alpha-up"></i> Name (Z-A)
+                    </button>
+                    <button class="dropdown-item" data-sort="ext-asc">
+                        <i class="fas fa-file"></i> Extension (A-Z)
+                    </button>
+                    <button class="dropdown-item" data-sort="ext-desc">
+                        <i class="fas fa-file"></i> Extension (Z-A)
+                    </button>
+                    <button class="dropdown-item" data-sort="brand-asc">
+                        <i class="fas fa-tag"></i> Brand (A-Z)
+                    </button>
+                    <button class="dropdown-item" data-sort="brand-desc">
+                        <i class="fas fa-tag"></i> Brand (Z-A)
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Layout -->
+    <div class="main-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <nav class="sidebar-nav">
+                <div class="sidebar-section">
+                    <button class="sidebar-item active" data-filter="all">
+                        <i class="fas fa-folder"></i>
+                        <span>All Files</span>
+                        <span class="badge" id="totalCount">0</span>
+                    </button>
+                </div>
+
+                <div class="sidebar-section">
+                    <div class="sidebar-heading">Brands</div>
+                    <div id="brandList" class="sidebar-scroll"></div>
+                </div>
+
+                <div class="sidebar-section">
+                    <div class="sidebar-heading">File Types</div>
+                    <div id="extensionList" class="sidebar-scroll"></div>
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="storage-info">
+                    <i class="fas fa-database"></i>
+                    <span id="fileStats">Loading...</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Content Area -->
+        <main class="content" id="content">
+            <!-- Breadcrumb / Status bar -->
+            <div class="content-header">
+                <div class="breadcrumb">
+                    <span class="breadcrumb-item breadcrumb-link" data-path=""><i class="fas fa-home"></i> Home</span>
+                    <span class="breadcrumb-separator"><i class="fas fa-chevron-right"></i></span>
+                    <span class="breadcrumb-item active" id="currentFilter">All Files</span>
+                </div>
+                <div class="content-info">
+                    <span id="resultCount">Loading files...</span>
+                </div>
+            </div>
+
+            <!-- Active Filters -->
+            <div class="active-filters" id="activeFilters"></div>
+
+            <!-- Loading Spinner -->
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Loading firmware files...</p>
+            </div>
+
+            <!-- Empty State -->
+            <div class="empty-state hidden" id="emptyState">
+                <i class="fas fa-search"></i>
+                <h3>No files found</h3>
+                <p>Try adjusting your search or filters</p>
+            </div>
+
+            <!-- File Grid -->
+            <div class="file-grid" id="fileGrid"></div>
+
+            <!-- File List -->
+            <div class="file-list hidden" id="fileList">
+                <div class="file-list-header">
+                    <div class="list-col list-col-name" data-sort="name-asc">
+                        Name <i class="fas fa-sort"></i>
+                    </div>
+                    <div class="list-col list-col-brand" data-sort="brand-asc">
+                        Brand <i class="fas fa-sort"></i>
+                    </div>
+                    <div class="list-col list-col-ext" data-sort="ext-asc">
+                        Type <i class="fas fa-sort"></i>
+                    </div>
+                    <div class="list-col list-col-action">
+                        Action
+                    </div>
+                </div>
+                <div id="fileListBody"></div>
+            </div>
+
+            <!-- Pagination -->
+            <div class="pagination" id="pagination">
+                <button class="btn btn-secondary" id="prevPage" disabled>
+                    <i class="fas fa-chevron-left"></i> Previous
+                </button>
+                <span class="page-info" id="pageInfo">Page 1</span>
+                <button class="btn btn-secondary" id="nextPage">
+                    Next <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </main>
+    </div>
+
+    <!-- Footer Navigation -->
+    <footer class="footer-nav">
+        <div class="footer-nav-inner">
+            <a href="index.html" class="footer-link active"><i class="fas fa-folder"></i> Explorer</a>
+            <a href="about.html" class="footer-link"><i class="fas fa-info-circle"></i> About</a>
+            <a href="help.html" class="footer-link"><i class="fas fa-keyboard"></i> Help</a>
+        </div>
+    </footer>
+
+    <!-- Fuse.js for fuzzy search -->
+    <script src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0/dist/fuse.min.js"></script>
+    <!-- Module scripts (loaded in dependency order) -->
+    <script src="js/namespace.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/notifications.js"></script>
+    <script src="js/search-engine.js"></script>
+    <script src="js/file-renderer.js"></script>
+    <script src="js/sidebar.js"></script>
+    <script src="js/theme.js"></script>
+    <script src="js/keyboard.js"></script>
+    <!-- Main application controller -->
+    <script src="js/app.js"></script>
+</body>
+</html>

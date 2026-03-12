@@ -1,0 +1,149 @@
+/* ============================================
+   GetwayROM File Explorer - CSS Variables
+   Design tokens and theme configuration
+   ============================================ */
+
+:root {
+    /* Brand Colors */
+    --color-primary: #1a73e8;
+    --color-primary-hover: #1557b0;
+    --color-primary-light: #e8f0fe;
+    --color-primary-dark: #174ea6;
+    --color-accent: #fbbc04;
+    --color-accent-hover: #f9a825;
+
+    /* Semantic Colors */
+    --color-success: #34a853;
+    --color-warning: #fbbc04;
+    --color-error: #ea4335;
+    --color-info: #4285f4;
+
+    /* Neutral Colors (Light Theme) */
+    --bg-primary: #f8f9fa;
+    --bg-secondary: #ffffff;
+    --bg-tertiary: #f1f3f4;
+    --bg-hover: #f1f3f4;
+    --bg-active: #e8f0fe;
+
+    /* Text Colors */
+    --text-primary: #202124;
+    --text-secondary: #5f6368;
+    --text-muted: #80868b;
+    --text-inverse: #ffffff;
+
+    /* Border Colors */
+    --border-primary: #dadce0;
+    --border-light: #e8eaed;
+    --border-focus: #1a73e8;
+
+    /* Shadows */
+    --shadow-xs: 0 1px 2px rgba(60, 64, 67, 0.08);
+    --shadow-sm: 0 1px 2px rgba(60, 64, 67, 0.1);
+    --shadow-md: 0 1px 3px rgba(60, 64, 67, 0.15), 0 1px 2px rgba(60, 64, 67, 0.15);
+    --shadow-lg: 0 4px 12px rgba(60, 64, 67, 0.15);
+    --shadow-xl: 0 8px 24px rgba(60, 64, 67, 0.2);
+
+    /* Border Radius */
+    --radius-xs: 4px;
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 24px;
+    --radius-full: 9999px;
+
+    /* Spacing */
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 20px;
+    --space-6: 24px;
+    --space-8: 32px;
+    --space-10: 40px;
+    --space-12: 48px;
+
+    /* Typography */
+    --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+    --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+
+    --font-size-xs: 11px;
+    --font-size-sm: 12px;
+    --font-size-base: 14px;
+    --font-size-md: 15px;
+    --font-size-lg: 18px;
+    --font-size-xl: 20px;
+    --font-size-2xl: 24px;
+    --font-size-3xl: 30px;
+
+    --font-weight-light: 300;
+    --font-weight-normal: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
+
+    --line-height-tight: 1.2;
+    --line-height-normal: 1.4;
+    --line-height-relaxed: 1.6;
+
+    /* Layout */
+    --sidebar-width: 256px;
+    --header-height: 64px;
+    --content-max-width: 1400px;
+
+    /* Transitions */
+    --transition-fast: 0.15s ease;
+    --transition-normal: 0.2s ease;
+    --transition-slow: 0.3s ease;
+
+    /* Z-index layers */
+    --z-base: 1;
+    --z-dropdown: 100;
+    --z-sticky: 200;
+    --z-overlay: 300;
+    --z-modal: 400;
+    --z-toast: 500;
+
+    /* File type colors */
+    --color-archive: #c62828;
+    --color-archive-bg: #fce4ec;
+    --color-android: #2e7d32;
+    --color-android-bg: #e8f5e9;
+    --color-image: #1565c0;
+    --color-image-bg: #e3f2fd;
+    --color-disk: #e65100;
+    --color-disk-bg: #fff3e0;
+    --color-executable: #6a1b9a;
+    --color-executable-bg: #f3e5f5;
+    --color-binary: #37474f;
+    --color-binary-bg: #eceff1;
+    --color-document: #283593;
+    --color-document-bg: #e8eaf6;
+    --color-file: #616161;
+    --color-file-bg: #f5f5f5;
+
+    /* Color scheme */
+    color-scheme: light dark;
+}
+
+/* --- Dark Mode Variable Defaults --- */
+/* These define the dark palette tokens.
+   Applied via [data-theme="dark"] or @media(prefers-color-scheme:dark)
+   in theme-dark.css */
+:root[data-theme="dark"] {
+    --bg-primary: #1a1a2e;
+    --bg-secondary: #16213e;
+    --bg-tertiary: #1f2b47;
+    --bg-hover: #1c2841;
+    --bg-active: #1e3a5f;
+    --text-primary: #e0e0e0;
+    --text-secondary: #a0a8b4;
+    --text-muted: #6b7280;
+    --text-inverse: #1a1a2e;
+    --border-primary: #2d3748;
+    --border-light: #1f2b47;
+    --border-focus: #3b82f6;
+    --color-primary: #60a5fa;
+    --color-primary-hover: #3b82f6;
+    --color-primary-light: rgba(96, 165, 250, 0.15);
+    --color-primary-dark: #2563eb;
+}

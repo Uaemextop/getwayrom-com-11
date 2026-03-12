@@ -65,12 +65,16 @@
   function getFileIcon(fileType) {
     var icons = {
       archive: 'fa-file-zipper',
-      android: 'fa-android',
+      android: 'fa-robot',
+      firmware: 'fa-microchip',
       image: 'fa-hard-drive',
       disk: 'fa-compact-disc',
-      executable: 'fa-cog',
+      executable: 'fa-gears',
       binary: 'fa-microchip',
-      document: 'fa-file-lines'
+      document: 'fa-file-lines',
+      scatter: 'fa-sitemap',
+      config: 'fa-sliders',
+      flash: 'fa-bolt'
     };
     return icons[fileType] || 'fa-file';
   }
@@ -82,13 +86,69 @@
     var classes = {
       archive: 'archive',
       android: 'android',
+      firmware: 'firmware',
       image: 'image',
       disk: 'disk',
       executable: 'executable',
       binary: 'binary',
-      document: 'document'
+      document: 'document',
+      scatter: 'scatter',
+      config: 'config',
+      flash: 'flash'
     };
     return classes[fileType] || 'file';
+  }
+
+  /**
+   * Return a brand-specific icon class.
+   */
+  function getBrandIcon(brand) {
+    var icons = {
+      Samsung: 'fa-mobile-screen',
+      Xiaomi: 'fa-mobile-retro',
+      Huawei: 'fa-mobile-screen-button',
+      Honor: 'fa-mobile-screen-button',
+      OnePlus: 'fa-mobile',
+      Google: 'fa-mobile-screen',
+      Motorola: 'fa-mobile',
+      Sony: 'fa-mobile-screen-button',
+      LG: 'fa-mobile',
+      Nokia: 'fa-mobile-screen',
+      OPPO: 'fa-mobile',
+      Vivo: 'fa-mobile',
+      Realme: 'fa-mobile',
+      ASUS: 'fa-mobile-screen',
+      HTC: 'fa-mobile',
+      Lenovo: 'fa-tablet-screen-button',
+      ZTE: 'fa-mobile',
+      Alcatel: 'fa-mobile',
+      Tecno: 'fa-mobile',
+      Infinix: 'fa-mobile',
+      Itel: 'fa-mobile',
+      Other: 'fa-microchip'
+    };
+    return icons[brand] || 'fa-mobile';
+  }
+
+  /**
+   * Return a brand color CSS class.
+   */
+  function getBrandColorClass(brand) {
+    var colors = {
+      Samsung: 'brand-samsung',
+      Xiaomi: 'brand-xiaomi',
+      Huawei: 'brand-huawei',
+      Honor: 'brand-honor',
+      Realme: 'brand-realme',
+      OPPO: 'brand-oppo',
+      Vivo: 'brand-vivo',
+      Motorola: 'brand-motorola',
+      OnePlus: 'brand-oneplus',
+      Nokia: 'brand-nokia',
+      LG: 'brand-lg',
+      Google: 'brand-google'
+    };
+    return colors[brand] || 'brand-other';
   }
 
   /**
@@ -136,6 +196,8 @@
     escapeHtml: escapeHtml,
     getFileIcon: getFileIcon,
     getFileIconClass: getFileIconClass,
+    getBrandIcon: getBrandIcon,
+    getBrandColorClass: getBrandColorClass,
     truncateText: truncateText,
     copyToClipboard: copyToClipboard,
     generateId: generateId

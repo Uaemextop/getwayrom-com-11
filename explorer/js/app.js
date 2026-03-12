@@ -17,6 +17,8 @@
   // --- Configuration ---
   var ITEMS_PER_PAGE = 60;
   var DATA_URL = 'data/files.json';
+  var GITHUB_OWNER = 'Uaemextop';
+  var GITHUB_REPO = 'getwayrom-com-11';
 
   // --- State ---
   var state = {
@@ -31,6 +33,8 @@
     filterExtension: '',
     filterName: '',
     sidebarFilter: 'all',
+    currentFolder: null,
+    folderPath: [],
     metadata: null
   };
 
@@ -72,6 +76,8 @@
     dom.pagination = document.getElementById('pagination');
     dom.content = document.getElementById('content');
     dom.themeToggle = document.getElementById('themeToggle');
+    dom.breadcrumb = document.querySelector('.breadcrumb');
+    dom.refreshBtn = document.getElementById('refreshBtn');
   }
 
   // --- Data Loading ---
@@ -91,10 +97,149 @@
           }
         } else {
           showError('Failed to load file data (HTTP ' + xhr.status + ')');
+          tryFetchFromRelease();
         }
       }
     };
     xhr.send();
+  }
+
+  /**
+   * Attempt to fetch firmware_ok.md from GitHub Releases as a fallback.
+   */
+  function tryFetchFromRelease() {
+    Toast.info('Trying to fetch data from GitHub releases...');
+
+    var apiUrl = 'https://api.github.com/repos/' + GITHUB_OWNER + '/' + GITHUB_REPO + '/releases/latest';
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', apiUrl, true);
+    xhr.setRequestHeader('Accept', 'application/vnd.github.v3+json');
+    xhr.onreadystatechange = function () {
+      if (xhr.readyState === 4 && xhr.status === 200) {
+        try {
+          var release = JSON.parse(xhr.responseText);
+          var asset = null;
+          if (release.assets) {
+            for (var i = 0; i < release.assets.length; i++) {
+              if (release.assets[i].name === 'firmware_ok.md') {
+                asset = release.assets[i];
+                break;
+              }
+            }
+          }
+          if (asset) {
+            fetchAndParseMd(asset.browser_download_url);
+          }
+        } catch (e) {
+          // silently fail
+        }
+      }
+    };
+    xhr.send();
+  }
+
+  /**
+   * Fetch markdown content and parse it into file data.
+   */
+  function fetchAndParseMd(url) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', url, true);
+    xhr.onreadystatechange = function () {
+      if (xhr.readyState === 4 && xhr.status === 200) {
+        var content = xhr.responseText;
+        var data = parseFirmwareMd(content);
+        if (data.files.length > 0) {
+          initializeApp(data);
+          Toast.success('Loaded ' + Utils.formatNumber(data.files.length) + ' files from release');
+        }
+      }
+    };
+    xhr.send();
+  }
+
+  /**
+   * Parse firmware_ok.md content into structured data.
+   */
+  function parseFirmwareMd(content) {
+    var lines = content.split('\n').filter(function (l) {
+      return l.trim().indexOf('- **') === 0;
+    });
+    var files = [];
+    var seen = {};
+    var brands = {};
+    var extensions = {};
+
+    var brandPatterns = [
+      { pattern: /\bSM-[A-Z]\d/i, brand: 'Samsung' },
+      { pattern: /\bSamsung\b/i, brand: 'Samsung' },
+      { pattern: /\bGalaxy\b/i, brand: 'Samsung' },
+      { pattern: /\bRMX\d/i, brand: 'Realme' },
+      { pattern: /\bRealme\b/i, brand: 'Realme' },
+      { pattern: /\bRedmi\b/i, brand: 'Xiaomi' },
+      { pattern: /\bXiaomi\b/i, brand: 'Xiaomi' },
+      { pattern: /\bPOCO\b/i, brand: 'Xiaomi' },
+      { pattern: /\bOPPO\b/i, brand: 'OPPO' },
+      { pattern: /\bVivo\b/i, brand: 'Vivo' },
+      { pattern: /\bHuawei\b/i, brand: 'Huawei' },
+      { pattern: /\bHonor\b/i, brand: 'Honor' },
+      { pattern: /\bNokia\b/i, brand: 'Nokia' },
+      { pattern: /\bMotorola\b/i, brand: 'Motorola' },
+      { pattern: /\bMoto\s/i, brand: 'Motorola' },
+      { pattern: /\bOnePlus\b/i, brand: 'OnePlus' },
+      { pattern: /\bLG-/i, brand: 'LG' },
+      { pattern: /\bSony\b/i, brand: 'Sony' },
+      { pattern: /\bLenovo\b/i, brand: 'Lenovo' },
+      { pattern: /\bASUS\b/i, brand: 'ASUS' },
+      { pattern: /\bHTC\b/i, brand: 'HTC' },
+      { pattern: /\bZTE\b/i, brand: 'ZTE' },
+      { pattern: /\bTecno\b/i, brand: 'Tecno' },
+      { pattern: /\bInfinix\b/i, brand: 'Infinix' }
+    ];
+
+    function detectBrand(name) {
+      for (var i = 0; i < brandPatterns.length; i++) {
+        if (brandPatterns[i].pattern.test(name)) return brandPatterns[i].brand;
+      }
+      return 'Other';
+    }
+
+    var typeMap = {
+      zip: 'archive', rar: 'archive', '7z': 'archive', gz: 'archive',
+      apk: 'android', img: 'image', iso: 'disk',
+      exe: 'executable', bin: 'binary', mbn: 'binary', dat: 'binary',
+      md: 'document', txt: 'document', pdf: 'document',
+      ozip: 'archive', ofp: 'flash', pac: 'flash'
+    };
+
+    for (var i = 0; i < lines.length; i++) {
+      var match = lines[i].match(/^-\s+\*\*(.+?)\*\*\s+—\s+\[Download\]\((.+?)\)/);
+      if (!match) continue;
+      var name = match[1].trim();
+      var url = match[2].trim();
+      if (seen[url]) continue;
+      seen[url] = true;
+
+      var extMatch = name.match(/\.(\w+)$/);
+      var ext = extMatch ? extMatch[1].toLowerCase() : 'unknown';
+      var brand = detectBrand(name);
+      var fileType = typeMap[ext] || 'file';
+
+      files.push({ name: name, url: url, extension: ext, brand: brand, fileType: fileType });
+      brands[brand] = (brands[brand] || 0) + 1;
+      extensions[ext] = (extensions[ext] || 0) + 1;
+    }
+
+    files.sort(function (a, b) {
+      return a.name.localeCompare(b.name, undefined, { numeric: true });
+    });
+
+    return {
+      generated: new Date().toISOString(),
+      totalFiles: files.length,
+      brands: brands,
+      extensions: extensions,
+      files: files
+    };
   }
 
   function showError(msg) {
@@ -104,6 +249,132 @@
     dom.emptyState.querySelector('h3').textContent = 'Error';
     dom.emptyState.querySelector('p').textContent = msg;
     Toast.error(msg);
+  }
+
+  // --- Folder Structure ---
+  function buildFolderTree(files) {
+    var tree = {
+      name: 'All Files',
+      folders: {},
+      files: []
+    };
+
+    for (var i = 0; i < files.length; i++) {
+      var f = files[i];
+      var brand = f.brand || 'Other';
+      var fType = f.fileType || 'file';
+
+      if (!tree.folders[brand]) {
+        tree.folders[brand] = {
+          name: brand,
+          folders: {},
+          files: []
+        };
+      }
+
+      if (!tree.folders[brand].folders[fType]) {
+        tree.folders[brand].folders[fType] = {
+          name: fType,
+          folders: {},
+          files: []
+        };
+      }
+
+      tree.folders[brand].folders[fType].files.push(f);
+      tree.folders[brand].files.push(f);
+    }
+
+    return tree;
+  }
+
+  function getCurrentFolderFiles() {
+    if (!state.folderPath.length) return state.allFiles;
+
+    var tree = buildFolderTree(state.allFiles);
+    var current = tree;
+    for (var i = 0; i < state.folderPath.length; i++) {
+      if (current.folders && current.folders[state.folderPath[i]]) {
+        current = current.folders[state.folderPath[i]];
+      } else {
+        return [];
+      }
+    }
+    return current.files || [];
+  }
+
+  function getCurrentSubfolders() {
+    var tree = buildFolderTree(state.allFiles);
+    var current = tree;
+    for (var i = 0; i < state.folderPath.length; i++) {
+      if (current.folders && current.folders[state.folderPath[i]]) {
+        current = current.folders[state.folderPath[i]];
+      } else {
+        return {};
+      }
+    }
+    return current.folders || {};
+  }
+
+  function renderBreadcrumb() {
+    if (!dom.breadcrumb) return;
+    var html = '<span class="breadcrumb-item breadcrumb-link" data-path=""><i class="fas fa-home"></i> Home</span>';
+
+    for (var i = 0; i < state.folderPath.length; i++) {
+      html += '<span class="breadcrumb-separator"><i class="fas fa-chevron-right"></i></span>';
+      var pathUpTo = state.folderPath.slice(0, i + 1).join('/');
+      var isLast = (i === state.folderPath.length - 1);
+      html += '<span class="breadcrumb-item' + (isLast ? ' active' : ' breadcrumb-link') + '" data-path="' + Utils.escapeHtml(pathUpTo) + '">' +
+        '<i class="fas ' + (state.folderPath.length === 1 ? 'fa-folder' : 'fa-folder-open') + '"></i> ' +
+        Utils.escapeHtml(state.folderPath[i]) +
+      '</span>';
+    }
+
+    dom.breadcrumb.innerHTML = html;
+
+    // Bind breadcrumb click events
+    dom.breadcrumb.querySelectorAll('.breadcrumb-link').forEach(function (el) {
+      el.addEventListener('click', function () {
+        var pathStr = this.getAttribute('data-path');
+        if (pathStr === '') {
+          state.folderPath = [];
+        } else {
+          state.folderPath = pathStr.split('/');
+        }
+        state.currentPage = 1;
+        applyFiltersAndSearch();
+        renderBreadcrumb();
+      });
+    });
+  }
+
+  function renderFolderCards(container) {
+    var subfolders = getCurrentSubfolders();
+    var folderNames = Object.keys(subfolders).sort();
+    if (folderNames.length === 0) return '';
+
+    var html = '';
+    for (var i = 0; i < folderNames.length; i++) {
+      var name = folderNames[i];
+      var folder = subfolders[name];
+      var fileCount = folder.files ? folder.files.length : 0;
+      var subCount = folder.folders ? Object.keys(folder.folders).length : 0;
+      var iconClass = state.folderPath.length === 0 ? Utils.getBrandColorClass(name) : '';
+
+      html += '<div class="folder-card" data-folder="' + Utils.escapeHtml(name) + '">' +
+        '<div class="folder-card-icon ' + iconClass + '">' +
+          '<i class="fas ' + (state.folderPath.length === 0 ? Utils.getBrandIcon(name) : 'fa-folder') + '"></i>' +
+        '</div>' +
+        '<div class="folder-card-info">' +
+          '<div class="folder-card-name">' + Utils.escapeHtml(name) + '</div>' +
+          '<div class="folder-card-meta">' +
+            Utils.formatNumber(fileCount) + ' files' +
+            (subCount > 0 ? ', ' + subCount + ' folders' : '') +
+          '</div>' +
+        '</div>' +
+      '</div>';
+    }
+
+    return html;
   }
 
   // --- Initialization ---
@@ -133,6 +404,7 @@
 
     applyFiltersAndSearch();
     dom.loading.classList.add('hidden');
+    renderBreadcrumb();
 
     Toast.success('Loaded ' + Utils.formatNumber(state.allFiles.length) + ' firmware files');
   }
@@ -157,7 +429,7 @@
 
   // --- Search & Filter ---
   function applyFiltersAndSearch() {
-    var results = state.allFiles;
+    var results = state.folderPath.length > 0 ? getCurrentFolderFiles() : state.allFiles;
 
     // Apply sidebar filter
     if (state.sidebarFilter !== 'all') {
@@ -198,6 +470,7 @@
     renderFiles();
     updatePagination();
     updateActiveFilterBadges();
+    renderBreadcrumb();
   }
 
   // --- Sorting ---
@@ -234,9 +507,16 @@
   function renderFiles() {
     var start = (state.currentPage - 1) * ITEMS_PER_PAGE;
     var end = start + ITEMS_PER_PAGE;
+
+    // Get folder cards (only for first page and not searching)
+    var folderHtml = '';
+    if (state.currentPage === 1 && !state.searchQuery && state.sidebarFilter === 'all' && !state.filterBrand && !state.filterExtension) {
+      folderHtml = renderFolderCards(dom.fileGrid);
+    }
+
     var page = state.filteredFiles.slice(start, end);
 
-    if (page.length === 0) {
+    if (page.length === 0 && !folderHtml) {
       dom.fileGrid.innerHTML = '';
       dom.fileListBody.innerHTML = '';
       dom.emptyState.classList.remove('hidden');
@@ -246,7 +526,11 @@
     dom.emptyState.classList.add('hidden');
 
     if (state.viewMode === 'grid') {
-      FileRenderer.renderGrid(dom.fileGrid, page);
+      var gridHtml = folderHtml;
+      for (var i = 0; i < page.length; i++) {
+        gridHtml += FileRenderer.createFileCard(page[i]);
+      }
+      dom.fileGrid.innerHTML = gridHtml;
     } else {
       FileRenderer.renderList(dom.fileListBody, page);
     }
@@ -254,10 +538,11 @@
 
   function updateResultCount() {
     var total = state.filteredFiles.length;
+    var prefix = state.folderPath.length > 0 ? state.folderPath[state.folderPath.length - 1] + ': ' : '';
     if (state.searchQuery) {
-      dom.resultCount.textContent = Utils.formatNumber(total) + ' results for \u201c' + state.searchQuery + '\u201d';
+      dom.resultCount.textContent = prefix + Utils.formatNumber(total) + ' results for \u201c' + state.searchQuery + '\u201d';
     } else {
-      dom.resultCount.textContent = Utils.formatNumber(total) + ' files';
+      dom.resultCount.textContent = prefix + Utils.formatNumber(total) + ' files';
     }
   }
 
@@ -272,6 +557,12 @@
     var container = document.getElementById('activeFilters');
     if (!container) return;
     var html = '';
+
+    if (state.folderPath.length > 0) {
+      html += '<span class="filter-badge"><i class="fas fa-folder"></i> ' +
+        Utils.escapeHtml(state.folderPath.join(' / ')) +
+        ' <button data-clear="folder"><i class="fas fa-times"></i></button></span>';
+    }
 
     if (state.sidebarFilter !== 'all') {
       html += '<span class="filter-badge"><i class="fas fa-filter"></i> ' +
@@ -294,7 +585,9 @@
     container.querySelectorAll('button[data-clear]').forEach(function (btn) {
       btn.addEventListener('click', function () {
         var type = this.getAttribute('data-clear');
-        if (type === 'sidebar') {
+        if (type === 'folder') {
+          state.folderPath = [];
+        } else if (type === 'sidebar') {
           state.sidebarFilter = 'all';
           Sidebar.setActiveItem('all');
           dom.currentFilter.textContent = 'All Files';
@@ -308,6 +601,44 @@
         applyFiltersAndSearch();
       });
     });
+  }
+
+  // --- File Click Handler ---
+  function handleFileClick(e) {
+    var card = e.target.closest('.file-card, .file-row');
+    if (!card) return;
+
+    // Don't open dialog if clicking the download button directly
+    if (e.target.closest('.btn-download')) return;
+
+    var fileName = card.getAttribute('data-file-name');
+    var fileUrl = card.getAttribute('data-file-url');
+    var fileBrand = card.getAttribute('data-file-brand');
+    var fileExt = card.getAttribute('data-file-ext');
+    var fileType = card.getAttribute('data-file-type');
+
+    if (fileName && fileUrl) {
+      FileRenderer.openFileDialog({
+        name: fileName,
+        url: fileUrl,
+        brand: fileBrand || 'Unknown',
+        ext: fileExt || 'unknown',
+        type: fileType || 'file'
+      });
+    }
+  }
+
+  // --- Folder Click Handler ---
+  function handleFolderClick(e) {
+    var folderCard = e.target.closest('.folder-card');
+    if (!folderCard) return;
+
+    var folderName = folderCard.getAttribute('data-folder');
+    if (folderName) {
+      state.folderPath.push(folderName);
+      state.currentPage = 1;
+      applyFiltersAndSearch();
+    }
   }
 
   // --- Event Handlers ---
@@ -421,6 +752,7 @@
       if (item) {
         var filter = item.getAttribute('data-filter');
         state.sidebarFilter = filter;
+        state.folderPath = [];
         Sidebar.setActiveItem(filter);
 
         dom.currentFilter.textContent = filter === 'all'
@@ -434,6 +766,13 @@
         }
       }
     });
+
+    // File card click → open detail dialog
+    dom.fileGrid.addEventListener('click', handleFileClick);
+    dom.fileListBody.addEventListener('click', handleFileClick);
+
+    // Folder card click → navigate into folder
+    dom.fileGrid.addEventListener('click', handleFolderClick);
 
     // Pagination
     dom.prevPage.addEventListener('click', function () {
@@ -458,7 +797,21 @@
     if (dom.themeToggle) {
       dom.themeToggle.addEventListener('click', function () {
         var newTheme = Theme.toggle();
+        var icon = dom.themeToggle.querySelector('i');
+        if (icon) {
+          icon.className = newTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+        }
         Toast.info('Switched to ' + newTheme + ' mode');
+      });
+    }
+
+    // Refresh button
+    if (dom.refreshBtn) {
+      dom.refreshBtn.addEventListener('click', function () {
+        dom.loading.classList.remove('hidden');
+        dom.fileGrid.innerHTML = '';
+        Toast.info('Refreshing file list...');
+        tryFetchFromRelease();
       });
     }
 
@@ -484,6 +837,7 @@
     Keyboard.register('Escape', 'Close menus and blur search', function () {
       dom.advancedSearch.classList.add('hidden');
       dom.sortMenu.classList.add('hidden');
+      FileRenderer.closeFileDialog();
     });
 
     Keyboard.register('g', 'Switch to grid view', function () {
@@ -509,11 +863,26 @@
     Keyboard.register('ArrowRight', 'Next page', function () {
       dom.nextPage.click();
     });
+
+    Keyboard.register('Backspace', 'Go up one folder', function () {
+      if (state.folderPath.length > 0) {
+        state.folderPath.pop();
+        applyFiltersAndSearch();
+      }
+    });
   }
 
   // --- Init ---
   document.addEventListener('DOMContentLoaded', function () {
     Theme.init();
+    // Update theme toggle icon based on current theme
+    var themeToggle = document.getElementById('themeToggle');
+    if (themeToggle) {
+      var icon = themeToggle.querySelector('i');
+      if (icon) {
+        icon.className = Theme.get() === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+      }
+    }
     cacheDom();
     bindEvents();
     setupKeyboardShortcuts();

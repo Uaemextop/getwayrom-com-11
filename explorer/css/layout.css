@@ -150,7 +150,9 @@
 
 .breadcrumb-item { cursor: default; }
 .breadcrumb-item.active { color: var(--text-primary); font-weight: var(--font-weight-medium); }
-.breadcrumb-separator { color: var(--text-muted); font-size: var(--font-size-sm); }
+.breadcrumb-link { cursor: pointer; transition: color var(--transition-normal); }
+.breadcrumb-link:hover { color: var(--color-primary); }
+.breadcrumb-separator { color: var(--text-muted); font-size: var(--font-size-xs); }
 .content-info { font-size: var(--font-size-sm); color: var(--text-secondary); }
 
 /* --- Sidebar Overlay (mobile) --- */

@@ -16,7 +16,7 @@
   }
 
   /**
-   * Initialize theme: load from localStorage or detect system preference.
+   * Initialize theme: load from localStorage or default to dark.
    */
   function init() {
     var saved = null;
@@ -28,10 +28,9 @@
 
     if (saved === 'dark' || saved === 'light') {
       applyTheme(saved);
-    } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      applyTheme('dark');
     } else {
-      applyTheme('light');
+      // Default to dark theme
+      applyTheme('dark');
     }
   }
 

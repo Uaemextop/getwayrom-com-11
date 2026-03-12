@@ -83,9 +83,12 @@ function detectFileType(extension) {
     zip: 'archive', rar: 'archive', '7z': 'archive', gz: 'archive',
     'tar.gz': 'archive', tgz: 'archive',
     apk: 'android', img: 'image', iso: 'disk',
-    exe: 'executable', msi: 'executable',
-    bin: 'binary', mbn: 'binary', dat: 'binary',
+    exe: 'executable', msi: 'executable', bat: 'executable',
+    bin: 'binary', mbn: 'binary', dat: 'binary', elf: 'binary',
     md: 'document', txt: 'document', pdf: 'document',
+    scatter: 'scatter', txt: 'document',
+    xml: 'config', json: 'config', cfg: 'config', ini: 'config',
+    pac: 'flash', ozip: 'archive', ofp: 'flash', ops: 'flash',
   };
   return types[extension] || 'file';
 }

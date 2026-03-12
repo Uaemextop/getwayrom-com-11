@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -67,8 +67,11 @@
             </div>
         </div>
         <div class="header-right">
+            <button class="btn-icon" id="refreshBtn" title="Refresh file list from releases">
+                <i class="fas fa-sync-alt"></i>
+            </button>
             <button class="btn-icon" id="themeToggle" title="Toggle dark/light theme">
-                <i class="fas fa-moon"></i>
+                <i class="fas fa-sun"></i>
             </button>
             <div class="view-toggle">
                 <button class="btn-icon active" id="gridViewBtn" title="Grid view">
@@ -144,8 +147,8 @@
             <!-- Breadcrumb / Status bar -->
             <div class="content-header">
                 <div class="breadcrumb">
-                    <span class="breadcrumb-item"><i class="fas fa-home"></i> Home</span>
-                    <span class="breadcrumb-separator">/</span>
+                    <span class="breadcrumb-item breadcrumb-link" data-path=""><i class="fas fa-home"></i> Home</span>
+                    <span class="breadcrumb-separator"><i class="fas fa-chevron-right"></i></span>
                     <span class="breadcrumb-item active" id="currentFilter">All Files</span>
                 </div>
                 <div class="content-info">

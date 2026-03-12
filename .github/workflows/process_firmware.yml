@@ -1,0 +1,52 @@
+name: Process Firmware Downloads
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'download_urls.md'
+      - 'process_downloads.py'
+
+permissions:
+  contents: write
+
+jobs:
+  process-and-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install aiohttp
+
+      - name: Run process_downloads.py
+        run: python process_downloads.py
+
+      - name: Upload firmware_ok.md as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: firmware_ok
+          path: firmware_ok.md
+
+      - name: Generate release tag
+        id: tag
+        run: echo "tag=firmware-$(date +'%Y%m%d-%H%M%S')" >> "$GITHUB_OUTPUT"
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.tag.outputs.tag }}
+          name: "Firmware OK - ${{ steps.tag.outputs.tag }}"
+          body: |
+            Processed firmware download list.
+
+            - Dead and expired links have been removed.
+            - Filenames have been corrected from download URLs where possible.
+          files: firmware_ok.md

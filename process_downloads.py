@@ -28,6 +28,7 @@ CONCURRENCY = 100
 REQUEST_TIMEOUT = 15
 BATCH_SIZE = 500
 PLAYWRIGHT_TIMEOUT = 20_000  # ms
+PLAYWRIGHT_CONCURRENCY = 3  # max concurrent browser pages (avoid EPIPE)
 
 # ── GitHub Actions log helpers ───────────────────────────────────────
 _CI = os.environ.get("CI") == "true" or os.environ.get("GITHUB_ACTIONS") == "true"
@@ -104,17 +105,19 @@ ONEDRIVE_FILENAME_RE = re.compile(
 
 # ── Playwright singleton ─────────────────────────────────────────────
 
+_pw = None
 _pw_browser = None
 _pw_context = None
+_pw_sem = None  # Semaphore to limit concurrent browser pages
 
 
 async def _get_playwright_page():
     """Return a new Playwright page from a shared browser instance."""
-    global _pw_browser, _pw_context
+    global _pw, _pw_browser, _pw_context, _pw_sem
     if _pw_browser is None:
         from playwright.async_api import async_playwright
-        pw = await async_playwright().start()
-        _pw_browser = await pw.chromium.launch(headless=True)
+        _pw = await async_playwright().start()
+        _pw_browser = await _pw.chromium.launch(headless=True)
         _pw_context = await _pw_browser.new_context(
             user_agent=(
                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -124,15 +127,26 @@ async def _get_playwright_page():
             viewport={"width": 1280, "height": 720},
             locale="en-US",
         )
+        _pw_sem = asyncio.Semaphore(PLAYWRIGHT_CONCURRENCY)
     return await _pw_context.new_page()
 
 
 async def _close_playwright():
-    global _pw_browser, _pw_context
-    if _pw_browser:
-        await _pw_browser.close()
-        _pw_browser = None
-        _pw_context = None
+    global _pw, _pw_browser, _pw_context, _pw_sem
+    try:
+        if _pw_browser:
+            await _pw_browser.close()
+    except Exception:
+        pass
+    try:
+        if _pw:
+            await _pw.stop()
+    except Exception:
+        pass
+    _pw = None
+    _pw_browser = None
+    _pw_context = None
+    _pw_sem = None
 
 
 # ── Filename extraction helpers ──────────────────────────────────────
@@ -389,77 +403,91 @@ async def resolve_onedrive(
     Resolve OneDrive links using Playwright (headless Chrome) to bypass
     bot detection.  OneDrive SPAs require JS to render file information.
 
-    Strategy:
-      1. Open the URL in headless Chrome.
-      2. Wait for the page to load and JS to render.
-      3. Look for the filename in the page content or title.
-      4. Detect error pages (login redirect, 404, item-not-found).
+    Uses a dedicated semaphore (_pw_sem) to limit concurrent browser pages
+    and avoid EPIPE crashes from too many simultaneous Chromium connections.
     """
-    page = None
-    try:
-        page = await _get_playwright_page()
-        resp = await page.goto(url, wait_until="domcontentloaded",
-                               timeout=PLAYWRIGHT_TIMEOUT)
-        final_url = page.url
+    global _pw_sem
+    if _pw_sem is None:
+        _pw_sem = asyncio.Semaphore(PLAYWRIGHT_CONCURRENCY)
 
-        # If redirected to login → requires auth, assume alive (private share)
-        if "login.live.com" in final_url or "login.microsoftonline.com" in final_url:
-            await page.close()
-            return True, None
+    async with _pw_sem:
+        page = None
+        try:
+            page = await _get_playwright_page()
+            resp = await page.goto(url, wait_until="domcontentloaded",
+                                   timeout=PLAYWRIGHT_TIMEOUT)
+            final_url = page.url
 
-        # Wait a bit for SPA JS to render
-        await page.wait_for_timeout(3000)
+            # If redirected to login → requires auth, assume alive (private share)
+            if "login.live.com" in final_url or "login.microsoftonline.com" in final_url:
+                await page.close()
+                return True, None
 
-        # Check for error indicators
-        content = await page.content()
-        title = await page.title()
+            # Wait a bit for SPA JS to render
+            await page.wait_for_timeout(3000)
 
-        if any(s in content.lower() for s in [
-            "item might not exist",
-            "this item might have been deleted",
-            "isn't available",
-            "doesn't exist",
-            "item not found",
-        ]):
-            await page.close()
-            return False, None
+            # Check for error indicators
+            content = await page.content()
+            title = await page.title()
 
-        # Extract filename from page content
-        fname = None
+            if any(s in content.lower() for s in [
+                "item might not exist",
+                "this item might have been deleted",
+                "isn't available",
+                "doesn't exist",
+                "item not found",
+            ]):
+                await page.close()
+                return False, None
 
-        # Method 1: JS variable / JSON in page source
-        m = ONEDRIVE_FILENAME_RE.search(content)
-        if m:
-            fname = m.group(1)
+            # Extract filename from page content
+            fname = None
 
-        # Method 2: Try to read the visible filename from the rendered DOM
-        if not fname:
-            try:
-                el = await page.query_selector('[data-automationid="FieldRenderer-name"]')
-                if el:
-                    fname = (await el.inner_text()).strip()
-            except Exception:
-                pass
+            # Method 1: JS variable / JSON in page source
+            m = ONEDRIVE_FILENAME_RE.search(content)
+            if m:
+                fname = m.group(1)
 
-        # Method 3: Title often contains "filename - OneDrive"
-        if not fname and title and " - " in title:
-            candidate = title.rsplit(" - ", 1)[0].strip()
-            if candidate and candidate.lower() != "onedrive":
-                fname = candidate
+            # Method 2: Try to read the visible filename from the rendered DOM
+            if not fname:
+                try:
+                    el = await page.query_selector('[data-automationid="FieldRenderer-name"]')
+                    if el:
+                        fname = (await el.inner_text()).strip()
+                except Exception:
+                    pass
 
-        await page.close()
+            # Method 3: Title often contains "filename - OneDrive"
+            if not fname and title and " - " in title:
+                candidate = title.rsplit(" - ", 1)[0].strip()
+                if candidate and candidate.lower() != "onedrive":
+                    fname = candidate
 
-        # Determine liveness
-        if resp and resp.status >= 400:
-            return False, fname
-        return True, fname
-    except Exception:
-        if page:
             try:
                 await page.close()
             except Exception:
                 pass
-        return False, None
+
+            # Determine liveness
+            if resp and resp.status >= 400:
+                return False, fname
+            return True, fname
+        except Exception:
+            if page:
+                try:
+                    await page.close()
+                except Exception:
+                    pass
+            # On Playwright errors, fall back to HTTP HEAD check
+            try:
+                async with session.head(
+                    url,
+                    allow_redirects=True,
+                    timeout=aiohttp.ClientTimeout(total=REQUEST_TIMEOUT),
+                ) as resp:
+                    return resp.status < 400, None
+            except Exception:
+                return False, None
 
 
 async def resolve_other(
@@ -588,64 +616,65 @@ async def main() -> None:
     ) as session:
         cache: dict[str, tuple[bool, str | None]] = {}
 
-        for batch_idx in range(num_batches):
-            start = batch_idx * BATCH_SIZE
-            end = min(start + BATCH_SIZE, total)
-            batch = entries[start:end]
+        try:
+            for batch_idx in range(num_batches):
+                start = batch_idx * BATCH_SIZE
+                end = min(start + BATCH_SIZE, total)
+                batch = entries[start:end]
 
-            pct_start = start * 100 // total
-            pct_end = end * 100 // total
-            gh_group(
-                f"🔍 Batch {batch_idx + 1}/{num_batches}  "
-                f"[{start + 1}–{end} of {total}]  ({pct_start}%–{pct_end}%)"
-            )
+                pct_start = start * 100 // total
+                pct_end = end * 100 // total
+                gh_group(
+                    f"🔍 Batch {batch_idx + 1}/{num_batches}  "
+                    f"[{start + 1}–{end} of {total}]  ({pct_start}%–{pct_end}%)"
+                )
 
-            tasks = [
-                process_entry(session, sem, name, url, ln, cache)
-                for ln, name, url in batch
-            ]
-            results = await asyncio.gather(*tasks, return_exceptions=True)
+                tasks = [
+                    process_entry(session, sem, name, url, ln, cache)
+                    for ln, name, url in batch
+                ]
+                results = await asyncio.gather(*tasks, return_exceptions=True)
 
-            for res in results:
-                if isinstance(res, Exception):
-                    dead_count += 1
-                    continue
+                for res in results:
+                    if isinstance(res, Exception):
+                        dead_count += 1
+                        continue
 
-                ln, final_name, url, svc, alive = res
+                    ln, final_name, url, svc, alive = res
 
-                if alive:
-                    alive_entries.append((ln, final_name, url))
-                    svc_alive[svc] = svc_alive.get(svc, 0) + 1
+                    if alive:
+                        alive_entries.append((ln, final_name, url))
+                        svc_alive[svc] = svc_alive.get(svc, 0) + 1
 
-                    original = None
-                    for _ln, _name, _url in batch:
-                        if _ln == ln:
-                            original = _name
-                            break
-                    if original and final_name != original:
-                        renamed_count += 1
-                        gh_info(
-                            f"  {_GREEN}✔{_RESET} {_BOLD}{final_name}{_RESET}"
-                            f"  {_DIM}← {original}{_RESET}"
-                        )
+                        original = None
+                        for _ln, _name, _url in batch:
+                            if _ln == ln:
+                                original = _name
+                                break
+                        if original and final_name != original:
+                            renamed_count += 1
+                            gh_info(
+                                f"  {_GREEN}✔{_RESET} {_BOLD}{final_name}{_RESET}"
+                                f"  {_DIM}← {original}{_RESET}"
+                            )
+                        else:
+                            gh_info(
+                                f"  {_GREEN}✔{_RESET} {final_name}"
+                            )
                     else:
-                        gh_info(
-                            f"  {_GREEN}✔{_RESET} {final_name}"
-                        )
-                else:
-                    dead_count += 1
-                    svc_dead[svc] = svc_dead.get(svc, 0) + 1
-                    gh_info(f"  {_RED}✖{_RESET} {_DIM}DEAD{_RESET} {url[:80]}")
+                        dead_count += 1
+                        svc_dead[svc] = svc_dead.get(svc, 0) + 1
+                        gh_info(f"  {_RED}✖{_RESET} {_DIM}DEAD{_RESET} {url[:80]}")
 
-            gh_info(
-                f"  {_CYAN}Batch done:{_RESET} "
-                f"{_GREEN}{sum(1 for r in results if not isinstance(r, Exception) and r[4])} alive{_RESET}, "
-                f"{_RED}{sum(1 for r in results if isinstance(r, Exception) or not r[4])} dead{_RESET}"
-            )
-            gh_endgroup()
-
-    # Close Playwright if it was started
-    await _close_playwright()
+                gh_info(
+                    f"  {_CYAN}Batch done:{_RESET} "
+                    f"{_GREEN}{sum(1 for r in results if not isinstance(r, Exception) and r[4])} alive{_RESET}, "
+                    f"{_RED}{sum(1 for r in results if isinstance(r, Exception) or not r[4])} dead{_RESET}"
+                )
+                gh_endgroup()
+        finally:
+            # Always close Playwright even if an error occurred
+            await _close_playwright()
 
     alive_entries.sort(key=lambda x: x[0])
 

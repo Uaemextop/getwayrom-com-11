@@ -55,7 +55,7 @@
       });
       // Prevent overlay touch from scrolling the page
       overlayEl.addEventListener('touchmove', function (e) {
-        e.preventDefault();
+        if (e.target === overlayEl) e.preventDefault();
       }, { passive: false });
       document.body.appendChild(overlayEl);
     }

@@ -99,21 +99,19 @@ GDRIVE_UC_NAME_RE = re.compile(
     re.I,
 )
 
-# Matches filename in the download form's hidden input or link text
-GDRIVE_CONFIRM_NAME_RE = re.compile(
-    r'<a\s[^>]*id="uc-download-link"[^>]*>([^<]*Download[^<]*)</a>',
-    re.I,
-)
-
 MEDIAFIRE_FILENAME_RE = re.compile(
     r'class="filename">([^<]+)',
     re.I,
 )
 
+MEDIAFIRE_CDN_HOST_RE = re.compile(r"^download\d+\.mediafire\.com$")
+
 # OneDrive page: file info embedded in JS as JSON
 ONEDRIVE_FILENAME_RE = re.compile(
     r'"fileName"\s*:\s*"([^"]+)"',
 )
+
+FIRMWARE_PLACEHOLDER_RE = re.compile(r"^firmware_\d+$")
 
 
 # ── Playwright singleton ─────────────────────────────────────────────
@@ -451,7 +449,7 @@ async def resolve_mediafire(
 ) -> tuple[bool, str | None]:
     parsed = urlparse(url)
     host = (parsed.hostname or "").lower()
-    is_direct_cdn = host.startswith("download") and host.endswith(".mediafire.com")
+    is_direct_cdn = bool(MEDIAFIRE_CDN_HOST_RE.match(host))
 
     # For direct CDN download URLs, try HEAD for Content-Disposition first
     if is_direct_cdn:
@@ -845,7 +843,7 @@ async def main() -> None:
     gh_endgroup()
 
     # ── Summary ───────────────────────────────────────────────────
-    unresolved = sum(1 for _, name, _ in alive_entries if re.match(r"^firmware_\d+$", name))
+    unresolved = sum(1 for _, name, _ in alive_entries if FIRMWARE_PLACEHOLDER_RE.match(name))
     elapsed = time.time() - wall_start
     gh_group("📊 Summary")
     gh_info(f"  {_BOLD}Total processed:{_RESET}  {total}")

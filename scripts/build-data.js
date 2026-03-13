@@ -101,16 +101,83 @@ function detectExtension(filename) {
 function detectFileType(extension) {
   const types = {
     zip: 'archive', rar: 'archive', '7z': 'archive', gz: 'archive',
-    'tar.gz': 'archive', tgz: 'archive',
-    apk: 'android', img: 'image', iso: 'disk',
+    'tar.gz': 'archive', tgz: 'archive', ozip: 'archive',
+    tar: 'archive', bz2: 'archive', xz: 'archive',
+    apk: 'android', asec: 'android',
+    img: 'image', raw: 'image',
+    iso: 'disk', dmg: 'disk',
     exe: 'executable', msi: 'executable', bat: 'executable',
-    bin: 'binary', mbn: 'binary', dat: 'binary', elf: 'binary',
+    bin: 'binary', mbn: 'binary', dat: 'binary', elf: 'binary', db: 'binary',
     md: 'document', txt: 'document', pdf: 'document',
+    rtf: 'document', docx: 'document', pptx: 'document', man: 'document',
     scatter: 'scatter',
     xml: 'config', json: 'config', cfg: 'config', ini: 'config',
-    pac: 'flash', ozip: 'archive', ofp: 'flash', ops: 'flash',
+    auth: 'config', key: 'config', xdft: 'config', ddft: 'config',
+    pac: 'flash', ofp: 'flash', ops: 'flash',
+    ipsw: 'firmware', qcn: 'firmware', xqcn: 'firmware',
+    skb: 'firmware', ef: 'firmware', rpkg: 'firmware', ueb: 'firmware', rtc: 'firmware',
+    md5: 'checksum',
+    mp4: 'media', mkv: 'media', jpg: 'media', png: 'media',
   };
   return types[extension] || 'file';
+}
+
+function detectCategory(filename) {
+  const rules = [
+    ['flash_tool', /\bflash.?tool\b|\bsp.?flash\b|\bodin\b|\bqfil\b|\bdownload.?tool\b|\bflashing.?tool\b|\bsptool\b|\bcarlcare\b|\bMiFlash\b/i],
+    ['driver', /\bdriver\b|\busb.?driver\b/i],
+    ['combination', /\bcombination\b/i],
+    ['frp', /\bfrp\b/i],
+    ['unlock', /\bunlock\b|\bknox.?off\b|\bmdm.?remove\b|\bremove.?mdm\b|\bunlocktool\b/i],
+    ['root', /\broot\b|\bmagisk\b|\bsupersu\b/i],
+    ['imei', /\bimei\b/i],
+    ['repair', /\brepair\b|\bdead.?boot\b|\bhang.?on.?logo\b|\bstuck.?on.?logo\b|\bbrick\b|\bunbrick\b|\bfix\b/i],
+    ['dump', /\bdump\b|\bread.?file\b|\bread_file\b/i],
+    ['nvdata', /\bnvram\b|\bnv.?data\b|\befs\b|\bqcn\b/i],
+    ['emmc', /\bemmc\b|\brpmb\b/i],
+    ['backup', /\bbackup\b/i],
+    ['recovery', /\brecovery\b|\btwrp\b|\bcwm\b/i],
+    ['scatter', /\bscatter\b/i],
+    ['preloader', /\bpreloader\b/i],
+    ['modem', /\bmodem\b|\bbaseband\b/i],
+    ['bootloader', /\bbootloader\b/i],
+    ['da_file', /\bda[_\s]file\b|\bdownload.?agent\b|\bauth.?file\b/i],
+    ['security', /\bsecurity\b|\bpatch\b/i],
+    ['upgrade', /\bupgrade\b|\bota[_\s.]\b/i],
+    ['downgrade', /\bdowngrade\b/i],
+    ['flash_file', /\bflash.?file\b|\bjust.?flash\b|\bflashing\b|\bflash\b/i],
+    ['custom_rom', /\bcustom.?rom\b|\blineage\b|\bcyanogen\b/i],
+    ['firmware', /\bfirmware\b|\bfirmw\b|\bofficial\b|\bstock.?rom\b/i],
+  ];
+
+  const fwPatterns = [
+    /^samfw\.com_/i, /^CP_Samsung/i, /^CP_SM-/i,
+    /SM-[A-Z]\d{3,4}[A-Z]?_.*_fac\b/i,
+    /\b\w+_global_images_V\d/i, /\b\w+_in_global_images/i, /\bmiui\b/i,
+    /PD\d{4}[A-Z]*_EX_[A-Z]/i, /[A-Z]\d{4}export/i, /HMDSW_/i, /EMUI/i,
+    /release.?keys/i, /user.?ship/i, /CPH\d{4}export/i, /RMX\d{4}export/i,
+    /^WW-[A-Z]{2}\d{3}/i, /givemerom/i, /getwayrom/i, /filewale/i,
+    /blankflash/i, /fullflash|full_flash/i, /fastboot_.*_retail/i,
+    /fastboot_.*_user/i, /forceflash/i, /\bMT\d{4}\b/i, /\bqcom\b/i,
+    /\balps\b/i, /OxygenOS/i, /ColorOS/i,
+    /^SM-[A-Z]\d{3}/i, /^GT-[A-Z]\d{3}/i, /^RMX\d{4}/i, /^CPH\d{4}/i,
+    /^XT\d{4}/i, /^moto/i, /^TA-\d{4}/i, /^OnePlus/i, /^Redmi/i,
+    /^Poco/i, /^Huawei/i, /^Honor/i, /^Realme/i, /^Oppo\b/i, /^Infinix/i,
+    /^ASUS/i, /^Vivo/i, /^Samsung/i, /^Xiaomi/i, /^Tecno/i,
+    /^Nokia/i, /^Lenovo/i, /^Google/i, /^Alcatel/i, /^LG\s/i, /^ZTE/i,
+    /^Sony/i, /^HTC/i, /^itel/i, /^Jio/i, /\.ipsw$/i, /_fac$/i, /_fac\b/i,
+    /^Samfw/i, /^[A-Z]\d{3,5}[A-Z]*[-_][A-Z]\d{3,5}/i,
+    /^[A-Z]{2}\d{3,4}[-_]/i, /^LAVA_/i, /ravig/i, /gsm.?firmware/i,
+    /firmwaretech/i, /^[A-Z]{2,4}\d{3,6}/i, /_ROM_/i,
+  ];
+
+  for (const [cat, regex] of rules) {
+    if (regex.test(filename)) return cat;
+  }
+  for (const pat of fwPatterns) {
+    if (pat.test(filename)) return 'firmware';
+  }
+  return 'firmware';
 }
 
 function detectSource(url) {
@@ -144,7 +211,9 @@ function parseLine(line) {
   const fileType = detectFileType(extension);
   const source = detectSource(url);
 
-  return { name, url, extension, brand, fileType, source };
+  const category = detectCategory(name);
+
+  return { name, url, extension, brand, fileType, source, category };
 }
 
 async function fetchFirmwareData() {
@@ -214,10 +283,12 @@ async function main() {
   const brands = {};
   const extensions = {};
   const sources = {};
+  const categories = {};
   for (const f of files) {
     brands[f.brand] = (brands[f.brand] || 0) + 1;
     extensions[f.extension] = (extensions[f.extension] || 0) + 1;
     sources[f.source] = (sources[f.source] || 0) + 1;
+    categories[f.category] = (categories[f.category] || 0) + 1;
   }
 
   const output = {
@@ -226,6 +297,7 @@ async function main() {
     brands,
     extensions,
     sources,
+    categories,
     files
   };
 
@@ -244,6 +316,10 @@ async function main() {
     console.log('\nTop extensions:');
     Object.entries(extensions).sort((a, b) => b[1] - a[1]).slice(0, 10).forEach(([ext, count]) => {
       console.log(`  .${ext}: ${count}`);
+    });
+    console.log('\nCategory distribution:');
+    Object.entries(categories).sort((a, b) => b[1] - a[1]).forEach(([cat, count]) => {
+      console.log(`  ${cat}: ${count}`);
     });
   }
 }

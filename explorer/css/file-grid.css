@@ -31,6 +31,8 @@
 .file-card-icon.config{background:var(--ft-config-bg);color:var(--ft-config)}
 .file-card-icon.flash{background:var(--ft-flash-bg);color:var(--ft-flash)}
 .file-card-icon.file{background:var(--ft-file-bg);color:var(--ft-file)}
+.file-card-icon.checksum{background:var(--ft-checksum-bg);color:var(--ft-checksum)}
+.file-card-icon.media{background:var(--ft-media-bg);color:var(--ft-media)}
 
 .file-icon-small{width:30px;height:30px;border-radius:var(--r-xs);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
 .file-icon-small.archive{background:var(--ft-archive-bg);color:var(--ft-archive)}
@@ -45,6 +47,8 @@
 .file-icon-small.config{background:var(--ft-config-bg);color:var(--ft-config)}
 .file-icon-small.flash{background:var(--ft-flash-bg);color:var(--ft-flash)}
 .file-icon-small.file{background:var(--ft-file-bg);color:var(--ft-file)}
+.file-icon-small.checksum{background:var(--ft-checksum-bg);color:var(--ft-checksum)}
+.file-icon-small.media{background:var(--ft-media-bg);color:var(--ft-media)}
 
 .file-card-info{width:100%;min-width:0;display:flex;flex-direction:column;gap:var(--s2)}
 .file-card-name{

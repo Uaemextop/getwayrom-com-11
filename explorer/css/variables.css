@@ -84,6 +84,8 @@
   --ft-config: #0ea5e9;   --ft-config-bg: rgba(14,165,233,.12);
   --ft-flash: #eab308;    --ft-flash-bg: rgba(234,179,8,.12);
   --ft-file: #94a3b8;     --ft-file-bg: rgba(148,163,184,.1);
+  --ft-checksum: #10b981;  --ft-checksum-bg: rgba(16,185,129,.12);
+  --ft-media: #ec4899;     --ft-media-bg: rgba(236,72,153,.12);
 
   color-scheme: light dark;
 }

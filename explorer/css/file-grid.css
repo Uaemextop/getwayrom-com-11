@@ -1,394 +1,443 @@
-/* ============================================
-   GetwayROM File Explorer - File Grid & List Views
-   Card layout, list layout, file type icon colors
-   ============================================ */
+/* ============================================================
+   GetwayROM File Explorer – File Grid / List
+   ============================================================ */
 
-/* --- File Grid (Card View) --- */
+/* ── Grid view ───────────────────────────────────────────── */
+
 .file-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: var(--space-5);
-    align-content: start;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: var(--space-4);
 }
 
-/* --- File Card --- */
+/* ── File card ───────────────────────────────────────────── */
+
 .file-card {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: var(--space-5) var(--space-4);
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-light);
-    border-radius: calc(var(--radius-md) + 2px);
-    transition: all var(--transition-normal);
-    cursor: pointer;
-    position: relative;
-    overflow: hidden;
-    min-height: 200px;
-    box-shadow: var(--shadow-xs);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-6) var(--space-4) var(--space-5);
+  background: var(--bg-glass);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
 }
 
-.file-card::before,
-.folder-card::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 45%);
-    opacity: 0;
-    transition: opacity var(--transition-normal);
+.file-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(ellipse at 50% 0%, rgba(var(--color-primary-rgb), .06), transparent 70%);
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+  pointer-events: none;
 }
 
 .file-card:hover {
-    background: var(--bg-hover);
-    box-shadow: var(--shadow-lg);
-    border-color: var(--color-primary);
-    transform: translateY(-4px);
+  border-color: rgba(var(--color-primary-rgb), .22);
+  box-shadow: var(--shadow-glow);
+  transform: translateY(-2px);
 }
 
-.file-card:hover::before,
-.folder-card:hover::before {
-    opacity: 1;
+.file-card:hover::before {
+  opacity: 1;
 }
 
-.file-card:active {
-    transform: translateY(0);
-    box-shadow: var(--shadow-sm);
-}
+/* ── File card icon ──────────────────────────────────────── */
 
 .file-card-icon {
-    width: 64px;
-    height: 64px;
-    border-radius: var(--radius-lg);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 28px;
-    margin-bottom: var(--space-4);
-    transition: all var(--transition-normal);
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-lg);
+  font-size: 1.5rem;
+  flex-shrink: 0;
+  transition: transform var(--transition-fast);
 }
 
 .file-card:hover .file-card-icon {
-    transform: scale(1.08);
+  transform: scale(1.05);
 }
 
-/* --- Icon Type Colors --- */
-.file-card-icon.archive { background: rgba(255, 165, 0, 0.15); color: #f59e0b; }
-.file-card-icon.android { background: rgba(76, 175, 80, 0.15); color: #4caf50; }
-.file-card-icon.firmware { background: rgba(0, 188, 212, 0.15); color: #00bcd4; }
-.file-card-icon.image { background: rgba(33, 150, 243, 0.15); color: #2196f3; }
-.file-card-icon.disk { background: rgba(156, 39, 176, 0.15); color: #9c27b0; }
-.file-card-icon.executable { background: rgba(244, 67, 54, 0.15); color: #f44336; }
-.file-card-icon.binary { background: rgba(0, 150, 136, 0.15); color: #009688; }
-.file-card-icon.document { background: rgba(33, 150, 243, 0.15); color: #2196f3; }
-.file-card-icon.scatter { background: rgba(121, 85, 72, 0.15); color: #795548; }
-.file-card-icon.config { background: rgba(96, 125, 139, 0.15); color: #607d8b; }
-.file-card-icon.flash { background: rgba(255, 235, 59, 0.15); color: #ffc107; }
-.file-card-icon.file { background: rgba(158, 158, 158, 0.15); color: #9e9e9e; }
+/* Icon type colours */
+.file-card-icon.archive    { background: var(--file-archive-bg);    color: var(--file-archive-color); }
+.file-card-icon.android    { background: var(--file-android-bg);    color: var(--file-android-color); }
+.file-card-icon.firmware   { background: var(--file-firmware-bg);   color: var(--file-firmware-color); }
+.file-card-icon.image      { background: var(--file-image-bg);      color: var(--file-image-color); }
+.file-card-icon.disk       { background: var(--file-disk-bg);       color: var(--file-disk-color); }
+.file-card-icon.executable { background: var(--file-executable-bg); color: var(--file-executable-color); }
+.file-card-icon.binary     { background: var(--file-binary-bg);     color: var(--file-binary-color); }
+.file-card-icon.document   { background: var(--file-document-bg);   color: var(--file-document-color); }
+.file-card-icon.scatter    { background: var(--file-scatter-bg);    color: var(--file-scatter-color); }
+.file-card-icon.config     { background: var(--file-config-bg);     color: var(--file-config-color); }
+.file-card-icon.flash      { background: var(--file-flash-bg);      color: var(--file-flash-color); }
+.file-card-icon.file       { background: var(--file-file-bg);       color: var(--file-file-color); }
 
-.file-icon-small {
-    width: 32px;
-    height: 32px;
-    border-radius: var(--radius-sm);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 16px;
-    flex-shrink: 0;
-}
-.file-icon-small.archive { background: rgba(255, 165, 0, 0.15); color: #f59e0b; }
-.file-icon-small.android { background: rgba(76, 175, 80, 0.15); color: #4caf50; }
-.file-icon-small.firmware { background: rgba(0, 188, 212, 0.15); color: #00bcd4; }
-.file-icon-small.image { background: rgba(33, 150, 243, 0.15); color: #2196f3; }
-.file-icon-small.disk { background: rgba(156, 39, 176, 0.15); color: #9c27b0; }
-.file-icon-small.executable { background: rgba(244, 67, 54, 0.15); color: #f44336; }
-.file-icon-small.binary { background: rgba(0, 150, 136, 0.15); color: #009688; }
-.file-icon-small.document { background: rgba(33, 150, 243, 0.15); color: #2196f3; }
-.file-icon-small.scatter { background: rgba(121, 85, 72, 0.15); color: #795548; }
-.file-icon-small.config { background: rgba(96, 125, 139, 0.15); color: #607d8b; }
-.file-icon-small.flash { background: rgba(255, 235, 59, 0.15); color: #ffc107; }
-.file-icon-small.file { background: rgba(158, 158, 158, 0.15); color: #9e9e9e; }
+/* ── File card info ──────────────────────────────────────── */
 
 .file-card-info {
-    width: 100%;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+  width: 100%;
 }
 
 .file-card-name {
-    font-size: var(--font-size-sm);
-    font-weight: var(--font-weight-semibold);
-    color: var(--text-primary);
-    text-align: center;
-    word-break: break-word;
-    line-height: 1.5;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    max-height: 2.8em;
-    min-height: 2.8em;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .file-card-meta {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    flex-wrap: wrap;
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
 }
 
-/* --- Brand Badge Colors --- */
-.brand-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-size: var(--font-size-xs);
-    padding: 5px 10px;
-    border-radius: var(--radius-full);
-    font-weight: var(--font-weight-medium);
+.file-card-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-1);
+  opacity: 0;
+  transition: opacity var(--transition-fast);
 }
-.brand-badge.brand-samsung { background: rgba(27, 99, 255, 0.15); color: #1b63ff; }
-.brand-badge.brand-xiaomi { background: rgba(255, 108, 0, 0.15); color: #ff6c00; }
-.brand-badge.brand-huawei { background: rgba(207, 9, 32, 0.15); color: #cf0920; }
-.brand-badge.brand-honor { background: rgba(0, 164, 239, 0.15); color: #00a4ef; }
-.brand-badge.brand-realme { background: rgba(255, 200, 0, 0.15); color: #c89d00; }
-.brand-badge.brand-oppo { background: rgba(15, 157, 88, 0.15); color: #0f9d58; }
-.brand-badge.brand-vivo { background: rgba(65, 105, 225, 0.15); color: #4169e1; }
-.brand-badge.brand-motorola { background: rgba(0, 140, 186, 0.15); color: #008cba; }
-.brand-badge.brand-oneplus { background: rgba(235, 0, 27, 0.15); color: #eb001b; }
-.brand-badge.brand-nokia { background: rgba(18, 65, 145, 0.15); color: #124191; }
-.brand-badge.brand-lg { background: rgba(168, 25, 46, 0.15); color: #a8192e; }
-.brand-badge.brand-google { background: rgba(66, 133, 244, 0.15); color: #4285f4; }
-.brand-badge.brand-other { background: var(--bg-hover); color: var(--text-secondary); }
+
+.file-card:hover .file-card-actions {
+  opacity: 1;
+}
+
+/* ── Small file icons (list view) ────────────────────────── */
+
+.file-icon-small {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+  flex-shrink: 0;
+}
+
+.file-icon-small.archive    { background: var(--file-archive-bg);    color: var(--file-archive-color); }
+.file-icon-small.android    { background: var(--file-android-bg);    color: var(--file-android-color); }
+.file-icon-small.firmware   { background: var(--file-firmware-bg);   color: var(--file-firmware-color); }
+.file-icon-small.image      { background: var(--file-image-bg);      color: var(--file-image-color); }
+.file-icon-small.disk       { background: var(--file-disk-bg);       color: var(--file-disk-color); }
+.file-icon-small.executable { background: var(--file-executable-bg); color: var(--file-executable-color); }
+.file-icon-small.binary     { background: var(--file-binary-bg);     color: var(--file-binary-color); }
+.file-icon-small.document   { background: var(--file-document-bg);   color: var(--file-document-color); }
+.file-icon-small.scatter    { background: var(--file-scatter-bg);    color: var(--file-scatter-color); }
+.file-icon-small.config     { background: var(--file-config-bg);     color: var(--file-config-color); }
+.file-icon-small.flash      { background: var(--file-flash-bg);      color: var(--file-flash-color); }
+.file-icon-small.file       { background: var(--file-file-bg);       color: var(--file-file-color); }
+
+/* ── Brand badges ────────────────────────────────────────── */
+
+.brand-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px var(--space-2);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  border-radius: var(--radius-xs);
+  white-space: nowrap;
+}
+
+.brand-samsung  { background: rgba(20,100,220,.12);  color: #5b9cf5; }
+.brand-xiaomi   { background: rgba(255,108,0,.12);   color: #ff8c40; }
+.brand-huawei   { background: rgba(207,9,11,.12);    color: #f06060; }
+.brand-honor    { background: rgba(0,124,195,.12);    color: #4da8e0; }
+.brand-realme   { background: rgba(246,183,0,.12);    color: #f6c030; }
+.brand-oppo     { background: rgba(30,160,80,.12);    color: #40c070; }
+.brand-vivo     { background: rgba(70,80,220,.12);    color: #7080f0; }
+.brand-motorola { background: rgba(100,100,100,.12);  color: #a0a0a0; }
+.brand-oneplus  { background: rgba(235,0,30,.12);     color: #f05050; }
+.brand-nokia    { background: rgba(18,75,128,.12);    color: #4080b0; }
+.brand-lg       { background: rgba(169,25,70,.12);    color: #d04080; }
+.brand-google   { background: rgba(66,133,244,.12);   color: #6aa0f8; }
+.brand-other    { background: var(--file-file-bg);     color: var(--file-file-color); }
+
+/* ── Extension badge ─────────────────────────────────────── */
 
 .ext-badge {
-    font-family: var(--font-mono);
-    font-size: var(--font-size-xs);
-    background: var(--bg-hover);
-    color: var(--text-muted);
-    padding: 5px 10px;
-    border-radius: var(--radius-full);
+  display: inline-flex;
+  align-items: center;
+  padding: 2px var(--space-2);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  border-radius: var(--radius-xs);
+  background: var(--bg-surface);
+  color: var(--text-muted);
+  letter-spacing: 0.02em;
 }
 
-/* --- Folder Card --- */
+/* ── Folder card ─────────────────────────────────────────── */
+
 .folder-card {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: var(--space-5) var(--space-4);
-    background: var(--bg-secondary);
-    border: 2px dashed var(--border-light);
-    border-radius: calc(var(--radius-md) + 2px);
-    transition: all var(--transition-normal);
-    cursor: pointer;
-    position: relative;
-    min-height: 200px;
-    box-shadow: var(--shadow-xs);
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-5);
+  background: var(--bg-glass);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: all var(--transition-fast);
 }
 
 .folder-card:hover {
-    background: var(--bg-hover);
-    box-shadow: var(--shadow-md);
-    border-color: var(--color-primary);
-    border-style: solid;
-    transform: translateY(-2px);
+  border-color: rgba(var(--color-primary-rgb), .30);
+  background: var(--bg-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
 }
 
 .folder-card-icon {
-    width: 56px;
-    height: 56px;
-    border-radius: var(--radius-lg);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 26px;
-    margin-bottom: var(--space-3);
-    background: rgba(66, 133, 244, 0.15);
-    color: #4285f4;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  font-size: 1.25rem;
+  flex-shrink: 0;
+  background: rgba(var(--color-primary-rgb), .10);
+  color: var(--color-primary-light);
 }
 
-.folder-card-icon.brand-samsung { background: rgba(27, 99, 255, 0.15); color: #1b63ff; }
-.folder-card-icon.brand-xiaomi { background: rgba(255, 108, 0, 0.15); color: #ff6c00; }
-.folder-card-icon.brand-huawei { background: rgba(207, 9, 32, 0.15); color: #cf0920; }
-.folder-card-icon.brand-honor { background: rgba(0, 164, 239, 0.15); color: #00a4ef; }
-.folder-card-icon.brand-realme { background: rgba(255, 200, 0, 0.15); color: #c89d00; }
-.folder-card-icon.brand-oppo { background: rgba(15, 157, 88, 0.15); color: #0f9d58; }
-.folder-card-icon.brand-vivo { background: rgba(65, 105, 225, 0.15); color: #4169e1; }
-.folder-card-icon.brand-motorola { background: rgba(0, 140, 186, 0.15); color: #008cba; }
-.folder-card-icon.brand-oneplus { background: rgba(235, 0, 27, 0.15); color: #eb001b; }
-.folder-card-icon.brand-nokia { background: rgba(18, 65, 145, 0.15); color: #124191; }
-.folder-card-icon.brand-lg { background: rgba(168, 25, 46, 0.15); color: #a8192e; }
-.folder-card-icon.brand-google { background: rgba(66, 133, 244, 0.15); color: #4285f4; }
-.folder-card-icon.brand-other { background: var(--bg-hover); color: var(--text-secondary); }
+/* Folder brand colour variants */
+.folder-card-icon.brand-samsung  { background: rgba(20,100,220,.12);  color: #5b9cf5; }
+.folder-card-icon.brand-xiaomi   { background: rgba(255,108,0,.12);   color: #ff8c40; }
+.folder-card-icon.brand-huawei   { background: rgba(207,9,11,.12);    color: #f06060; }
+.folder-card-icon.brand-honor    { background: rgba(0,124,195,.12);    color: #4da8e0; }
+.folder-card-icon.brand-realme   { background: rgba(246,183,0,.12);    color: #f6c030; }
+.folder-card-icon.brand-oppo     { background: rgba(30,160,80,.12);    color: #40c070; }
+.folder-card-icon.brand-vivo     { background: rgba(70,80,220,.12);    color: #7080f0; }
+.folder-card-icon.brand-motorola { background: rgba(100,100,100,.12);  color: #a0a0a0; }
+.folder-card-icon.brand-oneplus  { background: rgba(235,0,30,.12);     color: #f05050; }
+.folder-card-icon.brand-nokia    { background: rgba(18,75,128,.12);    color: #4080b0; }
+.folder-card-icon.brand-lg       { background: rgba(169,25,70,.12);    color: #d04080; }
+.folder-card-icon.brand-google   { background: rgba(66,133,244,.12);   color: #6aa0f8; }
+.folder-card-icon.brand-other    { background: var(--file-file-bg);     color: var(--file-file-color); }
 
 .folder-card-info {
-    width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
 }
 
 .folder-card-name {
-    font-size: var(--font-size-sm);
-    font-weight: var(--font-weight-semibold);
-    color: var(--text-primary);
-    margin-bottom: 6px;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .folder-card-meta {
-    font-size: var(--font-size-xs);
-    color: var(--text-muted);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
 }
 
-/* --- File Detail Dialog --- */
-.file-detail-modal .modal-body {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    padding: var(--space-6);
+/* ── File detail modal ───────────────────────────────────── */
+
+.file-detail-modal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-6);
+  text-align: center;
 }
 
 .file-detail-icon {
-    width: 80px;
-    height: 80px;
-    border-radius: var(--radius-xl);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 36px;
-    margin-bottom: var(--space-4);
+  width: 72px;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-xl);
+  font-size: 2rem;
 }
-.file-detail-icon.archive { background: rgba(255, 165, 0, 0.15); color: #f59e0b; }
-.file-detail-icon.android { background: rgba(76, 175, 80, 0.15); color: #4caf50; }
-.file-detail-icon.firmware { background: rgba(0, 188, 212, 0.15); color: #00bcd4; }
-.file-detail-icon.image { background: rgba(33, 150, 243, 0.15); color: #2196f3; }
-.file-detail-icon.disk { background: rgba(156, 39, 176, 0.15); color: #9c27b0; }
-.file-detail-icon.executable { background: rgba(244, 67, 54, 0.15); color: #f44336; }
-.file-detail-icon.binary { background: rgba(0, 150, 136, 0.15); color: #009688; }
-.file-detail-icon.document { background: rgba(33, 150, 243, 0.15); color: #2196f3; }
-.file-detail-icon.scatter { background: rgba(121, 85, 72, 0.15); color: #795548; }
-.file-detail-icon.config { background: rgba(96, 125, 139, 0.15); color: #607d8b; }
-.file-detail-icon.flash { background: rgba(255, 235, 59, 0.15); color: #ffc107; }
-.file-detail-icon.file { background: rgba(158, 158, 158, 0.15); color: #9e9e9e; }
 
 .file-detail-name {
-    font-size: var(--font-size-lg);
-    font-weight: var(--font-weight-semibold);
-    color: var(--text-primary);
-    margin-bottom: var(--space-4);
-    word-break: break-all;
+  font-size: var(--text-lg);
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+  word-break: break-word;
 }
 
 .file-detail-meta {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  width: 100%;
+  max-width: 380px;
 }
 
 .detail-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: var(--space-3);
-    background: var(--bg-tertiary);
-    border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.detail-row:last-child {
+  border-bottom: none;
 }
 
 .detail-label {
-    font-size: var(--font-size-sm);
-    color: var(--text-muted);
-    display: flex;
-    align-items: center;
-    gap: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  flex-shrink: 0;
 }
 
 .detail-value {
-    font-size: var(--font-size-sm);
-    font-weight: var(--font-weight-medium);
-    color: var(--text-primary);
-    display: flex;
-    align-items: center;
-    gap: var(--space-2);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--text-primary);
+  text-align: right;
+  word-break: break-all;
 }
 
 .btn-download-lg {
-    padding: var(--space-3) var(--space-6);
-    font-size: var(--font-size-md);
-    border-radius: var(--radius-md);
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-2);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-6);
+  font-size: var(--text-base);
+  font-weight: var(--weight-semibold);
+  background: linear-gradient(135deg, var(--color-success), #16a34a);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  margin-top: var(--space-2);
 }
 
-/* --- File Card Actions --- */
-.file-card-actions {
-    margin-top: var(--space-3);
+.btn-download-lg:hover {
+  box-shadow: 0 4px 20px rgba(34,197,94,.35);
+  transform: translateY(-1px);
 }
 
-/* --- File List (Table View) --- */
+/* ── List view ───────────────────────────────────────────── */
+
 .file-list {
-    background: color-mix(in srgb, var(--bg-secondary) 96%, transparent);
-    border: 1px solid var(--border-light);
-    border-radius: calc(var(--radius-md) + 2px);
-    overflow: hidden;
-    box-shadow: var(--shadow-xs);
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--bg-glass);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
 }
 
 .file-list-header {
-    display: grid;
-    grid-template-columns: 40px 1fr 140px 80px 80px;
-    align-items: center;
-    padding: var(--space-2) var(--space-4);
-    background: var(--bg-tertiary);
-    border-bottom: 1px solid var(--border-light);
-    font-size: var(--font-size-sm);
-    font-weight: var(--font-weight-bold);
-    color: var(--text-secondary);
+  display: grid;
+  grid-template-columns: minmax(200px, 2fr) 120px 100px 90px 110px;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-default);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+  color: var(--text-muted);
+  align-items: center;
 }
 
-.list-col { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.list-col[data-sort] { cursor: pointer; }
-.list-col[data-sort]:hover { color: var(--color-primary); }
+.list-col {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  cursor: pointer;
+  transition: color var(--transition-fast);
+}
+
+.list-col:hover {
+  color: var(--text-secondary);
+}
 
 .file-row {
-    display: grid;
-    grid-template-columns: 40px 1fr 140px 80px 80px;
-    align-items: center;
-    padding: var(--space-2) var(--space-4);
-    border-bottom: 1px solid var(--border-light);
-    transition: background var(--transition-normal);
-    cursor: pointer;
+  display: grid;
+  grid-template-columns: minmax(200px, 2fr) 120px 100px 90px 110px;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--border-subtle);
+  align-items: center;
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  transition: background var(--transition-fast);
+  cursor: pointer;
 }
 
-.file-row:last-child { border-bottom: none; }
-.file-row:hover { background: var(--bg-hover); }
+.file-row:last-child {
+  border-bottom: none;
+}
+
+.file-row:hover {
+  background: var(--bg-hover);
+}
 
 .file-name {
-    font-weight: var(--font-weight-medium);
-    color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.file-name span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: var(--weight-medium);
+  color: var(--text-primary);
 }
 
 .file-brand {
-    color: var(--text-secondary);
-    display: flex;
-    align-items: center;
-    gap: var(--space-2);
+  display: flex;
+  align-items: center;
 }
 
 .file-ext {
-    font-family: var(--font-mono);
-    color: var(--text-muted);
-    font-size: var(--font-size-sm);
+  display: flex;
+  align-items: center;
 }
 
 .file-actions {
-    display: flex;
-    justify-content: flex-end;
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  justify-content: flex-end;
 }

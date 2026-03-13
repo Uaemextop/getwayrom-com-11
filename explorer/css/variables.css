@@ -1,149 +1,161 @@
-/* ============================================
-   GetwayROM File Explorer - CSS Variables
-   Design tokens and theme configuration
-   ============================================ */
+/* ============================================================
+   GetwayROM File Explorer – Design Tokens
+   ============================================================ */
 
 :root {
-    /* Brand Colors */
-    --color-primary: #2563eb;
-    --color-primary-hover: #1d4ed8;
-    --color-primary-light: rgba(37, 99, 235, 0.12);
-    --color-primary-dark: #1e40af;
-    --color-accent: #0f766e;
-    --color-accent-hover: #115e59;
+  /* ── Brand ─────────────────────────────────────────────── */
+  --color-primary:        #3b82f6;
+  --color-primary-light:  #60a5fa;
+  --color-primary-dark:   #2563eb;
+  --color-primary-rgb:    59, 130, 246;
+  --color-accent:         #8b5cf6;
+  --color-accent-light:   #a78bfa;
+  --color-accent-rgb:     139, 92, 246;
 
-    /* Semantic Colors */
-    --color-success: #059669;
-    --color-warning: #d97706;
-    --color-error: #dc2626;
-    --color-info: #2563eb;
+  /* ── Semantic ──────────────────────────────────────────── */
+  --color-success:     #22c55e;
+  --color-success-bg:  rgba(34,197,94,.12);
+  --color-warning:     #f59e0b;
+  --color-warning-bg:  rgba(245,158,11,.12);
+  --color-error:       #ef4444;
+  --color-error-bg:    rgba(239,68,68,.12);
+  --color-info:        #06b6d4;
+  --color-info-bg:     rgba(6,182,212,.12);
 
-    /* Neutral Colors (Light Theme) */
-    --bg-primary: #f3f7fb;
-    --bg-secondary: rgba(255, 255, 255, 0.88);
-    --bg-tertiary: #e9eef8;
-    --bg-hover: #eef4ff;
-    --bg-active: #dbeafe;
+  /* ── Backgrounds (dark-first) ──────────────────────────── */
+  --bg-primary:     #060a13;
+  --bg-secondary:   rgba(12, 17, 30, 0.85);
+  --bg-tertiary:    #0d1321;
+  --bg-surface:     rgba(15, 23, 42, 0.6);
+  --bg-elevated:    rgba(20, 28, 50, 0.7);
+  --bg-glass:       rgba(15, 23, 42, 0.45);
+  --bg-glass-heavy: rgba(10, 15, 30, 0.75);
+  --bg-hover:       rgba(59, 130, 246, 0.08);
+  --bg-active:      rgba(59, 130, 246, 0.14);
 
-    /* Text Colors */
-    --text-primary: #0f172a;
-    --text-secondary: #475569;
-    --text-muted: #64748b;
-    --text-inverse: #ffffff;
+  /* ── Text ──────────────────────────────────────────────── */
+  --text-primary:   #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted:     #64748b;
+  --text-inverse:   #0f172a;
+  --text-link:      var(--color-primary-light);
 
-    /* Border Colors */
-    --border-primary: rgba(148, 163, 184, 0.35);
-    --border-light: rgba(148, 163, 184, 0.2);
-    --border-focus: #2563eb;
+  /* ── Borders ───────────────────────────────────────────── */
+  --border-default: rgba(148,163,184,.10);
+  --border-subtle:  rgba(148,163,184,.06);
+  --border-strong:  rgba(148,163,184,.18);
+  --border-focus:   var(--color-primary);
 
-    /* Shadows */
-    --shadow-xs: 0 6px 18px rgba(15, 23, 42, 0.04);
-    --shadow-sm: 0 10px 24px rgba(15, 23, 42, 0.06);
-    --shadow-md: 0 18px 40px rgba(15, 23, 42, 0.08);
-    --shadow-lg: 0 24px 56px rgba(15, 23, 42, 0.12);
-    --shadow-xl: 0 32px 80px rgba(15, 23, 42, 0.16);
+  /* ── Shadows (blue-tinted) ─────────────────────────────── */
+  --shadow-xs:  0 1px 2px  rgba(0,10,40,.25);
+  --shadow-sm:  0 2px 6px  rgba(0,10,40,.30);
+  --shadow-md:  0 4px 14px rgba(0,10,40,.35);
+  --shadow-lg:  0 8px 28px rgba(0,10,40,.40);
+  --shadow-xl:  0 16px 48px rgba(0,10,40,.50);
+  --shadow-glow: 0 0 24px rgba(var(--color-primary-rgb),.25);
+  --shadow-glow-lg: 0 0 48px rgba(var(--color-primary-rgb),.20);
 
-    /* Border Radius */
-    --radius-xs: 4px;
-    --radius-sm: 10px;
-    --radius-md: 16px;
-    --radius-lg: 22px;
-    --radius-xl: 28px;
-    --radius-full: 9999px;
+  /* ── Radii ─────────────────────────────────────────────── */
+  --radius-xs:   4px;
+  --radius-sm:   6px;
+  --radius-md:   10px;
+  --radius-lg:   14px;
+  --radius-xl:   20px;
+  --radius-2xl:  28px;
+  --radius-full: 9999px;
 
-    /* Spacing */
-    --space-1: 4px;
-    --space-2: 8px;
-    --space-3: 12px;
-    --space-4: 16px;
-    --space-5: 20px;
-    --space-6: 24px;
-    --space-8: 32px;
-    --space-10: 40px;
-    --space-12: 48px;
+  /* ── Spacing ───────────────────────────────────────────── */
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-7:  28px;
+  --space-8:  32px;
+  --space-9:  36px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-14: 56px;
+  --space-16: 64px;
+  --space-20: 80px;
 
-    /* Typography */
-    --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-    --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+  /* ── Typography ────────────────────────────────────────── */
+  --font-family:  'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+  --font-mono:    'JetBrains Mono', 'Fira Code', 'SF Mono', Consolas, monospace;
 
-    --font-size-xs: 11px;
-    --font-size-sm: 12px;
-    --font-size-base: 14px;
-    --font-size-md: 15px;
-    --font-size-lg: 18px;
-    --font-size-xl: 20px;
-    --font-size-2xl: 24px;
-    --font-size-3xl: 30px;
+  --text-xs:   0.75rem;   /* 12px */
+  --text-sm:   0.8125rem; /* 13px */
+  --text-base: 0.875rem;  /* 14px */
+  --text-md:   0.9375rem; /* 15px */
+  --text-lg:   1.0625rem; /* 17px */
+  --text-xl:   1.25rem;   /* 20px */
+  --text-2xl:  1.625rem;  /* 26px */
+  --text-3xl:  2rem;      /* 32px */
+  --text-4xl:  2.5rem;    /* 40px */
 
-    --font-weight-light: 300;
-    --font-weight-normal: 400;
-    --font-weight-medium: 500;
-    --font-weight-semibold: 600;
-    --font-weight-bold: 700;
+  --weight-regular:  400;
+  --weight-medium:   500;
+  --weight-semibold: 600;
+  --weight-bold:     700;
+  --weight-black:    800;
 
-    --line-height-tight: 1.2;
-    --line-height-normal: 1.4;
-    --line-height-relaxed: 1.6;
+  --leading-tight:  1.25;
+  --leading-normal: 1.5;
+  --leading-relaxed:1.65;
+  --tracking-tight: -0.02em;
+  --tracking-normal: 0;
+  --tracking-wide:   0.04em;
 
-    /* Layout */
-    --sidebar-width: 304px;
-    --header-height: 76px;
-    --content-max-width: 1500px;
+  /* ── Layout ────────────────────────────────────────────── */
+  --sidebar-width:     280px;
+  --sidebar-collapsed:  0px;
+  --header-height:     60px;
+  --content-max-width: 1500px;
+  --footer-height:     48px;
 
-    /* Transitions */
-    --transition-fast: 0.15s ease;
-    --transition-normal: 0.2s ease;
-    --transition-slow: 0.35s ease;
+  /* ── Transitions ───────────────────────────────────────── */
+  --ease-out:    cubic-bezier(.16,1,.3,1);
+  --ease-spring: cubic-bezier(.34,1.56,.64,1);
+  --transition-fast:   150ms var(--ease-out);
+  --transition-normal: 250ms var(--ease-out);
+  --transition-slow:   400ms var(--ease-out);
 
-    /* Z-index layers */
-    --z-base: 1;
-    --z-dropdown: 100;
-    --z-sticky: 200;
-    --z-overlay: 300;
-    --z-modal: 400;
-    --z-toast: 500;
+  /* ── Z-index ───────────────────────────────────────────── */
+  --z-base:     1;
+  --z-dropdown: 100;
+  --z-sticky:   200;
+  --z-overlay:  500;
+  --z-modal:    600;
+  --z-toast:    700;
 
-    /* File type colors */
-    --color-archive: #c62828;
-    --color-archive-bg: #fce4ec;
-    --color-android: #2e7d32;
-    --color-android-bg: #e8f5e9;
-    --color-image: #1565c0;
-    --color-image-bg: #e3f2fd;
-    --color-disk: #e65100;
-    --color-disk-bg: #fff3e0;
-    --color-executable: #6a1b9a;
-    --color-executable-bg: #f3e5f5;
-    --color-binary: #37474f;
-    --color-binary-bg: #eceff1;
-    --color-document: #283593;
-    --color-document-bg: #e8eaf6;
-    --color-file: #616161;
-    --color-file-bg: #f5f5f5;
+  /* ── Glass ─────────────────────────────────────────────── */
+  --glass-blur:       16px;
+  --glass-blur-heavy: 24px;
 
-    /* Color scheme */
-    color-scheme: light dark;
-}
-
-/* --- Dark Mode Variable Defaults --- */
-/* These define the dark palette tokens.
-   Applied via [data-theme="dark"] or @media(prefers-color-scheme:dark)
-   in theme-dark.css */
-:root[data-theme="dark"] {
-    --bg-primary: #0b1120;
-    --bg-secondary: rgba(15, 23, 42, 0.86);
-    --bg-tertiary: #172033;
-    --bg-hover: #1e293b;
-    --bg-active: rgba(37, 99, 235, 0.18);
-    --text-primary: #e2e8f0;
-    --text-secondary: #cbd5e1;
-    --text-muted: #94a3b8;
-    --text-inverse: #0b1120;
-    --border-primary: rgba(148, 163, 184, 0.28);
-    --border-light: rgba(148, 163, 184, 0.14);
-    --border-focus: #60a5fa;
-    --color-primary: #60a5fa;
-    --color-primary-hover: #3b82f6;
-    --color-primary-light: rgba(96, 165, 250, 0.18);
-    --color-primary-dark: #2563eb;
+  /* ── File-type colours ─────────────────────────────────── */
+  --file-archive-color:    #f59e0b;
+  --file-archive-bg:       rgba(245,158,11,.12);
+  --file-android-color:    #22c55e;
+  --file-android-bg:       rgba(34,197,94,.12);
+  --file-firmware-color:   #3b82f6;
+  --file-firmware-bg:      rgba(59,130,246,.12);
+  --file-image-color:      #a855f7;
+  --file-image-bg:         rgba(168,85,247,.12);
+  --file-disk-color:       #64748b;
+  --file-disk-bg:          rgba(100,116,139,.12);
+  --file-executable-color: #ef4444;
+  --file-executable-bg:    rgba(239,68,68,.12);
+  --file-binary-color:     #06b6d4;
+  --file-binary-bg:        rgba(6,182,212,.12);
+  --file-document-color:   #0ea5e9;
+  --file-document-bg:      rgba(14,165,233,.12);
+  --file-scatter-color:    #f97316;
+  --file-scatter-bg:       rgba(249,115,22,.12);
+  --file-config-color:     #8b5cf6;
+  --file-config-bg:        rgba(139,92,246,.12);
+  --file-flash-color:      #eab308;
+  --file-flash-bg:         rgba(234,179,8,.12);
+  --file-file-color:       #94a3b8;
+  --file-file-bg:          rgba(148,163,184,.08);
 }

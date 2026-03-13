@@ -111,6 +111,11 @@ ONEDRIVE_FILENAME_RE = re.compile(
     r'"fileName"\s*:\s*"([^"]+)"',
 )
 
+# OneDrive page: "name":"file.ext" pattern (broader match for shared link previews)
+ONEDRIVE_NAME_RE = re.compile(
+    r'"name"\s*:\s*"([^"]+\.\w{2,7})"',
+)
+
 FIRMWARE_PLACEHOLDER_RE = re.compile(r"^firmware_\d+$")
 
 
@@ -344,6 +349,9 @@ async def resolve_google_drive(
                     if attempt < GDRIVE_RETRIES:
                         await asyncio.sleep(2 ** attempt)
                         continue
+                # Detect login redirect — file requires authentication
+                if "accounts.google.com" in str(resp.url):
+                    return True, None
                 if resp.status < 400:
                     cd = resp.headers.get("Content-Disposition", "")
                     fname = parse_content_disposition(cd) if cd else None
@@ -376,6 +384,9 @@ async def resolve_google_drive(
                         continue
                 if resp.status >= 400:
                     break
+                # Detect login redirect — file requires authentication
+                if "accounts.google.com" in str(resp.url):
+                    return True, None
 
                 alive = True
                 cd = resp.headers.get("Content-Disposition", "")
@@ -579,8 +590,12 @@ async def resolve_onedrive(
                 await page.close()
                 return True, None
 
-            # Wait a bit for SPA JS to render
-            await page.wait_for_timeout(3000)
+            # Wait for SPA JS to render — prefer networkidle for reliability,
+            # fall back to fixed timeout if it takes too long.
+            try:
+                await page.wait_for_load_state("networkidle", timeout=10_000)
+            except Exception:
+                await page.wait_for_timeout(5000)
 
             # Check for error indicators
             content = await page.content()
@@ -599,21 +614,44 @@ async def resolve_onedrive(
             # Extract filename from page content
             fname = None
 
-            # Method 1: JS variable / JSON in page source
+            # Method 1: JS variable / JSON in page source — "fileName":"..."
             m = ONEDRIVE_FILENAME_RE.search(content)
             if m:
                 fname = m.group(1)
 
-            # Method 2: Try to read the visible filename from the rendered DOM
+            # Method 2: Broader JSON pattern — "name":"file.ext"
+            if not fname:
+                m = ONEDRIVE_NAME_RE.search(content)
+                if m:
+                    fname = m.group(1)
+
+            # Method 3: "Previewing filename.ext" in visible body text
             if not fname:
                 try:
-                    el = await page.query_selector('[data-automationid="FieldRenderer-name"]')
-                    if el:
-                        fname = (await el.inner_text()).strip()
+                    body_text = await page.inner_text("body")
+                    m = re.search(r"Previewing\s+(.+\.\w{2,7})", body_text)
+                    if m:
+                        fname = m.group(1).strip()
                 except Exception:
                     pass
 
-            # Method 3: Title often contains "filename - OneDrive"
+            # Method 4: Try to read the visible filename from the rendered DOM
+            if not fname:
+                try:
+                    for sel in (
+                        '[data-automationid="FieldRenderer-name"]',
+                        '[data-automationid="FileNameCell"]',
+                    ):
+                        el = await page.query_selector(sel)
+                        if el:
+                            t = (await el.inner_text()).strip()
+                            if t and len(t) > 3 and "." in t:
+                                fname = t
+                                break
+                except Exception:
+                    pass
+
+            # Method 5: Title often contains "filename - OneDrive"
             if not fname and title and " - " in title:
                 candidate = title.rsplit(" - ", 1)[0].strip()
                 if candidate and candidate.lower() != "onedrive":

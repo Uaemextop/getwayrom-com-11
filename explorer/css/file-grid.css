@@ -68,6 +68,16 @@
 .brand-badge.brand-nokia{background:rgba(18,65,145,.12);color:#3a6fc9}
 .brand-badge.brand-lg{background:rgba(168,25,46,.12);color:#c44058}
 .brand-badge.brand-google{background:rgba(66,133,244,.12);color:#5a9cf7}
+.brand-badge.brand-sony{background:rgba(0,0,0,.10);color:#94a3b8}
+.brand-badge.brand-asus{background:rgba(0,115,170,.12);color:#30a0d0}
+.brand-badge.brand-htc{background:rgba(105,175,45,.12);color:#78b830}
+.brand-badge.brand-lenovo{background:rgba(227,0,15,.12);color:#e8404a}
+.brand-badge.brand-zte{background:rgba(0,100,210,.12);color:#3080e0}
+.brand-badge.brand-alcatel{background:rgba(255,102,0,.12);color:#e88030}
+.brand-badge.brand-tecno{background:rgba(0,160,210,.12);color:#20b0e0}
+.brand-badge.brand-infinix{background:rgba(255,168,0,.12);color:#d09020}
+.brand-badge.brand-itel{background:rgba(0,130,60,.12);color:#20a050}
+.brand-badge.brand-jio{background:rgba(0,55,130,.12);color:#2060b0}
 .brand-badge.brand-other{background:var(--bg-card-alt);color:var(--tx2)}
 
 .ext-badge{font-family:var(--fm);font-size:var(--fs-2xs);background:var(--bg-card-alt);color:var(--tx3);padding:3px 8px;border-radius:var(--r-full)}
@@ -76,24 +86,60 @@
 .folder-card{
   display:flex;flex-direction:column;align-items:center;justify-content:center;
   text-align:center;padding:var(--s5) var(--s4);
-  background:var(--bg-card);border:2px dashed var(--bd);border-radius:var(--r-md);
+  background:var(--bg-card);border:1px solid var(--bd);border-radius:var(--r-md);
   transition:all var(--dur) var(--ease);cursor:pointer;min-height:180px;
 }
-.folder-card:hover{border-color:var(--c-brand);border-style:solid;transform:translateY(-2px);box-shadow:var(--sh-sm)}
-.folder-card-icon{width:48px;height:48px;border-radius:var(--r-md);display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:var(--s3);background:var(--ft-image-bg);color:var(--ft-image)}
-.folder-card-icon.brand-samsung{background:rgba(27,99,255,.12);color:#5b8eff}
-.folder-card-icon.brand-xiaomi{background:rgba(255,108,0,.12);color:#ff8c3a}
-.folder-card-icon.brand-huawei{background:rgba(207,9,32,.12);color:#e74c5e}
-.folder-card-icon.brand-honor{background:rgba(0,164,239,.12);color:#33b5f0}
-.folder-card-icon.brand-realme{background:rgba(255,200,0,.12);color:#c89d00}
-.folder-card-icon.brand-oppo{background:rgba(15,157,88,.12);color:#2ebd6e}
-.folder-card-icon.brand-vivo{background:rgba(65,105,225,.12);color:#6b8be8}
-.folder-card-icon.brand-motorola{background:rgba(0,140,186,.12);color:#2fa8cf}
-.folder-card-icon.brand-oneplus{background:rgba(235,0,27,.12);color:#f04e5c}
-.folder-card-icon.brand-nokia{background:rgba(18,65,145,.12);color:#3a6fc9}
-.folder-card-icon.brand-lg{background:rgba(168,25,46,.12);color:#c44058}
-.folder-card-icon.brand-google{background:rgba(66,133,244,.12);color:#5a9cf7}
+.folder-card:hover{border-color:var(--c-brand);box-shadow:0 0 0 3px var(--c-brand-dim);transform:translateY(-3px)}
+.folder-card-icon{width:56px;height:56px;border-radius:var(--r-full);display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:var(--s3);background:var(--ft-image-bg);color:var(--ft-image);transition:transform var(--dur) var(--ease)}
+.folder-card:hover .folder-card-icon{transform:scale(1.1)}
+.brand-initial{font-weight:var(--fw-bold);font-size:18px;line-height:1;letter-spacing:-0.5px;font-family:var(--ff)}
+.brand-initial-sm{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:var(--r-full);font-size:10px;font-weight:var(--fw-bold);line-height:1;letter-spacing:-0.3px}
+.folder-card-icon.brand-samsung{background:rgba(27,99,255,.15);color:#5b8eff}
+.folder-card-icon.brand-xiaomi{background:rgba(255,108,0,.15);color:#ff8c3a}
+.folder-card-icon.brand-huawei{background:rgba(207,9,32,.15);color:#e74c5e}
+.folder-card-icon.brand-honor{background:rgba(0,164,239,.15);color:#33b5f0}
+.folder-card-icon.brand-realme{background:rgba(255,200,0,.15);color:#c89d00}
+.folder-card-icon.brand-oppo{background:rgba(15,157,88,.15);color:#2ebd6e}
+.folder-card-icon.brand-vivo{background:rgba(65,105,225,.15);color:#6b8be8}
+.folder-card-icon.brand-motorola{background:rgba(0,140,186,.15);color:#2fa8cf}
+.folder-card-icon.brand-oneplus{background:rgba(235,0,27,.15);color:#f04e5c}
+.folder-card-icon.brand-nokia{background:rgba(18,65,145,.15);color:#3a6fc9}
+.folder-card-icon.brand-lg{background:rgba(168,25,46,.15);color:#c44058}
+.folder-card-icon.brand-google{background:rgba(66,133,244,.15);color:#5a9cf7}
+.folder-card-icon.brand-sony{background:rgba(0,0,0,.12);color:#94a3b8}
+.folder-card-icon.brand-asus{background:rgba(0,115,170,.15);color:#30a0d0}
+.folder-card-icon.brand-htc{background:rgba(105,175,45,.15);color:#78b830}
+.folder-card-icon.brand-lenovo{background:rgba(227,0,15,.15);color:#e8404a}
+.folder-card-icon.brand-zte{background:rgba(0,100,210,.15);color:#3080e0}
+.folder-card-icon.brand-alcatel{background:rgba(255,102,0,.15);color:#e88030}
+.folder-card-icon.brand-tecno{background:rgba(0,160,210,.15);color:#20b0e0}
+.folder-card-icon.brand-infinix{background:rgba(255,168,0,.15);color:#d09020}
+.folder-card-icon.brand-itel{background:rgba(0,130,60,.15);color:#20a050}
+.folder-card-icon.brand-jio{background:rgba(0,55,130,.15);color:#2060b0}
 .folder-card-icon.brand-other{background:var(--bg-card-alt);color:var(--tx2)}
+.brand-initial-sm.brand-samsung{background:rgba(27,99,255,.15);color:#5b8eff}
+.brand-initial-sm.brand-xiaomi{background:rgba(255,108,0,.15);color:#ff8c3a}
+.brand-initial-sm.brand-huawei{background:rgba(207,9,32,.15);color:#e74c5e}
+.brand-initial-sm.brand-honor{background:rgba(0,164,239,.15);color:#33b5f0}
+.brand-initial-sm.brand-realme{background:rgba(255,200,0,.15);color:#c89d00}
+.brand-initial-sm.brand-oppo{background:rgba(15,157,88,.15);color:#2ebd6e}
+.brand-initial-sm.brand-vivo{background:rgba(65,105,225,.15);color:#6b8be8}
+.brand-initial-sm.brand-motorola{background:rgba(0,140,186,.15);color:#2fa8cf}
+.brand-initial-sm.brand-oneplus{background:rgba(235,0,27,.15);color:#f04e5c}
+.brand-initial-sm.brand-nokia{background:rgba(18,65,145,.15);color:#3a6fc9}
+.brand-initial-sm.brand-lg{background:rgba(168,25,46,.15);color:#c44058}
+.brand-initial-sm.brand-google{background:rgba(66,133,244,.15);color:#5a9cf7}
+.brand-initial-sm.brand-sony{background:rgba(0,0,0,.12);color:#94a3b8}
+.brand-initial-sm.brand-asus{background:rgba(0,115,170,.15);color:#30a0d0}
+.brand-initial-sm.brand-htc{background:rgba(105,175,45,.15);color:#78b830}
+.brand-initial-sm.brand-lenovo{background:rgba(227,0,15,.15);color:#e8404a}
+.brand-initial-sm.brand-zte{background:rgba(0,100,210,.15);color:#3080e0}
+.brand-initial-sm.brand-alcatel{background:rgba(255,102,0,.15);color:#e88030}
+.brand-initial-sm.brand-tecno{background:rgba(0,160,210,.15);color:#20b0e0}
+.brand-initial-sm.brand-infinix{background:rgba(255,168,0,.15);color:#d09020}
+.brand-initial-sm.brand-itel{background:rgba(0,130,60,.15);color:#20a050}
+.brand-initial-sm.brand-jio{background:rgba(0,55,130,.15);color:#2060b0}
+.brand-initial-sm.brand-other{background:var(--bg-card-alt);color:var(--tx2)}
 .folder-card-info{width:100%}
 .folder-card-name{font-size:var(--fs-sm);font-weight:var(--fw-semi);color:var(--tx);margin-bottom:4px}
 .folder-card-meta{font-size:var(--fs-xs);color:var(--tx3)}

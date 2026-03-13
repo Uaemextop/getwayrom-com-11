@@ -23,11 +23,16 @@
 
 /* --- Tablet (<= 1024px) --- */
 @media (max-width: 1024px) {
+    .main-layout {
+        padding: var(--space-4);
+        gap: var(--space-4);
+    }
+
     .sidebar {
         position: fixed;
         top: var(--header-height);
-        left: 0;
-        bottom: 0;
+        left: var(--space-4);
+        bottom: var(--space-4);
         z-index: var(--z-overlay);
         box-shadow: var(--shadow-xl);
         transform: translateX(-100%);
@@ -43,6 +48,11 @@
 
     .file-grid {
         grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    }
+
+    .explorer-hero,
+    .workspace-panel {
+        grid-template-columns: 1fr;
     }
 
     .header-left {
@@ -61,7 +71,7 @@
 /* --- Small Tablet & large phone (<=768px) --- */
 @media (max-width: 768px) {
     .header {
-        padding: 0 var(--space-2);
+        padding: 0 var(--space-3);
         gap: var(--space-1);
     }
 
@@ -76,6 +86,12 @@
 
     .content {
         padding: var(--space-3) var(--space-3) var(--space-3);
+    }
+
+    .hero-copy,
+    .content-shell,
+    .workspace-panel-section {
+        padding: var(--space-5);
     }
 
     .file-grid {
@@ -102,6 +118,10 @@
         flex-direction: column;
         align-items: flex-start;
         gap: var(--space-2);
+    }
+
+    .workspace-panel-header {
+        flex-direction: column;
     }
 
     .filter-row {
@@ -138,7 +158,7 @@
 /* --- Phone (<= 480px) --- */
 @media (max-width: 480px) {
     :root {
-        --header-height: 56px;
+        --header-height: 64px;
     }
 
     .file-grid {
@@ -191,6 +211,17 @@
         gap: 0;
     }
 
+    .main-layout {
+        padding: var(--space-3);
+        gap: var(--space-3);
+    }
+
+    .hero-copy,
+    .content-shell,
+    .workspace-panel-section {
+        padding: var(--space-4);
+    }
+
     .pagination {
         gap: var(--space-2);
     }
@@ -239,6 +270,8 @@
     .sidebar {
         width: 280px;
         min-width: 280px;
+        left: var(--space-3);
+        bottom: var(--space-3);
     }
 
     .advanced-search-body {
@@ -273,6 +306,11 @@
 
     .content {
         padding: var(--space-2) var(--space-2) var(--space-2);
+    }
+
+    .hero-stats,
+    .quick-filter-rail {
+        grid-template-columns: 1fr;
     }
 }
 

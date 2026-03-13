@@ -114,6 +114,13 @@
     <div class="main-layout">
         <!-- Sidebar -->
         <aside class="sidebar" id="sidebar">
+            <div class="sidebar-topbar">
+                <div>
+                    <span class="sidebar-eyebrow">Workspace</span>
+                    <h2 class="sidebar-title">Firmware Library</h2>
+                </div>
+                <p class="sidebar-description">Browse brands, formats and folders from one place.</p>
+            </div>
             <nav class="sidebar-nav">
                 <!-- Sidebar Search -->
                 <div class="sidebar-search-container">
@@ -156,6 +163,68 @@
 
         <!-- Content Area -->
         <main class="content" id="content">
+            <section class="explorer-hero">
+                <div class="hero-copy">
+                    <span class="hero-eyebrow">Professional firmware workspace</span>
+                    <h1 class="hero-title">Search, organize and download firmware with confidence</h1>
+                    <p class="hero-description">A cleaner explorer with faster filtering, clearer hierarchy and a modern workspace for the complete GetwayROM collection.</p>
+                    <div class="hero-actions">
+                        <button class="btn btn-primary" id="resetWorkspaceBtn">
+                            <i class="fas fa-compass"></i> Reset workspace
+                        </button>
+                        <button class="btn btn-secondary" id="jumpToQuickAccessBtn">
+                            <i class="fas fa-bolt"></i> Quick access
+                        </button>
+                    </div>
+                </div>
+                <div class="hero-stats">
+                    <article class="hero-stat-card">
+                        <span class="hero-stat-label">Indexed files</span>
+                        <strong class="hero-stat-value" id="overviewTotalFiles">--</strong>
+                        <span class="hero-stat-meta">Ready to browse</span>
+                    </article>
+                    <article class="hero-stat-card">
+                        <span class="hero-stat-label">Brands</span>
+                        <strong class="hero-stat-value" id="overviewBrandCount">--</strong>
+                        <span class="hero-stat-meta">Manufacturers detected</span>
+                    </article>
+                    <article class="hero-stat-card">
+                        <span class="hero-stat-label">Formats</span>
+                        <strong class="hero-stat-value" id="overviewExtensionCount">--</strong>
+                        <span class="hero-stat-meta">Available file types</span>
+                    </article>
+                    <article class="hero-stat-card">
+                        <span class="hero-stat-label">Last refresh</span>
+                        <strong class="hero-stat-value hero-stat-value-sm" id="overviewUpdatedAt">--</strong>
+                        <span class="hero-stat-meta">Source index timestamp</span>
+                    </article>
+                </div>
+            </section>
+
+            <section class="workspace-panel" id="workspacePanel">
+                <div class="workspace-panel-section">
+                    <div class="workspace-panel-header">
+                        <div>
+                            <span class="workspace-panel-eyebrow">Smart access</span>
+                            <h2>Popular brands</h2>
+                        </div>
+                        <p>Jump directly into the manufacturers with the largest firmware libraries.</p>
+                    </div>
+                    <div class="quick-filter-rail" id="quickBrandRail"></div>
+                </div>
+                <div class="workspace-panel-section">
+                    <div class="workspace-panel-header">
+                        <div>
+                            <span class="workspace-panel-eyebrow">Formats</span>
+                            <h2>Popular file types</h2>
+                        </div>
+                        <p>Switch the workspace into focused archive and package views instantly.</p>
+                    </div>
+                    <div class="quick-filter-rail" id="quickExtensionRail"></div>
+                </div>
+            </section>
+
+            <section class="content-shell">
             <!-- Breadcrumb / Status bar -->
             <div class="content-header">
                 <div class="breadcrumb">
@@ -222,6 +291,7 @@
                     <span class="btn-page-text">Next</span> <i class="fas fa-chevron-right"></i>
                 </button>
             </div>
+            </section>
         </main>
     </div>
 

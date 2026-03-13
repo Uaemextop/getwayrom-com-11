@@ -107,9 +107,10 @@
     for (var i = 0; i < brandNames.length; i++) {
       var brand = brandNames[i];
       var count = brands[brand];
-      var icon = getBrandIcon(brand);
+      var colorClass = Utils.getBrandColorClass(brand);
+      var initial = Utils.getBrandInitial(brand);
       html += '<div class="sidebar-item" data-filter="brand:' + Utils.escapeHtml(brand) + '">' +
-        '<i class="fas ' + icon + '"></i>' +
+        '<span class="brand-initial-sm ' + colorClass + '">' + Utils.escapeHtml(initial) + '</span>' +
         '<span>' + Utils.escapeHtml(brand) + '</span>' +
         '<span class="sidebar-count">' + Utils.formatNumber(count) + '</span>' +
       '</div>';

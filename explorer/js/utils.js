@@ -131,6 +131,38 @@
   }
 
   /**
+   * Return a short brand initial/abbreviation for visual identity.
+   */
+  function getBrandInitial(brand) {
+    var initials = {
+      Samsung: 'S',
+      Xiaomi: 'Xi',
+      Huawei: 'Hw',
+      Honor: 'Hr',
+      OnePlus: '1+',
+      Google: 'G',
+      Motorola: 'M',
+      Sony: 'Sy',
+      LG: 'LG',
+      Nokia: 'N',
+      OPPO: 'O',
+      Vivo: 'V',
+      Realme: 'R',
+      ASUS: 'A',
+      HTC: 'H',
+      Lenovo: 'Le',
+      ZTE: 'Z',
+      Alcatel: 'Al',
+      Tecno: 'Tc',
+      Infinix: 'Ix',
+      Itel: 'It',
+      Jio: 'Ji',
+      Other: '?'
+    };
+    return initials[brand] || (brand ? brand.charAt(0) : '?');
+  }
+
+  /**
    * Return a brand color CSS class.
    */
   function getBrandColorClass(brand) {
@@ -146,7 +178,17 @@
       OnePlus: 'brand-oneplus',
       Nokia: 'brand-nokia',
       LG: 'brand-lg',
-      Google: 'brand-google'
+      Google: 'brand-google',
+      Sony: 'brand-sony',
+      ASUS: 'brand-asus',
+      HTC: 'brand-htc',
+      Lenovo: 'brand-lenovo',
+      ZTE: 'brand-zte',
+      Alcatel: 'brand-alcatel',
+      Tecno: 'brand-tecno',
+      Infinix: 'brand-infinix',
+      Itel: 'brand-itel',
+      Jio: 'brand-jio'
     };
     return colors[brand] || 'brand-other';
   }
@@ -245,6 +287,7 @@
     getFileIcon: getFileIcon,
     getFileIconClass: getFileIconClass,
     getBrandIcon: getBrandIcon,
+    getBrandInitial: getBrandInitial,
     getBrandColorClass: getBrandColorClass,
     getSourceIcon: getSourceIcon,
     getSourceColorClass: getSourceColorClass,

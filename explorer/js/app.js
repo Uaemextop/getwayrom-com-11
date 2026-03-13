@@ -406,7 +406,9 @@
 
       html += '<div class="folder-card" data-folder="' + Utils.escapeHtml(name) + '">' +
         '<div class="folder-card-icon ' + iconClass + '">' +
-          '<i class="fas ' + (state.folderPath.length === 0 ? Utils.getBrandIcon(name) : 'fa-folder') + '"></i>' +
+          (state.folderPath.length === 0
+            ? '<span class="brand-initial">' + Utils.escapeHtml(Utils.getBrandInitial(name)) + '</span>'
+            : '<i class="fas fa-folder"></i>') +
         '</div>' +
         '<div class="folder-card-info">' +
           '<div class="folder-card-name">' + Utils.escapeHtml(name) + '</div>' +
@@ -505,8 +507,10 @@
         .sort(function (a, b) { return state.metadata.brands[b] - state.metadata.brands[a]; })
         .slice(0, 8)
         .map(function (brand) {
+          var brandClass = Utils.getBrandColorClass(brand);
+          var initial = Utils.getBrandInitial(brand);
           return '<button class="quick-filter-card" data-quick-filter="brand" data-value="' + Utils.escapeHtml(brand) + '">' +
-            '<span class="quick-filter-title">' + Utils.escapeHtml(brand) + '</span>' +
+            '<span class="quick-filter-title"><span class="brand-initial-sm ' + brandClass + '">' + Utils.escapeHtml(initial) + '</span> ' + Utils.escapeHtml(brand) + '</span>' +
             '<span class="quick-filter-meta">' + Utils.formatNumber(state.metadata.brands[brand]) + ' files</span>' +
           '</button>';
         })

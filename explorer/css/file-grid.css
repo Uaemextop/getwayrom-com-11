@@ -6,8 +6,9 @@
 /* --- File Grid (Card View) --- */
 .file-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: var(--space-4);
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: var(--space-5);
+    align-content: start;
 }
 
 /* --- File Card --- */
@@ -15,23 +16,40 @@
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
     text-align: center;
-    padding: var(--space-4);
+    padding: var(--space-5) var(--space-4);
     background: var(--bg-secondary);
     border: 1px solid var(--border-light);
-    border-radius: var(--radius-md);
+    border-radius: calc(var(--radius-md) + 2px);
     transition: all var(--transition-normal);
     cursor: pointer;
     position: relative;
     overflow: hidden;
-    min-height: 0;
+    min-height: 200px;
+    box-shadow: var(--shadow-xs);
+}
+
+.file-card::before,
+.folder-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 45%);
+    opacity: 0;
+    transition: opacity var(--transition-normal);
 }
 
 .file-card:hover {
     background: var(--bg-hover);
     box-shadow: var(--shadow-lg);
     border-color: var(--color-primary);
-    transform: translateY(-3px);
+    transform: translateY(-4px);
+}
+
+.file-card:hover::before,
+.folder-card:hover::before {
+    opacity: 1;
 }
 
 .file-card:active {
@@ -40,14 +58,14 @@
 }
 
 .file-card-icon {
-    width: 56px;
-    height: 56px;
+    width: 64px;
+    height: 64px;
     border-radius: var(--radius-lg);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 26px;
-    margin-bottom: var(--space-3);
+    font-size: 28px;
+    margin-bottom: var(--space-4);
     transition: all var(--transition-normal);
 }
 
@@ -95,22 +113,25 @@
 .file-card-info {
     width: 100%;
     min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
 }
 
 .file-card-name {
     font-size: var(--font-size-sm);
-    font-weight: var(--font-weight-medium);
+    font-weight: var(--font-weight-semibold);
     color: var(--text-primary);
     text-align: center;
     word-break: break-word;
-    line-height: 1.4;
+    line-height: 1.5;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
     max-height: 2.8em;
-    margin-bottom: var(--space-2);
+    min-height: 2.8em;
 }
 
 .file-card-meta {
@@ -125,9 +146,9 @@
 .brand-badge {
     display: inline-flex;
     align-items: center;
-    gap: 4px;
+    gap: 6px;
     font-size: var(--font-size-xs);
-    padding: 2px 8px;
+    padding: 5px 10px;
     border-radius: var(--radius-full);
     font-weight: var(--font-weight-medium);
 }
@@ -150,7 +171,7 @@
     font-size: var(--font-size-xs);
     background: var(--bg-hover);
     color: var(--text-muted);
-    padding: 2px 8px;
+    padding: 5px 10px;
     border-radius: var(--radius-full);
 }
 
@@ -159,14 +180,17 @@
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
     text-align: center;
-    padding: var(--space-4);
+    padding: var(--space-5) var(--space-4);
     background: var(--bg-secondary);
     border: 2px dashed var(--border-light);
-    border-radius: var(--radius-md);
+    border-radius: calc(var(--radius-md) + 2px);
     transition: all var(--transition-normal);
     cursor: pointer;
     position: relative;
+    min-height: 200px;
+    box-shadow: var(--shadow-xs);
 }
 
 .folder-card:hover {
@@ -212,7 +236,7 @@
     font-size: var(--font-size-sm);
     font-weight: var(--font-weight-semibold);
     color: var(--text-primary);
-    margin-bottom: 2px;
+    margin-bottom: 6px;
 }
 
 .folder-card-meta {
@@ -310,10 +334,11 @@
 
 /* --- File List (Table View) --- */
 .file-list {
-    background: var(--bg-secondary);
+    background: color-mix(in srgb, var(--bg-secondary) 96%, transparent);
     border: 1px solid var(--border-light);
-    border-radius: var(--radius-md);
+    border-radius: calc(var(--radius-md) + 2px);
     overflow: hidden;
+    box-shadow: var(--shadow-xs);
 }
 
 .file-list-header {

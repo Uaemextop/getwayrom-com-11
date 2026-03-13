@@ -65,6 +65,15 @@
     dom.fileStats = document.getElementById('fileStats');
     dom.currentFilter = document.getElementById('currentFilter');
     dom.resultCount = document.getElementById('resultCount');
+    dom.overviewTotalFiles = document.getElementById('overviewTotalFiles');
+    dom.overviewBrandCount = document.getElementById('overviewBrandCount');
+    dom.overviewExtensionCount = document.getElementById('overviewExtensionCount');
+    dom.overviewUpdatedAt = document.getElementById('overviewUpdatedAt');
+    dom.quickBrandRail = document.getElementById('quickBrandRail');
+    dom.quickExtensionRail = document.getElementById('quickExtensionRail');
+    dom.resetWorkspaceBtn = document.getElementById('resetWorkspaceBtn');
+    dom.jumpToQuickAccessBtn = document.getElementById('jumpToQuickAccessBtn');
+    dom.workspacePanel = document.getElementById('workspacePanel');
     dom.loading = document.getElementById('loading');
     dom.emptyState = document.getElementById('emptyState');
     dom.fileGrid = document.getElementById('fileGrid');
@@ -401,10 +410,20 @@
 
     // Populate filter dropdowns
     populateFilters();
+    populateQuickAccess();
 
     // Update stats
     dom.totalCount.textContent = Utils.formatNumber(state.allFiles.length);
     dom.fileStats.textContent = Utils.formatNumber(state.allFiles.length) + ' firmware files';
+    if (dom.overviewTotalFiles) dom.overviewTotalFiles.textContent = Utils.formatNumber(state.allFiles.length);
+    if (dom.overviewBrandCount) dom.overviewBrandCount.textContent = Utils.formatNumber(Object.keys(state.metadata.brands).length);
+    if (dom.overviewExtensionCount) dom.overviewExtensionCount.textContent = Utils.formatNumber(Object.keys(state.metadata.extensions).length);
+    if (dom.overviewUpdatedAt) {
+      var updatedAt = new Date(state.metadata.generated);
+      dom.overviewUpdatedAt.textContent = isNaN(updatedAt.getTime())
+        ? 'Recently'
+        : updatedAt.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+    }
 
     applyFiltersAndSearch();
     dom.loading.classList.add('hidden');
@@ -428,6 +447,65 @@
       opt.value = ext;
       opt.textContent = '.' + ext + ' (' + extensions[ext] + ')';
       dom.filterExtension.appendChild(opt);
+    });
+  }
+
+  function populateQuickAccess() {
+    if (dom.quickBrandRail) {
+      var brandButtons = Object.keys(state.metadata.brands)
+        .sort(function (a, b) { return state.metadata.brands[b] - state.metadata.brands[a]; })
+        .slice(0, 8)
+        .map(function (brand) {
+          return '<button class="quick-filter-card" data-quick-filter="brand" data-value="' + Utils.escapeHtml(brand) + '">' +
+            '<span class="quick-filter-title">' + Utils.escapeHtml(brand) + '</span>' +
+            '<span class="quick-filter-meta">' + Utils.formatNumber(state.metadata.brands[brand]) + ' files</span>' +
+          '</button>';
+        })
+        .join('');
+      dom.quickBrandRail.innerHTML = brandButtons;
+    }
+
+    if (dom.quickExtensionRail) {
+      var extButtons = Object.keys(state.metadata.extensions)
+        .sort(function (a, b) { return state.metadata.extensions[b] - state.metadata.extensions[a]; })
+        .slice(0, 8)
+        .map(function (ext) {
+          return '<button class="quick-filter-card" data-quick-filter="ext" data-value="' + Utils.escapeHtml(ext) + '">' +
+            '<span class="quick-filter-title">.' + Utils.escapeHtml(ext) + '</span>' +
+            '<span class="quick-filter-meta">' + Utils.formatNumber(state.metadata.extensions[ext]) + ' files</span>' +
+          '</button>';
+        })
+        .join('');
+      dom.quickExtensionRail.innerHTML = extButtons;
+    }
+  }
+
+  function resetWorkspace() {
+    state.searchQuery = '';
+    state.filterBrand = '';
+    state.filterExtension = '';
+    state.filterName = '';
+    state.sidebarFilter = 'all';
+    state.folderPath = [];
+    state.currentFolder = null;
+    state.sortBy = 'name-asc';
+    state.currentPage = 1;
+
+    dom.searchInput.value = '';
+    dom.searchClear.classList.add('hidden');
+    dom.filterBrand.value = '';
+    dom.filterExtension.value = '';
+    dom.filterName.value = '';
+    dom.currentFilter.textContent = 'All Files';
+    Sidebar.setActiveItem('all');
+
+    applyFiltersAndSearch();
+  }
+
+  function scrollContentTo(targetTop) {
+    dom.content.scrollTo({
+      top: Math.max(0, targetTop - 12),
+      behavior: 'smooth'
     });
   }
 
@@ -849,6 +927,16 @@
       });
     }
 
+    if (dom.resetWorkspaceBtn) {
+      dom.resetWorkspaceBtn.addEventListener('click', resetWorkspace);
+    }
+
+    if (dom.jumpToQuickAccessBtn && dom.workspacePanel) {
+      dom.jumpToQuickAccessBtn.addEventListener('click', function () {
+        scrollContentTo(dom.workspacePanel.offsetTop);
+      });
+    }
+
     // Back to top button
     if (dom.backToTop && dom.content) {
       dom.content.addEventListener('scroll', function () {
@@ -865,6 +953,27 @@
         Sidebar.filterSidebarItems(this.value);
       });
     }
+
+    document.addEventListener('click', function (e) {
+      var quickFilter = e.target.closest('.quick-filter-card[data-quick-filter]');
+      if (!quickFilter) return;
+
+      var filterType = quickFilter.getAttribute('data-quick-filter');
+      var filterValue = quickFilter.getAttribute('data-value');
+
+      state.folderPath = [];
+
+      if (filterType === 'brand') {
+        state.sidebarFilter = 'brand:' + filterValue;
+      } else {
+        state.sidebarFilter = 'ext:' + filterValue;
+      }
+
+      Sidebar.setActiveItem(state.sidebarFilter);
+      dom.currentFilter.textContent = filterValue;
+      applyFiltersAndSearch();
+      scrollContentTo(dom.workspacePanel.offsetTop);
+    });
 
     // Sidebar section toggles
     document.querySelectorAll('[data-toggle-section]').forEach(function (heading) {

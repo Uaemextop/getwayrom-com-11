@@ -22,6 +22,7 @@
 
 .btn-icon:hover {
     background: var(--bg-hover);
+    color: var(--text-primary);
 }
 
 .btn-icon.active {
@@ -34,7 +35,7 @@
     display: inline-flex;
     align-items: center;
     gap: var(--space-2);
-    padding: var(--space-2) var(--space-5);
+    padding: 12px 18px;
     border: none;
     border-radius: var(--radius-sm);
     font-family: inherit;
@@ -49,6 +50,7 @@
 .btn-primary {
     background: var(--color-primary);
     color: var(--text-inverse);
+    box-shadow: var(--shadow-xs);
 }
 
 .btn-primary:hover {
@@ -57,7 +59,7 @@
 }
 
 .btn-secondary {
-    background: var(--bg-secondary);
+    background: color-mix(in srgb, var(--bg-secondary) 94%, transparent);
     color: var(--text-primary);
     border: 1px solid var(--border-primary);
 }
@@ -229,7 +231,7 @@
     font-size: var(--font-size-base);
     color: var(--text-primary);
     cursor: pointer;
-    border-radius: var(--radius-sm);
+    border-radius: calc(var(--radius-sm) + 2px);
     transition: background var(--transition-normal);
     text-align: left;
     white-space: nowrap;
@@ -418,7 +420,7 @@
     display: inline-flex;
     align-items: center;
     gap: var(--space-1);
-    padding: 4px 10px;
+    padding: 6px 12px;
     background: var(--color-primary-light);
     color: var(--color-primary);
     border-radius: var(--radius-full);
@@ -642,7 +644,7 @@
     align-items: center;
     justify-content: center;
     padding: var(--space-4) var(--space-6);
-    background: var(--bg-secondary);
+    background: color-mix(in srgb, var(--bg-secondary) 92%, transparent);
     border-top: 1px solid var(--border-light);
     font-size: var(--font-size-sm);
     color: var(--text-muted);
@@ -675,6 +677,36 @@
 .footer-link.active {
     color: var(--color-primary);
     font-weight: var(--font-weight-medium);
+}
+
+.quick-filter-card {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: var(--space-4);
+    border-radius: calc(var(--radius-md) - 2px);
+    border: 1px solid var(--border-light);
+    background: color-mix(in srgb, var(--bg-secondary) 96%, transparent);
+    color: var(--text-primary);
+    text-align: left;
+    transition: all var(--transition-normal);
+}
+
+.quick-filter-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--color-primary);
+    box-shadow: var(--shadow-sm);
+    background: var(--bg-hover);
+}
+
+.quick-filter-title {
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-semibold);
+}
+
+.quick-filter-meta {
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
 }
 
 .footer-nav a {

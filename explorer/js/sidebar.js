@@ -8,6 +8,10 @@
   var Utils = GWR.Utils;
   var overlayEl = null;
 
+  function isMobileViewport() {
+    return window.innerWidth <= 1024;
+  }
+
   // Brand-specific icons
   var brandIcons = {
     Samsung: 'fa-mobile-screen',
@@ -58,7 +62,17 @@
    * Initialize sidebar with options.
    */
   function init() {
-    // Reserved for future configuration
+    window.addEventListener('resize', function () {
+      var sidebar = document.getElementById('sidebar');
+      if (!sidebar) return;
+
+      if (isMobileViewport()) {
+        sidebar.classList.remove('collapsed');
+      } else {
+        sidebar.classList.remove('open');
+        getOverlay().classList.remove('active');
+      }
+    });
   }
 
   /**
@@ -126,7 +140,11 @@
    */
   function toggle(sidebarEl) {
     if (!sidebarEl) return;
-    if (sidebarEl.classList.contains('open')) {
+    var isOpen = isMobileViewport()
+      ? sidebarEl.classList.contains('open')
+      : !sidebarEl.classList.contains('collapsed');
+
+    if (isOpen) {
       close(sidebarEl);
     } else {
       open(sidebarEl);
@@ -138,8 +156,15 @@
    */
   function open(sidebarEl) {
     if (!sidebarEl) return;
-    sidebarEl.classList.add('open');
-    getOverlay().classList.add('active');
+    sidebarEl.classList.remove('collapsed');
+
+    if (isMobileViewport()) {
+      sidebarEl.classList.add('open');
+      getOverlay().classList.add('active');
+    } else {
+      sidebarEl.classList.remove('open');
+      getOverlay().classList.remove('active');
+    }
   }
 
   /**
@@ -147,7 +172,11 @@
    */
   function close(sidebarEl) {
     if (!sidebarEl) return;
-    sidebarEl.classList.remove('open');
+    if (isMobileViewport()) {
+      sidebarEl.classList.remove('open');
+    } else {
+      sidebarEl.classList.add('collapsed');
+    }
     var overlay = getOverlay();
     overlay.classList.remove('active');
   }

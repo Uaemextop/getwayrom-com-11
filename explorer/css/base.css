@@ -27,6 +27,19 @@ body {
     overflow: hidden;
     height: 100vh;
     line-height: var(--line-height-normal);
+    position: relative;
+}
+
+body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+        radial-gradient(circle at top left, color-mix(in srgb, var(--color-primary) 14%, transparent), transparent 28%),
+        radial-gradient(circle at top right, color-mix(in srgb, var(--color-accent) 12%, transparent), transparent 24%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0));
+    pointer-events: none;
+    z-index: -1;
 }
 
 a {

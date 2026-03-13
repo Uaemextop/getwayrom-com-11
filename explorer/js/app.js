@@ -284,6 +284,7 @@
       ['preloader', /\bpreloader\b/i],
       ['modem', /\bmodem\b|\bbaseband\b/i],
       ['bootloader', /\bbootloader\b/i],
+      ['da_file', /\bda[_\s]file\b|\bdownload.?agent\b|\bauth.?file\b/i],
       ['security', /\bsecurity\b|\bpatch\b/i],
       ['upgrade', /\bupgrade\b|\bota[_\s.]\b/i],
       ['downgrade', /\bdowngrade\b/i],

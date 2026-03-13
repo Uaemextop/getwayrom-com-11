@@ -182,10 +182,10 @@ def extract_google_drive_id(url: str) -> str | None:
 def filename_from_mediafire_url(url: str) -> str | None:
     parsed = urlparse(url)
     parts = [p for p in parsed.path.split("/") if p]
-    # MediaFire URL format: /file/{hash}/{filename} or /file_premium/{hash}/{filename}
+    # MediaFire URL format: /file/{hash}/{filename}/file or /file_premium/{hash}/{filename}/file
+    # The filename is always at index 2; parts[-1] may be "file" (trailing segment)
     if len(parts) >= 3 and parts[0] in ("file", "file_premium"):
-        candidate = unquote(parts[-1])
-        # Ensure it's a filename (not just the hash)
+        candidate = unquote(parts[2])
         if "." in candidate:
             return candidate
     return None
@@ -495,7 +495,7 @@ async def resolve_mediafire(
             if resp.status >= 400 or "error.php" in final_url:
                 return False, filename_from_mediafire_url(url)
 
-            body = await resp.content.read(65536)
+            body = await resp.content.read(262144)
             text = body.decode("utf-8", errors="replace")
 
             if "invalid or deleted" in text.lower():

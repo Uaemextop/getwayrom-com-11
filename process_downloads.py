@@ -92,14 +92,18 @@ def _cookies_for_playwright(raw_cookies: list[dict]) -> list[dict]:
 # ── GitHub Actions log helpers ───────────────────────────────────────
 _CI = os.environ.get("CI") == "true" or os.environ.get("GITHUB_ACTIONS") == "true"
 
-# ANSI color codes — GitHub Actions live log viewer renders them correctly
-_GREEN = "\033[32m"
-_RED = "\033[31m"
-_YELLOW = "\033[33m"
-_CYAN = "\033[36m"
-_BOLD = "\033[1m"
-_RESET = "\033[0m"
-_DIM = "\033[2m"
+# Disable ANSI color codes in CI — GitHub Actions masks \033[ as *** in logs,
+# producing garbled output like ***32m, ***0m.  Use plain Unicode symbols instead.
+if _CI:
+    _GREEN = _RED = _YELLOW = _CYAN = _BOLD = _RESET = _DIM = ""
+else:
+    _GREEN = "\033[32m"
+    _RED = "\033[31m"
+    _YELLOW = "\033[33m"
+    _CYAN = "\033[36m"
+    _BOLD = "\033[1m"
+    _RESET = "\033[0m"
+    _DIM = "\033[2m"
 
 
 def gh_group(title: str) -> None:
@@ -953,7 +957,7 @@ async def main() -> None:
                 pct_end = end * 100 // total
                 gh_group(
                     f"🔍 Batch {batch_idx + 1}/{num_batches}  "
-                    f"[{start + 1}–{end} of {total}]  ({pct_start}%–{pct_end}%)"
+                    f"{start + 1}–{end} of {total}  ({pct_start}%–{pct_end}%)"
                 )
 
                 tasks = [

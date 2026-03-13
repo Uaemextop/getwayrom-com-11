@@ -31,6 +31,7 @@ BATCH_SIZE = 500
 PLAYWRIGHT_TIMEOUT = 20_000  # ms
 PLAYWRIGHT_CONCURRENCY = 3  # max concurrent browser pages (avoid EPIPE)
 GDRIVE_RETRIES = 2  # retries for rate-limited Google Drive requests
+ONEDRIVE_RETRIES = 2  # Playwright attempts before HTTP HEAD fallback
 
 # ── Cookie authentication ────────────────────────────────────────────
 # Set as GitHub Actions secrets (JSON arrays of cookie objects exported
@@ -628,7 +629,7 @@ async def resolve_gdocs(
             # Detect login redirect
             if resp.url.host == "accounts.google.com":
                 return True, None
-            body = await resp.content.read(32768)
+            body = await resp.content.read(16384)
             text = body.decode("utf-8", errors="replace")
             m = re.search(r"<title>([^<]+)</title>", text, re.I)
             if m:
@@ -667,7 +668,7 @@ async def resolve_onedrive(
     if _pw_sem is None:
         _pw_sem = asyncio.Semaphore(PLAYWRIGHT_CONCURRENCY)
 
-    for attempt in range(2):  # try Playwright twice before HTTP fallback
+    for attempt in range(ONEDRIVE_RETRIES):  # try Playwright before HTTP fallback
         async with _pw_sem:
             page = None
             try:

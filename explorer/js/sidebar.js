@@ -150,7 +150,7 @@
       var count = sources[source];
       var icon = Utils.getSourceIcon(source);
       html += '<div class="sidebar-item" data-filter="source:' + Utils.escapeHtml(source) + '">' +
-        '<i class="fab ' + icon + '"></i>' +
+        '<i class="' + icon + '"></i>' +
         '<span>' + Utils.escapeHtml(source) + '</span>' +
         '<span class="sidebar-count">' + Utils.formatNumber(count) + '</span>' +
       '</div>';

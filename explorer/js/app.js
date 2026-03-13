@@ -466,7 +466,7 @@
           var icon = Utils.getSourceIcon(source);
           var cls = Utils.getSourceColorClass(source);
           return '<button class="quick-filter-card" data-quick-filter="source" data-value="' + Utils.escapeHtml(source) + '">' +
-            '<span class="quick-filter-title"><i class="fab ' + icon + '"></i> ' + Utils.escapeHtml(source) + '</span>' +
+            '<span class="quick-filter-title"><i class="' + icon + '"></i> ' + Utils.escapeHtml(source) + '</span>' +
             '<span class="quick-filter-meta">' + Utils.formatNumber(state.metadata.sources[source]) + ' files</span>' +
           '</button>';
         })

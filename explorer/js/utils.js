@@ -190,20 +190,20 @@
   }
 
   /**
-   * Return a source-specific icon class.
+   * Return a source-specific icon class (includes prefix).
    */
   function getSourceIcon(source) {
     var icons = {
-      'Google Drive': 'fa-google-drive',
-      'MediaFire': 'fa-fire',
-      'OneDrive': 'fa-cloud',
-      'MEGA': 'fa-cloud-arrow-down',
-      'Dropbox': 'fa-dropbox',
-      'GitHub': 'fa-github',
-      'AFH': 'fa-android',
-      'Direct': 'fa-link'
+      'Google Drive': 'fab fa-google-drive',
+      'MediaFire': 'fas fa-fire',
+      'OneDrive': 'fab fa-microsoft',
+      'MEGA': 'fas fa-cloud-arrow-down',
+      'Dropbox': 'fab fa-dropbox',
+      'GitHub': 'fab fa-github',
+      'AFH': 'fab fa-android',
+      'Direct': 'fas fa-link'
     };
-    return icons[source] || 'fa-link';
+    return icons[source] || 'fas fa-link';
   }
 
   /**

@@ -30,7 +30,7 @@
       '<div class="file-card-info">' +
         '<div class="file-card-name" title="' + name + '">' + name + '</div>' +
         '<div class="file-card-meta">' +
-          '<span class="badge source-badge ' + sourceClass + '"><i class="fab ' + sourceIcon + '"></i> ' + source + '</span>' +
+          '<span class="badge source-badge ' + sourceClass + '"><i class="' + sourceIcon + '"></i> ' + source + '</span>' +
           (ext !== 'unknown' ? '<span class="badge ext-badge">.' + ext + '</span>' : '') +
         '</div>' +
       '</div>' +
@@ -53,7 +53,7 @@
     // Show source as the "brand" column when brand is Other
     var brandDisplay = brand !== 'Other'
       ? '<i class="fas ' + Utils.getBrandIcon(file.brand) + '"></i> ' + brand
-      : '<i class="fab ' + sourceIcon + '"></i> ' + source;
+      : '<i class="' + sourceIcon + '"></i> ' + source;
 
     return '<div class="file-row" data-file-name="' + name + '" data-file-url="' + Utils.escapeHtml(file.url) + '" data-file-brand="' + brand + '" data-file-ext="' + ext + '" data-file-type="' + Utils.escapeHtml(file.fileType) + '" data-file-source="' + source + '">' +
       '<div class="list-col file-icon-small ' + iconClass + '">' +
@@ -141,7 +141,7 @@
           '</div>' +
           '<div class="detail-row">' +
             '<span class="detail-label"><i class="fas fa-cloud"></i> Source</span>' +
-            '<span class="detail-value"><span class="source-badge ' + sourceClass + '"><i class="fab ' + sourceIcon + '"></i> ' + Utils.escapeHtml(fileData.source || 'Direct') + '</span></span>' +
+            '<span class="detail-value"><span class="source-badge ' + sourceClass + '"><i class="' + sourceIcon + '"></i> ' + Utils.escapeHtml(fileData.source || 'Direct') + '</span></span>' +
           '</div>' +
           '<div class="detail-row">' +
             '<span class="detail-label"><i class="fas fa-file"></i> Type</span>' +

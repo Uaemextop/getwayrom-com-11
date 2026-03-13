@@ -1042,6 +1042,18 @@ async def main() -> None:
         f"{renamed_count} renamed, {unresolved} unresolved in {elapsed:.1f}s"
     )
 
+    # Brief sleep to let aiohttp/Playwright transports finalize cleanly
+    # before asyncio.run() closes the event loop (avoids "Event loop is
+    # closed" RuntimeError from __del__ on SSL transports).
+    await asyncio.sleep(0.25)
+
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    # Suppress "Event loop is closed" RuntimeError that aiohttp/Playwright
+    # may raise during garbage collection after asyncio.run() completes.
+    # This is a known issue with transports finalizing on a closed loop.
+    try:
+        asyncio.run(main())
+    except RuntimeError as exc:
+        if "Event loop is closed" not in str(exc):
+            raise

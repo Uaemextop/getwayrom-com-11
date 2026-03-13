@@ -1,5 +1,6 @@
 /**
  * GetwayROM File Explorer - Sidebar Management Module
+ * Enhanced with collapsible sections, search filtering, and smooth animations.
  */
 (function () {
   'use strict';
@@ -19,8 +20,16 @@
     LG: 'fa-mobile',
     Nokia: 'fa-mobile-screen',
     Oppo: 'fa-mobile',
+    OPPO: 'fa-mobile',
     Vivo: 'fa-mobile',
-    Realme: 'fa-mobile'
+    Realme: 'fa-mobile',
+    Honor: 'fa-award',
+    Tecno: 'fa-mobile',
+    Infinix: 'fa-mobile',
+    ASUS: 'fa-laptop',
+    Lenovo: 'fa-tablet-screen-button',
+    ZTE: 'fa-mobile',
+    HTC: 'fa-mobile'
   };
 
   function getBrandIcon(brand) {
@@ -53,16 +62,29 @@
   }
 
   /**
+   * Filter sidebar items based on search text.
+   */
+  function filterSidebarItems(searchText) {
+    var items = document.querySelectorAll('.sidebar-scroll .sidebar-item');
+    var query = searchText.toLowerCase().trim();
+
+    for (var i = 0; i < items.length; i++) {
+      var text = items[i].textContent.toLowerCase();
+      if (!query || text.indexOf(query) !== -1) {
+        items[i].style.display = '';
+      } else {
+        items[i].style.display = 'none';
+      }
+    }
+  }
+
+  /**
    * Populate brand list in sidebar.
    */
   function populateBrands(container, brands) {
     if (!container || !brands) return;
 
-    var html = '<div class="sidebar-item active" data-filter="all">' +
-      '<i class="fas fa-list"></i>' +
-      '<span>All Files</span>' +
-    '</div>';
-
+    var html = '';
     var brandNames = Object.keys(brands).sort();
     for (var i = 0; i < brandNames.length; i++) {
       var brand = brandNames[i];
@@ -71,7 +93,7 @@
       html += '<div class="sidebar-item" data-filter="brand:' + Utils.escapeHtml(brand) + '">' +
         '<i class="fas ' + icon + '"></i>' +
         '<span>' + Utils.escapeHtml(brand) + '</span>' +
-        '<span class="sidebar-count">' + Utils.escapeHtml(String(count)) + '</span>' +
+        '<span class="sidebar-count">' + Utils.formatNumber(count) + '</span>' +
       '</div>';
     }
 
@@ -92,7 +114,7 @@
       html += '<div class="sidebar-item" data-filter="ext:' + Utils.escapeHtml(ext) + '">' +
         '<i class="fas fa-file"></i>' +
         '<span>.' + Utils.escapeHtml(ext) + '</span>' +
-        '<span class="sidebar-count">' + Utils.escapeHtml(String(count)) + '</span>' +
+        '<span class="sidebar-count">' + Utils.formatNumber(count) + '</span>' +
       '</div>';
     }
 
@@ -145,6 +167,20 @@
     }
   }
 
+  /**
+   * Toggle collapsible sidebar section.
+   */
+  function toggleSection(headingEl) {
+    var section = headingEl.closest('.sidebar-section');
+    if (!section) return;
+    var scrollContent = section.querySelector('.sidebar-scroll');
+    if (!scrollContent) return;
+
+    var isCollapsed = section.classList.contains('collapsed');
+    section.classList.toggle('collapsed');
+    headingEl.querySelector('.sidebar-heading-icon').classList.toggle('rotated', isCollapsed);
+  }
+
   GWR.Sidebar = {
     init: init,
     populateBrands: populateBrands,
@@ -152,7 +188,9 @@
     toggle: toggle,
     open: open,
     close: close,
-    setActiveItem: setActiveItem
+    setActiveItem: setActiveItem,
+    toggleSection: toggleSection,
+    filterSidebarItems: filterSidebarItems
   };
 
 })();

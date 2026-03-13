@@ -24,17 +24,19 @@
     cursor: pointer;
     position: relative;
     overflow: hidden;
+    min-height: 0;
 }
 
 .file-card:hover {
     background: var(--bg-hover);
-    box-shadow: var(--shadow-md);
+    box-shadow: var(--shadow-lg);
     border-color: var(--color-primary);
-    transform: translateY(-2px);
+    transform: translateY(-3px);
 }
 
 .file-card:active {
     transform: translateY(0);
+    box-shadow: var(--shadow-sm);
 }
 
 .file-card-icon {

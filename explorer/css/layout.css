@@ -8,7 +8,7 @@
     display: flex;
     align-items: center;
     height: var(--header-height);
-    padding: 0 var(--space-2) 0 var(--space-1);
+    padding: 0 var(--space-3) 0 var(--space-2);
     background: var(--bg-secondary);
     border-bottom: 1px solid var(--border-light);
     position: fixed;
@@ -21,7 +21,7 @@
 .header-left {
     display: flex;
     align-items: center;
-    min-width: 240px;
+    min-width: 220px;
     gap: var(--space-1);
 }
 
@@ -91,8 +91,54 @@
     padding: var(--space-2) 0;
 }
 
+/* --- Sidebar Search --- */
+.sidebar-search-container {
+    display: flex;
+    align-items: center;
+    margin: var(--space-2) var(--space-3);
+    padding: 0 var(--space-3);
+    height: 36px;
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-full);
+    border: 1px solid transparent;
+    transition: all var(--transition-normal);
+}
+
+.sidebar-search-container:focus-within {
+    border-color: var(--color-primary);
+    background: var(--bg-secondary);
+    box-shadow: 0 0 0 2px var(--color-primary-light);
+}
+
+.sidebar-search-icon {
+    color: var(--text-muted);
+    font-size: 12px;
+    margin-right: var(--space-2);
+    flex-shrink: 0;
+}
+
+.sidebar-search-input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    font-size: var(--font-size-sm);
+    color: var(--text-primary);
+    outline: none;
+    min-width: 0;
+}
+
+.sidebar-search-input::placeholder {
+    color: var(--text-muted);
+}
+
 .sidebar-section {
     padding: var(--space-1) var(--space-3);
+}
+
+.sidebar-section.collapsed .sidebar-scroll {
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
 }
 
 .sidebar-heading {
@@ -102,11 +148,39 @@
     text-transform: uppercase;
     letter-spacing: 0.5px;
     padding: var(--space-4) var(--space-3) var(--space-2);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    user-select: none;
+    transition: color var(--transition-normal);
+}
+
+.sidebar-heading:hover {
+    color: var(--text-secondary);
+}
+
+.sidebar-heading span {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.sidebar-heading-icon {
+    font-size: 10px;
+    transition: transform var(--transition-normal);
+}
+
+.sidebar-heading-icon.rotated,
+.sidebar-section.collapsed .sidebar-heading-icon {
+    transform: rotate(-90deg);
 }
 
 .sidebar-scroll {
-    max-height: 280px;
+    max-height: 320px;
     overflow-y: auto;
+    transition: max-height var(--transition-slow), opacity var(--transition-slow);
+    opacity: 1;
 }
 
 .sidebar-footer {
@@ -127,6 +201,7 @@
     flex: 1;
     overflow-y: auto;
     padding: 0 var(--space-6) var(--space-6);
+    position: relative;
 }
 
 .content-header {
@@ -167,4 +242,69 @@
 
 .sidebar-overlay.active {
     display: block;
+}
+
+/* --- Back to Top Button --- */
+.back-to-top {
+    position: fixed;
+    bottom: 80px;
+    right: 24px;
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-full);
+    background: var(--color-primary);
+    color: var(--text-inverse);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    box-shadow: var(--shadow-lg);
+    z-index: var(--z-dropdown);
+    transition: all var(--transition-normal);
+    opacity: 0.9;
+}
+
+.back-to-top:hover {
+    opacity: 1;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-xl);
+}
+
+/* --- Empty State Enhanced --- */
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-12) var(--space-6);
+    text-align: center;
+}
+
+.empty-state-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: var(--radius-full);
+    background: var(--bg-tertiary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    color: var(--text-muted);
+    margin-bottom: var(--space-4);
+}
+
+.empty-state h3 {
+    margin-bottom: var(--space-2);
+    color: var(--text-primary);
+}
+
+.empty-state p {
+    margin-bottom: var(--space-4);
+    color: var(--text-muted);
+}
+
+.empty-state .btn {
+    margin-top: var(--space-2);
 }

@@ -101,6 +101,19 @@
     transform: translateY(-1px);
 }
 
+/* --- Copy Link Button --- */
+.btn-copy-link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    transition: all var(--transition-normal);
+}
+
+.btn-copy-link:hover {
+    color: var(--color-primary);
+    border-color: var(--color-primary);
+}
+
 /* --- Theme Toggle Button --- */
 .theme-toggle {
     position: relative;
@@ -250,6 +263,24 @@
     color: var(--color-primary);
 }
 
+.sidebar-count {
+    margin-left: auto;
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+    color: var(--text-muted);
+    background: var(--bg-tertiary);
+    padding: 2px 8px;
+    border-radius: var(--radius-full);
+    flex-shrink: 0;
+    min-width: 28px;
+    text-align: center;
+}
+
+.sidebar-item.active .sidebar-count {
+    background: var(--color-primary-light);
+    color: var(--color-primary);
+}
+
 .badge {
     margin-left: auto;
     font-size: var(--font-size-sm);
@@ -285,46 +316,70 @@
     font-size: var(--font-size-base);
 }
 
-/* --- Empty State --- */
-.empty-state {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 80px var(--space-5);
-    gap: var(--space-3);
-    color: var(--text-muted);
-}
-
-.empty-state i {
-    font-size: 48px;
-    opacity: 0.4;
-}
-
-.empty-state h3 {
-    font-size: var(--font-size-lg);
-    font-weight: var(--font-weight-medium);
-    color: var(--text-secondary);
-}
-
-.empty-state p {
-    font-size: var(--font-size-base);
-}
+/* --- Empty State (see layout.css for enhanced styles) --- */
 
 /* --- Pagination --- */
 .pagination {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: var(--space-4);
+    gap: var(--space-3);
     padding: var(--space-6) 0;
+    flex-wrap: wrap;
 }
 
 .page-info {
-    font-size: var(--font-size-base);
-    color: var(--text-secondary);
-    min-width: 140px;
+    font-size: var(--font-size-sm);
+    color: var(--text-muted);
+    min-width: auto;
     text-align: center;
+}
+
+.page-numbers {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+}
+
+.btn-page-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: 1px solid var(--border-primary);
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    border-radius: var(--radius-sm);
+    font-family: inherit;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    cursor: pointer;
+    transition: all var(--transition-normal);
+}
+
+.btn-page-num:hover {
+    background: var(--bg-hover);
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+}
+
+.btn-page-num.active {
+    background: var(--color-primary);
+    color: var(--text-inverse);
+    border-color: var(--color-primary);
+}
+
+.page-ellipsis {
+    color: var(--text-muted);
+    padding: 0 var(--space-1);
+    font-size: var(--font-size-sm);
+}
+
+.btn-page {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
 }
 
 .page-jump {

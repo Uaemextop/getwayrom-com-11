@@ -1,6 +1,7 @@
 /**
  * GetwayROM File Explorer - Advanced Search Engine
- * Uses Fuse.js for fuzzy search with support for advanced filter operators.
+ * Uses exact substring matching first, then Fuse.js for fuzzy fallback.
+ * Prioritizes exact matches so "moto g05" won't return "moto g04".
  */
 (function () {
   'use strict';
@@ -15,13 +16,20 @@
       return;
     }
     fuseInstance = new Fuse(files, {
-      keys: ['name', 'brand', 'extension'],
-      threshold: 0.3,
-      distance: 100,
+      keys: [
+        { name: 'name', weight: 0.7 },
+        { name: 'brand', weight: 0.2 },
+        { name: 'extension', weight: 0.1 }
+      ],
+      threshold: 0.2,
+      distance: 80,
       minMatchCharLength: 2,
       includeScore: true,
       includeMatches: true,
-      useExtendedSearch: true
+      useExtendedSearch: true,
+      // Position matters: matches near the start of a filename are more relevant
+      // (e.g. "Moto G05" at the start is a stronger match than buried in the middle)
+      ignoreLocation: false
     });
   }
 
@@ -60,7 +68,43 @@
   }
 
   /**
+   * Check if all search terms appear in the file name (exact substring match).
+   * Returns true if every word in the query is found in the name.
+   */
+  function exactSubstringMatch(fileName, query) {
+    var nameLower = fileName.toLowerCase();
+    var terms = query.toLowerCase().split(/\s+/).filter(function (t) { return t.length > 0; });
+    for (var i = 0; i < terms.length; i++) {
+      if (nameLower.indexOf(terms[i]) === -1) return false;
+    }
+    return true;
+  }
+
+  /**
+   * Score an exact match based on how closely it matches the query.
+   * Lower score = better match. Considers position of match and name length.
+   */
+  function scoreExactMatch(fileName, query) {
+    var nameLower = fileName.toLowerCase();
+    var queryLower = query.toLowerCase();
+    var score = 0;
+
+    // Bonus for full query appearing as contiguous substring
+    if (nameLower.indexOf(queryLower) !== -1) {
+      score -= 1000;
+      // Extra bonus if it appears near the start
+      score -= (100 - Math.min(nameLower.indexOf(queryLower), 100));
+    }
+
+    // Prefer shorter file names (more specific matches)
+    score += fileName.length * 0.1;
+
+    return score;
+  }
+
+  /**
    * Perform search with advanced operator support.
+   * Uses exact substring matching first, then fuzzy fallback.
    * Returns sorted results array of file objects.
    */
   function search(files, query) {
@@ -93,29 +137,55 @@
       });
     }
 
-    // Apply fuzzy text search via Fuse.js
-    if (parsed.text && fuseInstance) {
-      // Build a temporary Fuse instance scoped to the filtered set
-      var tempFuse = new Fuse(results, {
-        keys: ['name', 'brand', 'extension'],
-        threshold: 0.3,
-        distance: 100,
-        minMatchCharLength: 2,
-        includeScore: true,
-        includeMatches: true,
-        useExtendedSearch: true
+    // Apply text search - exact first, then fuzzy fallback
+    if (parsed.text) {
+      var searchText = parsed.text;
+
+      // Phase 1: Exact substring matches (prioritized)
+      var exactMatches = results.filter(function (f) {
+        return exactSubstringMatch(f.name, searchText);
       });
 
-      var fuseResults = tempFuse.search(parsed.text);
-
-      // Sort by score (lower is better) and return file objects
-      fuseResults.sort(function (a, b) {
-        return (a.score || 0) - (b.score || 0);
+      // Sort exact matches by relevance score
+      exactMatches.sort(function (a, b) {
+        return scoreExactMatch(a.name, searchText) - scoreExactMatch(b.name, searchText);
       });
 
-      results = fuseResults.map(function (r) {
-        return r.item;
-      });
+      // Phase 2: Fuzzy matches via Fuse.js (only items NOT in exact matches)
+      var fuzzyResults = [];
+      if (fuseInstance) {
+        var exactSet = {};
+        for (var i = 0; i < exactMatches.length; i++) {
+          exactSet[exactMatches[i].url] = true;
+        }
+
+        var tempFuse = new Fuse(results, {
+          keys: [
+            { name: 'name', weight: 0.7 },
+            { name: 'brand', weight: 0.2 },
+            { name: 'extension', weight: 0.1 }
+          ],
+          threshold: 0.2,
+          distance: 80,
+          minMatchCharLength: 2,
+          includeScore: true,
+          includeMatches: true,
+          useExtendedSearch: true
+        });
+
+        var fuseHits = tempFuse.search(searchText);
+
+        // Only include fuzzy results that aren't already exact matches
+        // and have a reasonable score (< 0.25 to avoid false positives like g04 for g05)
+        for (var j = 0; j < fuseHits.length; j++) {
+          if (!exactSet[fuseHits[j].item.url] && (fuseHits[j].score || 0) < 0.25) {
+            fuzzyResults.push(fuseHits[j].item);
+          }
+        }
+      }
+
+      // Combine: exact matches first, then fuzzy
+      results = exactMatches.concat(fuzzyResults);
     }
 
     return results;

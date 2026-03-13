@@ -3,6 +3,17 @@
    Mobile, tablet, and desktop breakpoints
    ============================================ */
 
+/* --- Extra Large screens (>1400px) --- */
+@media (min-width: 1400px) {
+    .file-grid {
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    }
+
+    .content {
+        padding: 0 var(--space-8) var(--space-8);
+    }
+}
+
 /* --- Large screens (>1200px) --- */
 @media (min-width: 1200px) {
     .file-grid {
@@ -31,7 +42,7 @@
     }
 
     .file-grid {
-        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
     }
 
     .header-left {
@@ -41,12 +52,17 @@
     .logo-text {
         display: none;
     }
+
+    .content {
+        padding: 0 var(--space-4) var(--space-4);
+    }
 }
 
 /* --- Small Tablet & large phone (<=768px) --- */
 @media (max-width: 768px) {
     .header {
-        padding: 0 var(--space-1);
+        padding: 0 var(--space-2);
+        gap: var(--space-1);
     }
 
     .header-center {
@@ -54,7 +70,8 @@
     }
 
     .search-container {
-        height: 40px;
+        height: 42px;
+        padding: 0 var(--space-2) 0 var(--space-3);
     }
 
     .content {
@@ -62,8 +79,8 @@
     }
 
     .file-grid {
-        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-        gap: var(--space-2);
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: var(--space-3);
     }
 
     .file-card {
@@ -73,7 +90,7 @@
     .file-card-icon {
         width: 44px;
         height: 44px;
-        font-size: 22px;
+        font-size: 20px;
     }
 
     .list-col-brand,
@@ -90,6 +107,32 @@
     .filter-row {
         grid-template-columns: 1fr;
     }
+
+    .pagination {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .page-numbers {
+        order: -1;
+        width: 100%;
+        justify-content: center;
+        margin-bottom: var(--space-2);
+    }
+
+    .footer-nav-inner {
+        padding: 0 var(--space-2);
+    }
+
+    .back-to-top {
+        bottom: 72px;
+        right: 16px;
+    }
+
+    .modal {
+        margin: var(--space-3);
+        max-width: calc(100vw - var(--space-6));
+    }
 }
 
 /* --- Phone (<= 480px) --- */
@@ -103,9 +146,31 @@
         gap: var(--space-2);
     }
 
+    .file-card {
+        padding: var(--space-2) var(--space-2) var(--space-3);
+    }
+
+    .file-card-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 20px;
+        margin-bottom: var(--space-2);
+    }
+
     .file-card-name {
         font-size: var(--font-size-xs);
         -webkit-line-clamp: 2;
+    }
+
+    .file-card-meta {
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .brand-badge,
+    .ext-badge {
+        font-size: 10px;
+        padding: 1px 6px;
     }
 
     .list-col-ext,
@@ -123,6 +188,7 @@
 
     .header-right {
         min-width: auto;
+        gap: 0;
     }
 
     .pagination {
@@ -134,9 +200,53 @@
         font-size: var(--font-size-sm);
     }
 
-    .btn {
+    .btn-page {
         padding: var(--space-2) var(--space-3);
         font-size: var(--font-size-sm);
+    }
+
+    .btn-page-text {
+        display: none;
+    }
+
+    .page-numbers {
+        gap: var(--space-1);
+    }
+
+    .btn-page-num {
+        width: 32px;
+        height: 32px;
+        font-size: var(--font-size-sm);
+    }
+
+    .footer-nav {
+        padding: var(--space-2) 0;
+    }
+
+    .footer-link {
+        font-size: var(--font-size-xs);
+        gap: var(--space-1);
+    }
+
+    .back-to-top {
+        bottom: 64px;
+        right: 12px;
+        width: 40px;
+        height: 40px;
+        font-size: 16px;
+    }
+
+    .sidebar {
+        width: 280px;
+        min-width: 280px;
+    }
+
+    .advanced-search-body {
+        padding: var(--space-3);
+    }
+
+    .filter-group {
+        gap: 4px;
     }
 }
 
@@ -144,6 +254,7 @@
 @media (max-width: 360px) {
     .file-grid {
         grid-template-columns: 1fr 1fr;
+        gap: var(--space-1);
     }
 
     .file-card-meta {
@@ -154,5 +265,54 @@
     .search-container {
         height: 36px;
         padding: 0 var(--space-2) 0 var(--space-3);
+    }
+
+    .search-input {
+        font-size: var(--font-size-sm);
+    }
+
+    .content {
+        padding: 0 var(--space-2) var(--space-2);
+    }
+}
+
+/* --- Touch device optimizations --- */
+@media (hover: none) and (pointer: coarse) {
+    .file-card:hover {
+        transform: none;
+        box-shadow: none;
+    }
+
+    .file-card:active {
+        transform: scale(0.98);
+        background: var(--bg-hover);
+    }
+
+    .sidebar-item {
+        min-height: 44px;
+    }
+
+    .btn-icon {
+        min-width: 44px;
+        min-height: 44px;
+    }
+}
+
+/* --- Landscape phone --- */
+@media (max-height: 500px) and (orientation: landscape) {
+    :root {
+        --header-height: 48px;
+    }
+
+    .file-grid {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    }
+
+    .footer-nav {
+        display: none;
+    }
+
+    .back-to-top {
+        bottom: 16px;
     }
 }

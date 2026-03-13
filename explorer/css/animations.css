@@ -98,7 +98,7 @@
 
 .file-card,
 .file-list-row {
-  animation: fadeIn 0.15s var(--ease-out) both;
+  animation: fadeIn 0.15s var(--ease) both;
 }
 
 /* ── Skeleton loading ────────────────────────────────────── */
@@ -106,30 +106,30 @@
 .skeleton {
   background: linear-gradient(
     90deg,
-    var(--bg-surface) 25%,
-    var(--bg-elevated) 37%,
-    var(--bg-surface) 63%
+    var(--bg-card-alt) 25%,
+    var(--bg-card) 37%,
+    var(--bg-card-alt) 63%
   );
   background-size: 800px 100%;
   animation: shimmer 1.5s ease-in-out infinite;
-  border-radius: var(--radius-md);
+  border-radius: var(--r-md);
 }
 
 .skeleton-card {
   height: 180px;
-  border-radius: var(--radius-lg);
+  border-radius: var(--r-lg);
 }
 
 .skeleton-row {
   height: 48px;
-  border-radius: var(--radius-sm);
+  border-radius: var(--r-sm);
 }
 
 /* ── Staggered entry ─────────────────────────────────────── */
 
 .stagger-in > * {
   opacity: 0;
-  animation: fadeInUp 0.35s var(--ease-out) both;
+  animation: fadeInUp 0.35s var(--ease) both;
 }
 
 .stagger-in > *:nth-child(1)  { animation-delay: 0ms; }
@@ -170,12 +170,12 @@
 /* ── Hover lift ──────────────────────────────────────────── */
 
 .hover-lift {
-  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+  transition: transform var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
 }
 
 .hover-lift:hover {
   transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--sh-md);
 }
 
 /* ── Hero glow animation applied ─────────────────────────── */

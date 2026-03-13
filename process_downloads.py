@@ -17,11 +17,9 @@ import struct
 import sys
 import asyncio
 import time
-from http.cookies import SimpleCookie
 from urllib.parse import urlparse, parse_qs, unquote
 
 import aiohttp
-import yarl
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 
 INPUT_FILE = "download_urls.md"
@@ -34,76 +32,16 @@ PLAYWRIGHT_CONCURRENCY = 3  # max concurrent browser pages (avoid EPIPE)
 GDRIVE_RETRIES = 2  # retries for rate-limited Google Drive requests
 ONEDRIVE_RETRIES = 2  # Playwright attempts before HTTP HEAD fallback
 
-# ── Cookie authentication ────────────────────────────────────────────
-# Set as GitHub Actions secrets (JSON arrays of cookie objects exported
-# from a browser extension like "EditThisCookie" or "Cookie-Editor").
-#
-# GOOGLE_COOKIES_JSON — injected into aiohttp for Google Drive / Docs.
-#   Required cookies (all on .google.com): SID, HSID, SSID, APISID,
-#   SAPISID, __Secure-1PSID, __Secure-3PSID.
-#
-# ONEDRIVE_COOKIES_JSON — injected into Playwright browser context for
-#   OneDrive SPA pages.  Required: FedAuth (on onedrive.live.com).
-_GOOGLE_COOKIES_JSON = os.environ.get("GOOGLE_COOKIES_JSON", "")
-_ONEDRIVE_COOKIES_JSON = os.environ.get("ONEDRIVE_COOKIES_JSON", "")
-
-
-def _load_cookies_from_env(env_value: str) -> list[dict]:
-    """Parse a JSON cookie array from an env var string."""
-    if not env_value:
-        return []
-    try:
-        cookies = json.loads(env_value)
-        if isinstance(cookies, list):
-            return cookies
-    except (json.JSONDecodeError, TypeError):
-        pass
-    return []
-
-
-def _cookies_for_playwright(raw_cookies: list[dict]) -> list[dict]:
-    """Convert browser-exported cookie dicts to Playwright format."""
-    pw_cookies = []
-    for c in raw_cookies:
-        name = c.get("name", "")
-        value = c.get("value", "")
-        domain = c.get("domain", "")
-        if not name or not value or not domain:
-            continue
-        entry: dict = {
-            "name": name,
-            "value": value,
-            "domain": domain,
-            "path": c.get("path", "/"),
-        }
-        if c.get("secure"):
-            entry["secure"] = True
-        if c.get("httpOnly"):
-            entry["httpOnly"] = True
-        same_site = c.get("sameSite", "")
-        if same_site == "no_restriction":
-            entry["sameSite"] = "None"
-        elif same_site in ("lax", "strict"):
-            entry["sameSite"] = same_site.capitalize()
-        pw_cookies.append(entry)
-    return pw_cookies
-
-
 # ── GitHub Actions log helpers ───────────────────────────────────────
 _CI = os.environ.get("CI") == "true" or os.environ.get("GITHUB_ACTIONS") == "true"
 
-# Disable ANSI color codes in CI — GitHub Actions masks \033[ as *** in logs,
-# producing garbled output like ***32m, ***0m.  Use plain Unicode symbols instead.
-if _CI:
-    _GREEN = _RED = _YELLOW = _CYAN = _BOLD = _RESET = _DIM = ""
-else:
-    _GREEN = "\033[32m"
-    _RED = "\033[31m"
-    _YELLOW = "\033[33m"
-    _CYAN = "\033[36m"
-    _BOLD = "\033[1m"
-    _RESET = "\033[0m"
-    _DIM = "\033[2m"
+_GREEN = "\033[32m"
+_RED = "\033[31m"
+_YELLOW = "\033[33m"
+_CYAN = "\033[36m"
+_BOLD = "\033[1m"
+_RESET = "\033[0m"
+_DIM = "\033[2m"
 
 
 def gh_group(title: str) -> None:
@@ -206,12 +144,6 @@ async def _get_playwright_page():
             viewport={"width": 1280, "height": 720},
             locale="en-US",
         )
-        # Inject OneDrive cookies for authenticated file access
-        od_raw = _load_cookies_from_env(_ONEDRIVE_COOKIES_JSON)
-        if od_raw:
-            pw_cookies = _cookies_for_playwright(od_raw)
-            if pw_cookies:
-                await _pw_context.add_cookies(pw_cookies)
         _pw_sem = asyncio.Semaphore(PLAYWRIGHT_CONCURRENCY)
     return await _pw_context.new_page()
 
@@ -916,34 +848,13 @@ async def main() -> None:
         timeout=timeout,
         headers={"User-Agent": "Mozilla/5.0"},
     ) as session:
-        # Inject Google cookies for authenticated requests
-        google_cookies = _load_cookies_from_env(_GOOGLE_COOKIES_JSON)
-        if google_cookies:
-            for c in google_cookies:
-                name = c.get("name", "")
-                value = c.get("value", "")
-                domain = c.get("domain", "")
-                if not name or not value:
-                    continue
-                # Strip leading dot for the response_url host
-                bare_domain = domain.lstrip(".")
-                # Use SimpleCookie with domain attribute so that .google.com
-                # cookies are sent to all subdomains (drive.google.com,
-                # drive.usercontent.google.com, docs.google.com, etc.)
-                sc = SimpleCookie()
-                sc[name] = value
-                sc[name]["domain"] = bare_domain
-                sc[name]["path"] = c.get("path", "/")
-                if c.get("secure"):
-                    sc[name]["secure"] = True
-                session.cookie_jar.update_cookies(
-                    sc,
-                    response_url=yarl.URL(f"https://{bare_domain}/"),
-                )
-            gh_info(
-                f"  {_CYAN}Loaded {len(google_cookies)} Google cookies"
-                f" for authenticated requests{_RESET}"
-            )
+        # NOTE: Cookies are NOT injected into the aiohttp session or the
+        # Playwright browser context.  Sending account cookies to Google
+        # Drive causes Google to serve account-specific pages for ALL
+        # requests, which breaks filename extraction for publicly-shared
+        # files.  OneDrive shared links work without cookies too — the
+        # Playwright extraction (networkidle wait + multiple regex
+        # patterns) handles the SPA rendering reliably.
 
         cache: dict[str, tuple[bool, str | None]] = {}
 
@@ -957,7 +868,7 @@ async def main() -> None:
                 pct_end = end * 100 // total
                 gh_group(
                     f"🔍 Batch {batch_idx + 1}/{num_batches}  "
-                    f"{start + 1}–{end} of {total}  ({pct_start}%–{pct_end}%)"
+                    f"[{start + 1}–{end} of {total}]  ({pct_start}%–{pct_end}%)"
                 )
 
                 tasks = [

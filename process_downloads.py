@@ -104,7 +104,7 @@ _DIM = "\033[2m"
 
 def gh_group(title: str) -> None:
     if _CI:
-        print(f"::group::{_BOLD}{title}{_RESET}", flush=True)
+        print(f"::group::{title}", flush=True)
     else:
         print(f"\n{'─'*60}\n{_BOLD}{title}{_RESET}", flush=True)
 

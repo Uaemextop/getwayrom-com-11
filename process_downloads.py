@@ -20,6 +20,7 @@ import time
 from urllib.parse import urlparse, parse_qs, unquote
 
 import aiohttp
+import yarl
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 
 INPUT_FILE = "download_urls.md"
@@ -30,6 +31,61 @@ BATCH_SIZE = 500
 PLAYWRIGHT_TIMEOUT = 20_000  # ms
 PLAYWRIGHT_CONCURRENCY = 3  # max concurrent browser pages (avoid EPIPE)
 GDRIVE_RETRIES = 2  # retries for rate-limited Google Drive requests
+
+# ── Cookie authentication ────────────────────────────────────────────
+# Set as GitHub Actions secrets (JSON arrays of cookie objects exported
+# from a browser extension like "EditThisCookie" or "Cookie-Editor").
+#
+# GOOGLE_COOKIES_JSON — injected into aiohttp for Google Drive / Docs.
+#   Required cookies (all on .google.com): SID, HSID, SSID, APISID,
+#   SAPISID, __Secure-1PSID, __Secure-3PSID.
+#
+# ONEDRIVE_COOKIES_JSON — injected into Playwright browser context for
+#   OneDrive SPA pages.  Required: FedAuth (on onedrive.live.com).
+_GOOGLE_COOKIES_JSON = os.environ.get("GOOGLE_COOKIES_JSON", "")
+_ONEDRIVE_COOKIES_JSON = os.environ.get("ONEDRIVE_COOKIES_JSON", "")
+
+
+def _load_cookies_from_env(env_value: str) -> list[dict]:
+    """Parse a JSON cookie array from an env var string."""
+    if not env_value:
+        return []
+    try:
+        cookies = json.loads(env_value)
+        if isinstance(cookies, list):
+            return cookies
+    except (json.JSONDecodeError, TypeError):
+        pass
+    return []
+
+
+def _cookies_for_playwright(raw_cookies: list[dict]) -> list[dict]:
+    """Convert browser-exported cookie dicts to Playwright format."""
+    pw_cookies = []
+    for c in raw_cookies:
+        name = c.get("name", "")
+        value = c.get("value", "")
+        domain = c.get("domain", "")
+        if not name or not value or not domain:
+            continue
+        entry: dict = {
+            "name": name,
+            "value": value,
+            "domain": domain,
+            "path": c.get("path", "/"),
+        }
+        if c.get("secure"):
+            entry["secure"] = True
+        if c.get("httpOnly"):
+            entry["httpOnly"] = True
+        same_site = c.get("sameSite", "")
+        if same_site == "no_restriction":
+            entry["sameSite"] = "None"
+        elif same_site in ("lax", "strict"):
+            entry["sameSite"] = same_site.capitalize()
+        pw_cookies.append(entry)
+    return pw_cookies
+
 
 # ── GitHub Actions log helpers ───────────────────────────────────────
 _CI = os.environ.get("CI") == "true" or os.environ.get("GITHUB_ACTIONS") == "true"
@@ -143,6 +199,12 @@ async def _get_playwright_page():
             viewport={"width": 1280, "height": 720},
             locale="en-US",
         )
+        # Inject OneDrive cookies for authenticated file access
+        od_raw = _load_cookies_from_env(_ONEDRIVE_COOKIES_JSON)
+        if od_raw:
+            pw_cookies = _cookies_for_playwright(od_raw)
+            if pw_cookies:
+                await _pw_context.add_cookies(pw_cookies)
         _pw_sem = asyncio.Semaphore(PLAYWRIGHT_CONCURRENCY)
     return await _pw_context.new_page()
 
@@ -181,8 +243,12 @@ def extract_google_drive_id(url: str) -> str | None:
 def filename_from_mediafire_url(url: str) -> str | None:
     parsed = urlparse(url)
     parts = [p for p in parsed.path.split("/") if p]
-    if len(parts) >= 4 and parts[0] in ("file", "file_premium") and parts[-1] == "file":
-        return unquote(parts[-2])
+    # MediaFire URL format: /file/{hash}/{filename} or /file_premium/{hash}/{filename}
+    if len(parts) >= 3 and parts[0] in ("file", "file_premium"):
+        candidate = unquote(parts[-1])
+        # Ensure it's a filename (not just the hash)
+        if "." in candidate:
+            return candidate
     return None
 
 
@@ -549,16 +615,39 @@ async def resolve_mega(
 async def resolve_gdocs(
     session: aiohttp.ClientSession, url: str
 ) -> tuple[bool, str | None]:
-    # Google Docs pages are SPAs — the real title is rendered by JavaScript.
-    # A simple HTTP GET only returns placeholder titles like "Loading Google
-    # Docs".  We just check liveness here.
+    # Google Docs/Slides/Sheets pages return the real filename in the <title>
+    # tag when accessed via GET (format: "filename.ext - Google Docs").
     try:
-        async with session.head(
+        async with session.get(
             url,
             allow_redirects=True,
             timeout=aiohttp.ClientTimeout(total=REQUEST_TIMEOUT),
         ) as resp:
-            return resp.status < 400, None
+            if resp.status >= 400:
+                return False, None
+            # Detect login redirect
+            if resp.url.host == "accounts.google.com":
+                return True, None
+            body = await resp.content.read(32768)
+            text = body.decode("utf-8", errors="replace")
+            m = re.search(r"<title>([^<]+)</title>", text, re.I)
+            if m:
+                title = m.group(1).strip()
+                for suffix in (
+                    " - Google Docs",
+                    " - Google Slides",
+                    " - Google Sheets",
+                    " - Google Drive",
+                ):
+                    if title.endswith(suffix):
+                        title = title[: -len(suffix)].strip()
+                        break
+                if title and title.lower() not in (
+                    "google docs", "google slides", "google sheets",
+                    "error", "sign in", "loading",
+                ):
+                    return True, title
+            return True, None
     except Exception:
         return False, None
 
@@ -572,116 +661,127 @@ async def resolve_onedrive(
 
     Uses a dedicated semaphore (_pw_sem) to limit concurrent browser pages
     and avoid EPIPE crashes from too many simultaneous Chromium connections.
+    Retries once on Playwright failure before falling back to HTTP HEAD.
     """
     global _pw_sem
     if _pw_sem is None:
         _pw_sem = asyncio.Semaphore(PLAYWRIGHT_CONCURRENCY)
 
-    async with _pw_sem:
-        page = None
-        try:
-            page = await _get_playwright_page()
-            resp = await page.goto(url, wait_until="domcontentloaded",
-                                   timeout=PLAYWRIGHT_TIMEOUT)
-            final_url = page.url
-
-            # If redirected to login → requires auth, assume alive (private share)
-            if "login.live.com" in final_url or "login.microsoftonline.com" in final_url:
-                await page.close()
-                return True, None
-
-            # Wait for SPA JS to render — prefer networkidle for reliability,
-            # fall back to fixed timeout if it takes too long.
+    for attempt in range(2):  # try Playwright twice before HTTP fallback
+        async with _pw_sem:
+            page = None
             try:
-                await page.wait_for_load_state("networkidle", timeout=10000)
-            except Exception:
-                await page.wait_for_timeout(5000)
+                page = await _get_playwright_page()
+                resp = await page.goto(url, wait_until="domcontentloaded",
+                                       timeout=PLAYWRIGHT_TIMEOUT)
+                final_url = page.url
 
-            # Check for error indicators
-            content = await page.content()
-            title = await page.title()
+                # If redirected to login → requires auth, assume alive (private share)
+                if "login.live.com" in final_url or "login.microsoftonline.com" in final_url:
+                    await page.close()
+                    return True, None
 
-            if any(s in content.lower() for s in [
-                "item might not exist",
-                "this item might have been deleted",
-                "isn't available",
-                "doesn't exist",
-                "item not found",
-            ]):
-                await page.close()
-                return False, None
+                # Wait for SPA JS to render — prefer networkidle for reliability,
+                # fall back to fixed timeout if it takes too long.
+                try:
+                    await page.wait_for_load_state("networkidle", timeout=12000)
+                except Exception:
+                    await page.wait_for_timeout(6000)
 
-            # Extract filename from page content
-            fname = None
+                # Check for error indicators
+                content = await page.content()
+                title = await page.title()
 
-            # Method 1: JS variable / JSON in page source — "fileName":"..."
-            m = ONEDRIVE_FILENAME_RE.search(content)
-            if m:
-                fname = m.group(1)
+                if any(s in content.lower() for s in [
+                    "item might not exist",
+                    "this item might have been deleted",
+                    "isn't available",
+                    "doesn't exist",
+                    "item not found",
+                ]):
+                    await page.close()
+                    return False, None
 
-            # Method 2: Broader JSON pattern — "name":"file.ext"
-            if not fname:
-                m = ONEDRIVE_NAME_RE.search(content)
+                # Extract filename from page content
+                fname = None
+
+                # Method 1: JS variable / JSON in page source — "fileName":"..."
+                m = ONEDRIVE_FILENAME_RE.search(content)
                 if m:
                     fname = m.group(1)
 
-            # Method 3: "Previewing filename.ext" in visible body text
-            if not fname:
-                try:
-                    body_text = await page.inner_text("body")
-                    m = re.search(r"Previewing\s+(.+\.\w{2,7})\s*$", body_text, re.M)
+                # Method 2: Broader JSON pattern — "name":"file.ext"
+                if not fname:
+                    m = ONEDRIVE_NAME_RE.search(content)
                     if m:
-                        fname = m.group(1).strip()
-                except Exception:
-                    pass
+                        fname = m.group(1)
 
-            # Method 4: Try to read the visible filename from the rendered DOM
-            if not fname:
-                try:
-                    for sel in (
-                        '[data-automationid="FieldRenderer-name"]',
-                        '[data-automationid="FileNameCell"]',
-                    ):
-                        el = await page.query_selector(sel)
-                        if el:
-                            t = (await el.inner_text()).strip()
-                            if t and len(t) > 3 and "." in t:
-                                fname = t
-                                break
-                except Exception:
-                    pass
+                # Method 3: "Previewing filename.ext" in visible body text
+                if not fname:
+                    try:
+                        body_text = await page.inner_text("body")
+                        m = re.search(r"Previewing\s+(.+\.\w{2,7})\s*$", body_text, re.M)
+                        if m:
+                            fname = m.group(1).strip()
+                    except Exception:
+                        pass
 
-            # Method 5: Title often contains "filename - OneDrive"
-            if not fname and title and " - " in title:
-                candidate = title.rsplit(" - ", 1)[0].strip()
-                if candidate and candidate.lower() != "onedrive":
-                    fname = candidate
+                # Method 4: Try to read the visible filename from the rendered DOM
+                if not fname:
+                    try:
+                        for sel in (
+                            '[data-automationid="FieldRenderer-name"]',
+                            '[data-automationid="FileNameCell"]',
+                        ):
+                            el = await page.query_selector(sel)
+                            if el:
+                                t = (await el.inner_text()).strip()
+                                if t and len(t) > 3 and "." in t:
+                                    fname = t
+                                    break
+                    except Exception:
+                        pass
 
-            try:
-                await page.close()
-            except Exception:
-                pass
+                # Method 5: Title often contains "filename - OneDrive"
+                if not fname and title and " - " in title:
+                    candidate = title.rsplit(" - ", 1)[0].strip()
+                    if candidate and candidate.lower() != "onedrive":
+                        fname = candidate
 
-            # Determine liveness
-            if resp and resp.status >= 400:
-                return False, fname
-            return True, fname
-        except Exception:
-            if page:
                 try:
                     await page.close()
                 except Exception:
                     pass
-            # On Playwright errors, fall back to HTTP HEAD check
-            try:
-                async with session.head(
-                    url,
-                    allow_redirects=True,
-                    timeout=aiohttp.ClientTimeout(total=REQUEST_TIMEOUT),
-                ) as resp:
-                    return resp.status < 400, None
+
+                # Determine liveness
+                if resp and resp.status >= 400:
+                    return False, fname
+                if fname:
+                    return True, fname
+                # If alive but no filename, retry once to catch SPA timing issues
+                if attempt == 0:
+                    continue
+                return True, fname
             except Exception:
-                return False, None
+                if page:
+                    try:
+                        await page.close()
+                    except Exception:
+                        pass
+                if attempt == 0:
+                    await asyncio.sleep(1)
+                    continue
+                # On final Playwright error, fall back to HTTP HEAD check
+                try:
+                    async with session.head(
+                        url,
+                        allow_redirects=True,
+                        timeout=aiohttp.ClientTimeout(total=REQUEST_TIMEOUT),
+                    ) as resp:
+                        return resp.status < 400, None
+                except Exception:
+                    return False, None
+    return False, None
 
 
 async def resolve_other(
@@ -808,6 +908,27 @@ async def main() -> None:
         timeout=timeout,
         headers={"User-Agent": "Mozilla/5.0"},
     ) as session:
+        # Inject Google cookies for authenticated requests
+        google_cookies = _load_cookies_from_env(_GOOGLE_COOKIES_JSON)
+        if google_cookies:
+            for c in google_cookies:
+                name = c.get("name", "")
+                value = c.get("value", "")
+                domain = c.get("domain", "")
+                if not name or not value:
+                    continue
+                # Strip leading dot for aiohttp compatibility
+                if domain.startswith("."):
+                    domain = domain[1:]
+                session.cookie_jar.update_cookies(
+                    {name: value},
+                    response_url=yarl.URL(f"https://{domain}/"),
+                )
+            gh_info(
+                f"  {_CYAN}Loaded {len(google_cookies)} Google cookies"
+                f" for authenticated requests{_RESET}"
+            )
+
         cache: dict[str, tuple[bool, str | None]] = {}
 
         try:

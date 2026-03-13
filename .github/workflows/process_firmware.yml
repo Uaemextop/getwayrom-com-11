@@ -29,6 +29,9 @@ jobs:
           python -m playwright install --with-deps chromium
 
       - name: Run process_downloads.py
+        env:
+          GOOGLE_COOKIES_JSON: ${{ secrets.GOOGLE_COOKIES_JSON }}
+          ONEDRIVE_COOKIES_JSON: ${{ secrets.ONEDRIVE_COOKIES_JSON }}
         run: python process_downloads.py
 
       - name: Upload firmware_ok.md as artifact

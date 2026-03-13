@@ -350,7 +350,7 @@ async def resolve_google_drive(
                         await asyncio.sleep(2 ** attempt)
                         continue
                 # Detect login redirect — file requires authentication
-                if "accounts.google.com" in str(resp.url):
+                if resp.url.host == "accounts.google.com":
                     return True, None
                 if resp.status < 400:
                     cd = resp.headers.get("Content-Disposition", "")
@@ -385,7 +385,7 @@ async def resolve_google_drive(
                 if resp.status >= 400:
                     break
                 # Detect login redirect — file requires authentication
-                if "accounts.google.com" in str(resp.url):
+                if resp.url.host == "accounts.google.com":
                     return True, None
 
                 alive = True

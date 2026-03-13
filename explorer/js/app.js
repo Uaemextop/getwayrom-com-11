@@ -61,6 +61,7 @@
     dom.sidebarToggle = document.getElementById('sidebarToggle');
     dom.brandList = document.getElementById('brandList');
     dom.extensionList = document.getElementById('extensionList');
+    dom.sourceList = document.getElementById('sourceList');
     dom.totalCount = document.getElementById('totalCount');
     dom.fileStats = document.getElementById('fileStats');
     dom.currentFilter = document.getElementById('currentFilter');
@@ -70,7 +71,7 @@
     dom.overviewExtensionCount = document.getElementById('overviewExtensionCount');
     dom.overviewUpdatedAt = document.getElementById('overviewUpdatedAt');
     dom.quickBrandRail = document.getElementById('quickBrandRail');
-    dom.quickExtensionRail = document.getElementById('quickExtensionRail');
+    dom.quickSourceRail = document.getElementById('quickSourceRail');
     dom.resetWorkspaceBtn = document.getElementById('resetWorkspaceBtn');
     dom.jumpToQuickAccessBtn = document.getElementById('jumpToQuickAccessBtn');
     dom.workspacePanel = document.getElementById('workspacePanel');
@@ -181,6 +182,7 @@
     var seen = {};
     var brands = {};
     var extensions = {};
+    var sources = {};
 
     var brandPatterns = [
       { pattern: /\bSM-[A-Z]\d/i, brand: 'Samsung' },
@@ -236,10 +238,12 @@
       var ext = extMatch ? extMatch[1].toLowerCase() : 'unknown';
       var brand = detectBrand(name);
       var fileType = typeMap[ext] || 'file';
+      var source = Utils.detectSource(url);
 
-      files.push({ name: name, url: url, extension: ext, brand: brand, fileType: fileType });
+      files.push({ name: name, url: url, extension: ext, brand: brand, fileType: fileType, source: source });
       brands[brand] = (brands[brand] || 0) + 1;
       extensions[ext] = (extensions[ext] || 0) + 1;
+      sources[source] = (sources[source] || 0) + 1;
     }
 
     files.sort(function (a, b) {
@@ -251,6 +255,7 @@
       totalFiles: files.length,
       brands: brands,
       extensions: extensions,
+      sources: sources,
       files: files
     };
   }
@@ -397,7 +402,8 @@
       generated: data.generated,
       totalFiles: data.totalFiles,
       brands: data.brands,
-      extensions: data.extensions
+      extensions: data.extensions,
+      sources: data.sources || {}
     };
 
     // Initialize search engine
@@ -407,6 +413,7 @@
     Sidebar.init({ onFilterChange: function () { applyFiltersAndSearch(); } });
     Sidebar.populateBrands(dom.brandList, state.metadata.brands);
     Sidebar.populateExtensions(dom.extensionList, state.metadata.extensions);
+    Sidebar.populateSources(dom.sourceList, state.metadata.sources);
 
     // Populate filter dropdowns
     populateFilters();
@@ -417,7 +424,7 @@
     dom.fileStats.textContent = Utils.formatNumber(state.allFiles.length) + ' firmware files';
     if (dom.overviewTotalFiles) dom.overviewTotalFiles.textContent = Utils.formatNumber(state.allFiles.length);
     if (dom.overviewBrandCount) dom.overviewBrandCount.textContent = Utils.formatNumber(Object.keys(state.metadata.brands).length);
-    if (dom.overviewExtensionCount) dom.overviewExtensionCount.textContent = Utils.formatNumber(Object.keys(state.metadata.extensions).length);
+    if (dom.overviewExtensionCount) dom.overviewExtensionCount.textContent = Utils.formatNumber(Object.keys(state.metadata.sources || {}).length);
     if (dom.overviewUpdatedAt) {
       var updatedAt = new Date(state.metadata.generated);
       dom.overviewUpdatedAt.textContent = isNaN(updatedAt.getTime())
@@ -451,6 +458,22 @@
   }
 
   function populateQuickAccess() {
+    if (dom.quickSourceRail && state.metadata.sources) {
+      var sourceButtons = Object.keys(state.metadata.sources)
+        .sort(function (a, b) { return state.metadata.sources[b] - state.metadata.sources[a]; })
+        .slice(0, 8)
+        .map(function (source) {
+          var icon = Utils.getSourceIcon(source);
+          var cls = Utils.getSourceColorClass(source);
+          return '<button class="quick-filter-card" data-quick-filter="source" data-value="' + Utils.escapeHtml(source) + '">' +
+            '<span class="quick-filter-title"><i class="fab ' + icon + '"></i> ' + Utils.escapeHtml(source) + '</span>' +
+            '<span class="quick-filter-meta">' + Utils.formatNumber(state.metadata.sources[source]) + ' files</span>' +
+          '</button>';
+        })
+        .join('');
+      dom.quickSourceRail.innerHTML = sourceButtons;
+    }
+
     if (dom.quickBrandRail) {
       var brandButtons = Object.keys(state.metadata.brands)
         .sort(function (a, b) { return state.metadata.brands[b] - state.metadata.brands[a]; })
@@ -463,20 +486,6 @@
         })
         .join('');
       dom.quickBrandRail.innerHTML = brandButtons;
-    }
-
-    if (dom.quickExtensionRail) {
-      var extButtons = Object.keys(state.metadata.extensions)
-        .sort(function (a, b) { return state.metadata.extensions[b] - state.metadata.extensions[a]; })
-        .slice(0, 8)
-        .map(function (ext) {
-          return '<button class="quick-filter-card" data-quick-filter="ext" data-value="' + Utils.escapeHtml(ext) + '">' +
-            '<span class="quick-filter-title">.' + Utils.escapeHtml(ext) + '</span>' +
-            '<span class="quick-filter-meta">' + Utils.formatNumber(state.metadata.extensions[ext]) + ' files</span>' +
-          '</button>';
-        })
-        .join('');
-      dom.quickExtensionRail.innerHTML = extButtons;
     }
   }
 
@@ -522,6 +531,8 @@
         results = results.filter(function (f) { return f.brand === filterValue; });
       } else if (filterType === 'ext') {
         results = results.filter(function (f) { return f.extension === filterValue; });
+      } else if (filterType === 'source') {
+        results = results.filter(function (f) { return f.source === filterValue; });
       }
     }
 
@@ -728,6 +739,7 @@
     var fileBrand = card.getAttribute('data-file-brand');
     var fileExt = card.getAttribute('data-file-ext');
     var fileType = card.getAttribute('data-file-type');
+    var fileSource = card.getAttribute('data-file-source');
 
     if (fileName && fileUrl) {
       FileRenderer.openFileDialog({
@@ -735,7 +747,8 @@
         url: fileUrl,
         brand: fileBrand || 'Unknown',
         ext: fileExt || 'unknown',
-        type: fileType || 'file'
+        type: fileType || 'file',
+        source: fileSource || 'Direct'
       });
     }
   }
@@ -965,6 +978,8 @@
 
       if (filterType === 'brand') {
         state.sidebarFilter = 'brand:' + filterValue;
+      } else if (filterType === 'source') {
+        state.sidebarFilter = 'source:' + filterValue;
       } else {
         state.sidebarFilter = 'ext:' + filterValue;
       }

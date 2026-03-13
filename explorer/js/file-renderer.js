@@ -16,19 +16,22 @@
     var iconClass = Utils.getFileIconClass(file.fileType);
     var brandIcon = Utils.getBrandIcon(file.brand);
     var brandClass = Utils.getBrandColorClass(file.brand);
+    var sourceIcon = Utils.getSourceIcon(file.source);
+    var sourceClass = Utils.getSourceColorClass(file.source);
     var name = Utils.escapeHtml(file.name);
     var brand = Utils.escapeHtml(file.brand);
     var ext = Utils.escapeHtml(file.extension);
+    var source = Utils.escapeHtml(file.source || 'Direct');
 
-    return '<div class="file-card" data-file-name="' + name + '" data-file-url="' + Utils.escapeHtml(file.url) + '" data-file-brand="' + brand + '" data-file-ext="' + ext + '" data-file-type="' + Utils.escapeHtml(file.fileType) + '">' +
+    return '<div class="file-card" data-file-name="' + name + '" data-file-url="' + Utils.escapeHtml(file.url) + '" data-file-brand="' + brand + '" data-file-ext="' + ext + '" data-file-type="' + Utils.escapeHtml(file.fileType) + '" data-file-source="' + source + '">' +
       '<div class="file-card-icon ' + iconClass + '">' +
         '<i class="fas ' + icon + '"></i>' +
       '</div>' +
       '<div class="file-card-info">' +
         '<div class="file-card-name" title="' + name + '">' + name + '</div>' +
         '<div class="file-card-meta">' +
-          '<span class="badge brand-badge ' + brandClass + '"><i class="fas ' + brandIcon + '"></i> ' + brand + '</span>' +
-          '<span class="badge ext-badge">.' + ext + '</span>' +
+          '<span class="badge source-badge ' + sourceClass + '"><i class="fab ' + sourceIcon + '"></i> ' + source + '</span>' +
+          (ext !== 'unknown' ? '<span class="badge ext-badge">.' + ext + '</span>' : '') +
         '</div>' +
       '</div>' +
     '</div>';
@@ -40,18 +43,25 @@
   function createFileRow(file) {
     var icon = Utils.getFileIcon(file.fileType);
     var iconClass = Utils.getFileIconClass(file.fileType);
-    var brandIcon = Utils.getBrandIcon(file.brand);
+    var sourceIcon = Utils.getSourceIcon(file.source);
+    var sourceClass = Utils.getSourceColorClass(file.source);
     var name = Utils.escapeHtml(file.name);
     var brand = Utils.escapeHtml(file.brand);
     var ext = Utils.escapeHtml(file.extension);
+    var source = Utils.escapeHtml(file.source || 'Direct');
 
-    return '<div class="file-row" data-file-name="' + name + '" data-file-url="' + Utils.escapeHtml(file.url) + '" data-file-brand="' + brand + '" data-file-ext="' + ext + '" data-file-type="' + Utils.escapeHtml(file.fileType) + '">' +
+    // Show source as the "brand" column when brand is Other
+    var brandDisplay = brand !== 'Other'
+      ? '<i class="fas ' + Utils.getBrandIcon(file.brand) + '"></i> ' + brand
+      : '<i class="fab ' + sourceIcon + '"></i> ' + source;
+
+    return '<div class="file-row" data-file-name="' + name + '" data-file-url="' + Utils.escapeHtml(file.url) + '" data-file-brand="' + brand + '" data-file-ext="' + ext + '" data-file-type="' + Utils.escapeHtml(file.fileType) + '" data-file-source="' + source + '">' +
       '<div class="list-col file-icon-small ' + iconClass + '">' +
         '<i class="fas ' + icon + '"></i>' +
       '</div>' +
       '<div class="list-col file-name" title="' + name + '">' + name + '</div>' +
-      '<div class="list-col file-brand"><i class="fas ' + brandIcon + '"></i> ' + brand + '</div>' +
-      '<div class="list-col file-ext">.' + ext + '</div>' +
+      '<div class="list-col file-brand">' + brandDisplay + '</div>' +
+      '<div class="list-col file-ext">' + (ext !== 'unknown' ? '.' + ext : '<span style="opacity:.5">—</span>') + '</div>' +
       '<div class="list-col file-actions">' +
         '<button class="btn-download btn-sm" title="Details">' +
           '<i class="fas fa-info-circle"></i>' +
@@ -103,6 +113,8 @@
     var iconClass = Utils.getFileIconClass(fileData.type);
     var brandIcon = Utils.getBrandIcon(fileData.brand);
     var brandClass = Utils.getBrandColorClass(fileData.brand);
+    var sourceIcon = Utils.getSourceIcon(fileData.source);
+    var sourceClass = Utils.getSourceColorClass(fileData.source);
 
     var backdrop = document.createElement('div');
     backdrop.className = 'modal-backdrop';
@@ -124,12 +136,16 @@
         '<div class="file-detail-name">' + Utils.escapeHtml(fileData.name) + '</div>' +
         '<div class="file-detail-meta">' +
           '<div class="detail-row">' +
-            '<span class="detail-label"><i class="fas fa-tag"></i> Provider</span>' +
+            '<span class="detail-label"><i class="fas fa-tag"></i> Brand</span>' +
             '<span class="detail-value ' + brandClass + '"><i class="fas ' + brandIcon + '"></i> ' + Utils.escapeHtml(fileData.brand) + '</span>' +
           '</div>' +
           '<div class="detail-row">' +
+            '<span class="detail-label"><i class="fas fa-cloud"></i> Source</span>' +
+            '<span class="detail-value"><span class="source-badge ' + sourceClass + '"><i class="fab ' + sourceIcon + '"></i> ' + Utils.escapeHtml(fileData.source || 'Direct') + '</span></span>' +
+          '</div>' +
+          '<div class="detail-row">' +
             '<span class="detail-label"><i class="fas fa-file"></i> Type</span>' +
-            '<span class="detail-value">.' + Utils.escapeHtml(fileData.ext) + ' (' + Utils.escapeHtml(fileData.type) + ')</span>' +
+            '<span class="detail-value">' + (fileData.ext !== 'unknown' ? '.' + Utils.escapeHtml(fileData.ext) : 'Unknown') + ' (' + Utils.escapeHtml(fileData.type) + ')</span>' +
           '</div>' +
         '</div>' +
       '</div>' +

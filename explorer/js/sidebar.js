@@ -136,6 +136,30 @@
   }
 
   /**
+   * Populate source list in sidebar.
+   */
+  function populateSources(container, sources) {
+    if (!container || !sources) return;
+
+    var html = '';
+    var sourceNames = Object.keys(sources).sort(function (a, b) {
+      return sources[b] - sources[a];
+    });
+    for (var i = 0; i < sourceNames.length; i++) {
+      var source = sourceNames[i];
+      var count = sources[source];
+      var icon = Utils.getSourceIcon(source);
+      html += '<div class="sidebar-item" data-filter="source:' + Utils.escapeHtml(source) + '">' +
+        '<i class="fab ' + icon + '"></i>' +
+        '<span>' + Utils.escapeHtml(source) + '</span>' +
+        '<span class="sidebar-count">' + Utils.formatNumber(count) + '</span>' +
+      '</div>';
+    }
+
+    container.innerHTML = html;
+  }
+
+  /**
    * Toggle sidebar open/collapsed.
    */
   function toggle(sidebarEl) {
@@ -214,6 +238,7 @@
     init: init,
     populateBrands: populateBrands,
     populateExtensions: populateExtensions,
+    populateSources: populateSources,
     toggle: toggle,
     open: open,
     close: close,

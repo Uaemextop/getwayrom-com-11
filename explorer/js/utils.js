@@ -189,6 +189,54 @@
     return 'gwr-' + Math.random().toString(36).substring(2, 11) + Date.now().toString(36);
   }
 
+  /**
+   * Return a source-specific icon class.
+   */
+  function getSourceIcon(source) {
+    var icons = {
+      'Google Drive': 'fa-google-drive',
+      'MediaFire': 'fa-fire',
+      'OneDrive': 'fa-cloud',
+      'MEGA': 'fa-cloud-arrow-down',
+      'Dropbox': 'fa-dropbox',
+      'GitHub': 'fa-github',
+      'AFH': 'fa-android',
+      'Direct': 'fa-link'
+    };
+    return icons[source] || 'fa-link';
+  }
+
+  /**
+   * Return a source color CSS class.
+   */
+  function getSourceColorClass(source) {
+    var colors = {
+      'Google Drive': 'source-gdrive',
+      'MediaFire': 'source-mediafire',
+      'OneDrive': 'source-onedrive',
+      'MEGA': 'source-mega',
+      'Dropbox': 'source-dropbox',
+      'GitHub': 'source-github',
+      'AFH': 'source-afh',
+      'Direct': 'source-direct'
+    };
+    return colors[source] || 'source-direct';
+  }
+
+  /**
+   * Detect source from URL (for in-browser fallback parsing).
+   */
+  function detectSource(url) {
+    if (/drive\.google\.com|drive\.usercontent\.google\.com/i.test(url)) return 'Google Drive';
+    if (/mediafire\.com/i.test(url)) return 'MediaFire';
+    if (/onedrive\.live\.com|1drv\.ms/i.test(url)) return 'OneDrive';
+    if (/mega\.nz|mega\.co\.nz/i.test(url)) return 'MEGA';
+    if (/dropbox\.com/i.test(url)) return 'Dropbox';
+    if (/github\.com|githubusercontent\.com/i.test(url)) return 'GitHub';
+    if (/androidfilehost\.com/i.test(url)) return 'AFH';
+    return 'Direct';
+  }
+
   GWR.Utils = {
     debounce: debounce,
     throttle: throttle,
@@ -198,6 +246,9 @@
     getFileIconClass: getFileIconClass,
     getBrandIcon: getBrandIcon,
     getBrandColorClass: getBrandColorClass,
+    getSourceIcon: getSourceIcon,
+    getSourceColorClass: getSourceColorClass,
+    detectSource: detectSource,
     truncateText: truncateText,
     copyToClipboard: copyToClipboard,
     generateId: generateId

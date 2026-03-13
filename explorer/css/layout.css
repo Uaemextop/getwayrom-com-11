@@ -68,7 +68,6 @@
     margin-top: var(--header-height);
     padding: var(--space-5);
     gap: var(--space-5);
-    min-height: calc(100vh - var(--header-height));
     height: calc(100vh - var(--header-height));
 }
 
@@ -264,7 +263,7 @@
     border-radius: calc(var(--radius-xl) + 6px);
     padding: var(--space-8);
     background:
-        linear-gradient(135deg, color-mix(in srgb, var(--color-primary-light) 80%, transparent), transparent 58%),
+        linear-gradient(135deg, color-mix(in srgb, var(--color-primary-light) 80%, transparent) 0%, transparent 60%, transparent 100%),
         color-mix(in srgb, var(--bg-secondary) 96%, transparent);
 }
 
@@ -284,7 +283,7 @@
 
 .hero-title {
     margin: var(--space-4) 0 var(--space-3);
-    max-width: 12ch;
+    max-width: 22ch;
 }
 
 .hero-description {

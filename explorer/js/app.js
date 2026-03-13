@@ -502,6 +502,13 @@
     applyFiltersAndSearch();
   }
 
+  function scrollContentTo(targetTop) {
+    dom.content.scrollTo({
+      top: Math.max(0, targetTop - 12),
+      behavior: 'smooth'
+    });
+  }
+
   // --- Search & Filter ---
   function applyFiltersAndSearch() {
     var results = state.folderPath.length > 0 ? getCurrentFolderFiles() : state.allFiles;
@@ -926,10 +933,7 @@
 
     if (dom.jumpToQuickAccessBtn && dom.workspacePanel) {
       dom.jumpToQuickAccessBtn.addEventListener('click', function () {
-        dom.content.scrollTo({
-          top: dom.workspacePanel.offsetTop - 12,
-          behavior: 'smooth'
-        });
+        scrollContentTo(dom.workspacePanel.offsetTop);
       });
     }
 
@@ -968,7 +972,7 @@
       Sidebar.setActiveItem(state.sidebarFilter);
       dom.currentFilter.textContent = filterValue;
       applyFiltersAndSearch();
-      dom.content.scrollTo({ top: dom.workspacePanel.offsetTop, behavior: 'smooth' });
+      scrollContentTo(dom.workspacePanel.offsetTop);
     });
 
     // Sidebar section toggles

@@ -25,10 +25,11 @@ from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 INPUT_FILE = "download_urls.md"
 OUTPUT_FILE = "firmware_ok.md"
 CONCURRENCY = 100
-REQUEST_TIMEOUT = 15
+REQUEST_TIMEOUT = 20
 BATCH_SIZE = 500
 PLAYWRIGHT_TIMEOUT = 20_000  # ms
 PLAYWRIGHT_CONCURRENCY = 3  # max concurrent browser pages (avoid EPIPE)
+GDRIVE_RETRIES = 2  # retries for rate-limited Google Drive requests
 
 # ── GitHub Actions log helpers ───────────────────────────────────────
 _CI = os.environ.get("CI") == "true" or os.environ.get("GITHUB_ACTIONS") == "true"
@@ -89,6 +90,18 @@ LINE_RE = re.compile(
 
 GDRIVE_VIRUS_PAGE_RE = re.compile(
     r'<a\s[^>]*href="/open\?id=[^"]*"[^>]*>([^<]+\.[a-zA-Z0-9]{1,10})</a>',
+    re.I,
+)
+
+# Matches the virus-scan confirmation page filename in the "uc-name-size" span
+GDRIVE_UC_NAME_RE = re.compile(
+    r'<span\s+class="uc-name-size"[^>]*>\s*<a[^>]*>([^<]+)</a>',
+    re.I,
+)
+
+# Matches filename in the download form's hidden input or link text
+GDRIVE_CONFIRM_NAME_RE = re.compile(
+    r'<a\s[^>]*id="uc-download-link"[^>]*>([^<]*Download[^<]*)</a>',
     re.I,
 )
 
@@ -165,7 +178,7 @@ def extract_google_drive_id(url: str) -> str | None:
 def filename_from_mediafire_url(url: str) -> str | None:
     parsed = urlparse(url)
     parts = [p for p in parsed.path.split("/") if p]
-    if len(parts) >= 4 and parts[0] == "file" and parts[-1] == "file":
+    if len(parts) >= 4 and parts[0] in ("file", "file_premium") and parts[-1] == "file":
         return unquote(parts[-2])
     return None
 
@@ -266,6 +279,43 @@ def mega_decrypt_attrs(at_b64: str, key_b64: str) -> str | None:
     return None
 
 
+def _extract_gdrive_filename_from_html(html: str, file_id: str) -> str | None:
+    """Extract filename from a Google Drive virus-scan or interstitial HTML page."""
+    # Method 1: link with href="/open?id=..." whose text is the filename
+    m = GDRIVE_VIRUS_PAGE_RE.search(html)
+    if m:
+        return m.group(1).strip()
+
+    # Method 2: <span class="uc-name-size"><a ...>filename</a> ...
+    m = GDRIVE_UC_NAME_RE.search(html)
+    if m:
+        return m.group(1).strip()
+
+    # Method 3: page <title> sometimes contains the filename
+    m = re.search(r"<title>([^<]+)</title>", html, re.I)
+    if m:
+        title = m.group(1).strip()
+        for remove in ("Google Drive - ", "- Google Drive"):
+            title = title.replace(remove, "").strip()
+        if title and title.lower() not in (
+            "quota exceeded", "not found", "google drive", ""
+        ):
+            # Only use title if it looks like a filename (has a dot for extension)
+            if "." in title:
+                return title
+
+    # Detect quota-exceeded or "too many" pages as alive (file exists)
+    lower = html.lower()
+    if "quota exceeded" in lower or "too many users" in lower:
+        return None
+
+    # Detect "not found" pages
+    if "not found" in lower and file_id not in html:
+        return None
+
+    return None
+
+
 # ── Async resolvers ──────────────────────────────────────────────────
 
 async def resolve_google_drive(
@@ -275,69 +325,152 @@ async def resolve_google_drive(
     if not file_id:
         return False, None
 
-    # Strategy 1: HEAD the direct usercontent download URL (with confirm=t).
-    # This returns Content-Disposition with the real filename and avoids
-    # the virus-scan HTML page entirely.
     direct_url = (
         f"https://drive.usercontent.google.com/download"
         f"?id={file_id}&export=download&confirm=t"
     )
-    try:
-        async with session.head(
-            direct_url,
-            allow_redirects=True,
-            timeout=aiohttp.ClientTimeout(total=REQUEST_TIMEOUT),
-        ) as resp:
-            if resp.status < 400:
+
+    alive = False
+
+    # Strategy 1: HEAD the direct usercontent download URL (with confirm=t).
+    # This returns Content-Disposition with the real filename and avoids
+    # the virus-scan HTML page entirely.
+    for attempt in range(GDRIVE_RETRIES + 1):
+        try:
+            async with session.head(
+                direct_url,
+                allow_redirects=True,
+                timeout=aiohttp.ClientTimeout(total=REQUEST_TIMEOUT),
+            ) as resp:
+                if resp.status == 429 or resp.status == 503:
+                    if attempt < GDRIVE_RETRIES:
+                        await asyncio.sleep(2 ** attempt)
+                        continue
+                if resp.status < 400:
+                    cd = resp.headers.get("Content-Disposition", "")
+                    fname = parse_content_disposition(cd) if cd else None
+                    if fname:
+                        return True, fname
+                    # HEAD returned 200 but no Content-Disposition: file exists,
+                    # continue to GET strategies to extract the filename.
+                    alive = True
+                    break
+                if resp.status >= 400:
+                    break
+        except Exception:
+            if attempt < GDRIVE_RETRIES:
+                await asyncio.sleep(2 ** attempt)
+                continue
+            break
+
+    # Strategy 2: GET the usercontent URL — parses HTML virus-scan page for
+    # the filename link.  Also handles quota-exceeded pages as alive.
+    for attempt in range(GDRIVE_RETRIES + 1):
+        try:
+            async with session.get(
+                direct_url,
+                allow_redirects=True,
+                timeout=aiohttp.ClientTimeout(total=REQUEST_TIMEOUT),
+            ) as resp:
+                if resp.status == 429 or resp.status == 503:
+                    if attempt < GDRIVE_RETRIES:
+                        await asyncio.sleep(2 ** attempt)
+                        continue
+                if resp.status >= 400:
+                    break
+
+                alive = True
                 cd = resp.headers.get("Content-Disposition", "")
                 fname = parse_content_disposition(cd) if cd else None
                 if fname:
                     return True, fname
-    except Exception:
-        pass
 
-    # Strategy 2: GET via the /uc endpoint and parse virus-scan HTML page.
-    check_url = f"https://drive.google.com/uc?id={file_id}&export=download"
-    try:
-        async with session.get(
-            check_url,
-            allow_redirects=True,
-            timeout=aiohttp.ClientTimeout(total=REQUEST_TIMEOUT),
-        ) as resp:
-            if resp.status >= 400:
-                return False, None
+                ct = resp.headers.get("Content-Type", "")
+                if "text/html" in ct:
+                    body = await resp.content.read(16384)
+                    text = body.decode("utf-8", errors="replace")
+                    fname = _extract_gdrive_filename_from_html(text, file_id)
+                    if fname:
+                        return True, fname
+                break
+        except Exception:
+            if attempt < GDRIVE_RETRIES:
+                await asyncio.sleep(2 ** attempt)
+                continue
+            break
 
-            cd = resp.headers.get("Content-Disposition", "")
-            fname = parse_content_disposition(cd) if cd else None
-            if fname:
-                return True, fname
+    # Strategy 3: GET the file view page — the <title> tag contains the
+    # filename even when the download quota is exceeded.  This is the most
+    # reliable fallback for filename extraction.
+    view_url = f"https://drive.google.com/file/d/{file_id}/view"
+    for attempt in range(GDRIVE_RETRIES + 1):
+        try:
+            async with session.get(
+                view_url,
+                allow_redirects=True,
+                timeout=aiohttp.ClientTimeout(total=REQUEST_TIMEOUT),
+            ) as resp:
+                if resp.status == 429 or resp.status == 503:
+                    if attempt < GDRIVE_RETRIES:
+                        await asyncio.sleep(2 ** attempt)
+                        continue
+                if resp.status >= 400:
+                    if not alive:
+                        return False, None
+                    break
 
-            ct = resp.headers.get("Content-Type", "")
-            if "text/html" in ct:
-                body = await resp.content.read(8192)
+                alive = True
+                body = await resp.content.read(16384)
                 text = body.decode("utf-8", errors="replace")
-
-                m = GDRIVE_VIRUS_PAGE_RE.search(text)
+                m = re.search(r"<title>([^<]+)</title>", text, re.I)
                 if m:
-                    return True, m.group(1).strip()
+                    title = m.group(1).strip()
+                    suffix = " - Google Drive"
+                    if title.endswith(suffix):
+                        title = title[: -len(suffix)].strip()
+                    if title and title.lower() not in (
+                        "google drive", "error", "sign in",
+                    ):
+                        return True, title
+                break
+        except Exception:
+            if attempt < GDRIVE_RETRIES:
+                await asyncio.sleep(2 ** attempt)
+                continue
+            break
 
-                if "quota exceeded" in text.lower():
-                    return True, None
+    # If we know the file is alive from earlier strategies, return that.
+    if alive:
+        return True, None
 
-                if "download" in text.lower() and file_id in text:
-                    return True, None
-                if "not found" in text.lower():
-                    return False, None
-
-                return True, None
-            return True, fname
-    except Exception:
-        return False, None
+    return False, None
 
 
 async def resolve_mediafire(
     session: aiohttp.ClientSession, url: str
 ) -> tuple[bool, str | None]:
+    parsed = urlparse(url)
+    host = (parsed.hostname or "").lower()
+    is_direct_cdn = host.startswith("download") and host.endswith(".mediafire.com")
+
+    # For direct CDN download URLs, try HEAD for Content-Disposition first
+    if is_direct_cdn:
+        try:
+            async with session.head(
+                url,
+                allow_redirects=True,
+                timeout=aiohttp.ClientTimeout(total=REQUEST_TIMEOUT),
+            ) as resp:
+                if resp.status < 400:
+                    cd = resp.headers.get("Content-Disposition", "")
+                    fname = parse_content_disposition(cd) if cd else None
+                    if fname:
+                        return True, fname
+                    return True, filename_from_mediafire_url(url)
+                return False, filename_from_mediafire_url(url)
+        except Exception:
+            return False, filename_from_mediafire_url(url)
+
     try:
         async with session.get(
             url,
@@ -407,6 +540,9 @@ async def resolve_mega(
 async def resolve_gdocs(
     session: aiohttp.ClientSession, url: str
 ) -> tuple[bool, str | None]:
+    # Google Docs pages are SPAs — the real title is rendered by JavaScript.
+    # A simple HTTP GET only returns placeholder titles like "Loading Google
+    # Docs".  We just check liveness here.
     try:
         async with session.head(
             url,
@@ -617,7 +753,7 @@ async def main() -> None:
     timeout = aiohttp.ClientTimeout(total=REQUEST_TIMEOUT, connect=10)
     connector = aiohttp.TCPConnector(
         limit=CONCURRENCY,
-        limit_per_host=10,
+        limit_per_host=30,
         ttl_dns_cache=600,
         enable_cleanup_closed=True,
     )
@@ -709,12 +845,14 @@ async def main() -> None:
     gh_endgroup()
 
     # ── Summary ───────────────────────────────────────────────────
+    unresolved = sum(1 for _, name, _ in alive_entries if re.match(r"^firmware_\d+$", name))
     elapsed = time.time() - wall_start
     gh_group("📊 Summary")
     gh_info(f"  {_BOLD}Total processed:{_RESET}  {total}")
     gh_info(f"  {_GREEN}Alive:{_RESET}             {len(alive_entries)}")
     gh_info(f"  {_RED}Dead/expired:{_RESET}      {dead_count}")
     gh_info(f"  {_CYAN}Renamed:{_RESET}           {renamed_count}")
+    gh_info(f"  {_YELLOW}Unresolved:{_RESET}        {unresolved}")
     gh_info(f"  {_DIM}Cache hits:{_RESET}        {total - len(cache)}")
     gh_info(f"  {_DIM}Wall time:{_RESET}         {elapsed:.1f}s")
     gh_info("")
@@ -728,7 +866,7 @@ async def main() -> None:
 
     gh_notice(
         f"Done: {len(alive_entries)} alive, {dead_count} dead, "
-        f"{renamed_count} renamed in {elapsed:.1f}s"
+        f"{renamed_count} renamed, {unresolved} unresolved in {elapsed:.1f}s"
     )
 
 

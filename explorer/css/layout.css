@@ -11,9 +11,8 @@
   border-bottom:1px solid var(--bd);
 }
 
-.header-left{display:flex;align-items:center;gap:var(--s2);min-width:200px}
-.header-center{flex:1;max-width:680px;margin:0 auto;position:relative}
-.header-right{display:flex;align-items:center;gap:var(--s1);min-width:140px;justify-content:flex-end}
+.header-left{display:flex;align-items:center;gap:var(--s2)}
+.header-right{display:flex;align-items:center;gap:var(--s1);margin-left:auto}
 
 /* Logo */
 .logo{display:flex;align-items:center;gap:var(--s2);text-decoration:none}
@@ -186,6 +185,21 @@
 
 .quick-filter-rail{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:var(--s2)}
 
+/* ── Breadcrumb bar ── */
+.breadcrumb-bar{
+  padding:var(--s2) 0;
+  border-bottom:1px solid var(--bd);
+  margin-bottom:var(--s3);
+}
+
+/* ── Search toolbar ── */
+.search-toolbar{
+  display:flex;align-items:center;gap:var(--s2);
+  margin-bottom:var(--s4);position:relative;
+}
+.search-toolbar .search-container{flex:1;min-width:0}
+.btn-toolbar-action{white-space:nowrap;flex-shrink:0}
+
 /* ── Content shell ── */
 .content-shell{
   border-radius:var(--r-lg);
@@ -195,21 +209,12 @@
   margin-bottom:var(--s8);
 }
 
-.content-header{
-  display:flex;align-items:center;justify-content:space-between;
-  gap:var(--s4);padding-bottom:var(--s3);margin-bottom:var(--s3);
-  border-bottom:1px solid var(--bd);
-  position:sticky;top:0;z-index:var(--z-base);
-  background:var(--bg-card);
-}
-
 .breadcrumb{display:flex;align-items:center;flex-wrap:wrap;gap:6px;font-size:var(--fs-sm);color:var(--tx2)}
 .breadcrumb-item{cursor:default}
 .breadcrumb-item.active{color:var(--tx);font-weight:var(--fw-medium)}
 .breadcrumb-link{cursor:pointer;transition:color var(--dur) var(--ease)}
 .breadcrumb-link:hover{color:var(--c-brand)}
 .breadcrumb-separator{color:var(--tx3);font-size:var(--fs-2xs)}
-.content-info{font-size:var(--fs-sm);color:var(--tx3);flex-shrink:0}
 
 /* ── Empty state ── */
 .empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:var(--s16) var(--s6);text-align:center}

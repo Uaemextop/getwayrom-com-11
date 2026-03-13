@@ -119,6 +119,9 @@ ONEDRIVE_NAME_RE = re.compile(
 
 FIRMWARE_PLACEHOLDER_RE = re.compile(r"^firmware_\d+$")
 
+# Sentinel returned by resolve_google_drive for login-restricted files
+_RESTRICTED = "__LOGIN_RESTRICTED__"
+
 
 # ── Playwright singleton ─────────────────────────────────────────────
 
@@ -356,7 +359,7 @@ async def resolve_google_drive(
                         continue
                 # Detect login redirect — file requires authentication
                 if resp.url.host == "accounts.google.com":
-                    return True, None
+                    return True, _RESTRICTED
                 if resp.status < 400:
                     cd = resp.headers.get("Content-Disposition", "")
                     fname = parse_content_disposition(cd) if cd else None
@@ -391,7 +394,7 @@ async def resolve_google_drive(
                     break
                 # Detect login redirect — file requires authentication
                 if resp.url.host == "accounts.google.com":
-                    return True, None
+                    return True, _RESTRICTED
 
                 alive = True
                 cd = resp.headers.get("Content-Disposition", "")
@@ -566,7 +569,7 @@ async def resolve_gdocs(
                 return False, None
             # Detect login redirect
             if resp.url.host == "accounts.google.com":
-                return True, None
+                return True, _RESTRICTED
             body = await resp.content.read(16384)
             text = body.decode("utf-8", errors="replace")
             m = re.search(r"<title>([^<]+)</title>", text, re.I)
@@ -780,6 +783,10 @@ async def process_entry(
             alive, resolved_name = await resolver(session, url)
         cache[cache_key] = (alive, resolved_name)
 
+    # Handle login-restricted sentinel: keep original name, don't use as filename
+    if resolved_name == _RESTRICTED:
+        resolved_name = None
+
     url_name = extract_filename_from_url(url)
     final_name = resolved_name or url_name or original_name
 
@@ -836,6 +843,7 @@ async def main() -> None:
 
     alive_entries: list[tuple[int, str, str]] = []
     dead_count = 0
+    restricted_count = 0
     svc_alive: dict[str, int] = {}
     svc_dead: dict[str, int] = {}
     renamed_count = 0
@@ -893,11 +901,29 @@ async def main() -> None:
                             if _ln == ln:
                                 original = _name
                                 break
+
+                        # Check if this entry was login-restricted
+                        is_restricted = False
+                        if svc in ("gdrive", "gdocs"):
+                            if svc == "gdrive":
+                                ck = extract_google_drive_id(url) or url
+                            else:
+                                ck = url
+                            cached = cache.get(ck)
+                            if cached and cached[1] == _RESTRICTED:
+                                is_restricted = True
+                                restricted_count += 1
+
                         if original and final_name != original:
                             renamed_count += 1
                             gh_info(
                                 f"  {_GREEN}✔{_RESET} {_BOLD}{final_name}{_RESET}"
                                 f"  {_DIM}← {original}{_RESET}"
+                            )
+                        elif is_restricted:
+                            gh_info(
+                                f"  {_YELLOW}🔒{_RESET} {final_name}"
+                                f"  {_DIM}(login-restricted){_RESET}"
                             )
                         else:
                             gh_info(
@@ -937,6 +963,7 @@ async def main() -> None:
     gh_info(f"  {_RED}Dead/expired:{_RESET}      {dead_count}")
     gh_info(f"  {_CYAN}Renamed:{_RESET}           {renamed_count}")
     gh_info(f"  {_YELLOW}Unresolved:{_RESET}        {unresolved}")
+    gh_info(f"  {_YELLOW}  🔒 Login-restricted:{_RESET} {restricted_count}")
     gh_info(f"  {_DIM}Cache hits:{_RESET}        {total - len(cache)}")
     gh_info(f"  {_DIM}Wall time:{_RESET}         {elapsed:.1f}s")
     gh_info("")
@@ -950,7 +977,8 @@ async def main() -> None:
 
     gh_notice(
         f"Done: {len(alive_entries)} alive, {dead_count} dead, "
-        f"{renamed_count} renamed, {unresolved} unresolved in {elapsed:.1f}s"
+        f"{renamed_count} renamed, {unresolved} unresolved "
+        f"({restricted_count} login-restricted) in {elapsed:.1f}s"
     )
 
     # Brief sleep to let aiohttp/Playwright transports finalize cleanly

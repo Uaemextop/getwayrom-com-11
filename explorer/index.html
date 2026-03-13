@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap">
     <link rel="stylesheet" href="css/explorer.css">
 </head>
 <body>
@@ -18,10 +18,10 @@
             <button class="btn-icon sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
                 <i class="fas fa-bars"></i>
             </button>
-            <div class="logo">
-                <i class="fas fa-microchip logo-icon"></i>
+            <a href="index.html" class="logo">
+                <div class="logo-mark"><i class="fas fa-microchip"></i></div>
                 <span class="logo-text">GetwayROM</span>
-            </div>
+            </a>
         </div>
         <div class="header-center">
             <div class="search-container" id="searchContainer">
@@ -60,22 +60,22 @@
                         <input type="text" id="filterName" class="filter-input" placeholder="e.g. Android-12">
                     </div>
                     <div class="filter-actions">
-                        <button class="btn btn-secondary" id="clearFilters">Clear Filters</button>
-                        <button class="btn btn-primary" id="applyFilters">Apply Filters</button>
+                        <button class="btn btn-secondary" id="clearFilters">Clear</button>
+                        <button class="btn btn-primary" id="applyFilters">Apply</button>
                     </div>
                 </div>
             </div>
         </div>
         <div class="header-right">
-            <button class="btn-icon" id="refreshBtn" title="Refresh file list from releases">
+            <button class="btn-icon" id="refreshBtn" title="Refresh data">
                 <i class="fas fa-sync-alt"></i>
             </button>
-            <button class="btn-icon" id="themeToggle" title="Toggle dark/light theme">
+            <button class="btn-icon" id="themeToggle" title="Toggle theme">
                 <i class="fas fa-sun"></i>
             </button>
             <div class="view-toggle">
                 <button class="btn-icon active" id="gridViewBtn" title="Grid view">
-                    <i class="fas fa-th"></i>
+                    <i class="fas fa-th-large"></i>
                 </button>
                 <button class="btn-icon" id="listViewBtn" title="List view">
                     <i class="fas fa-list"></i>
@@ -115,22 +115,21 @@
         <!-- Sidebar -->
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-topbar">
-                <div>
+                <div class="sidebar-topbar-content">
                     <span class="sidebar-eyebrow">Workspace</span>
-                    <h2 class="sidebar-title">Firmware Library</h2>
+                    <h2 class="sidebar-title">Library</h2>
                 </div>
-                <p class="sidebar-description">Browse brands, formats and folders from one place.</p>
             </div>
             <nav class="sidebar-nav">
                 <!-- Sidebar Search -->
                 <div class="sidebar-search-container">
                     <i class="fas fa-search sidebar-search-icon"></i>
-                    <input type="text" id="sidebarSearch" class="sidebar-search-input" placeholder="Filter brands & types..." autocomplete="off">
+                    <input type="text" id="sidebarSearch" class="sidebar-search-input" placeholder="Filter..." autocomplete="off">
                 </div>
 
                 <div class="sidebar-section">
                     <button class="sidebar-item active" data-filter="all">
-                        <i class="fas fa-folder"></i>
+                        <i class="fas fa-layer-group"></i>
                         <span>All Files</span>
                         <span class="badge" id="totalCount">0</span>
                     </button>
@@ -163,134 +162,146 @@
 
         <!-- Content Area -->
         <main class="content" id="content">
+            <!-- Hero Section -->
             <section class="explorer-hero">
-                <div class="hero-copy">
-                    <span class="hero-eyebrow">Professional firmware workspace</span>
-                    <h1 class="hero-title">Search, organize and download firmware with confidence</h1>
-                    <p class="hero-description">A cleaner explorer with faster filtering, clearer hierarchy and a modern workspace for the complete GetwayROM collection.</p>
-                    <div class="hero-actions">
-                        <button class="btn btn-primary" id="resetWorkspaceBtn">
-                            <i class="fas fa-compass"></i> Reset workspace
-                        </button>
-                        <button class="btn btn-secondary" id="jumpToQuickAccessBtn">
-                            <i class="fas fa-bolt"></i> Quick access
-                        </button>
+                <div class="hero-glow"></div>
+                <div class="hero-inner">
+                    <div class="hero-copy">
+                        <span class="hero-eyebrow"><i class="fas fa-bolt"></i> Professional firmware workspace</span>
+                        <h1 class="hero-title">Search, organize and<br>download <span class="hero-highlight">firmware</span></h1>
+                        <p class="hero-description">Explore the complete GetwayROM collection with fast filtering, organized hierarchy and instant downloads.</p>
+                        <div class="hero-actions">
+                            <button class="btn btn-primary btn-glow" id="resetWorkspaceBtn">
+                                <i class="fas fa-compass"></i> Reset workspace
+                            </button>
+                            <button class="btn btn-glass" id="jumpToQuickAccessBtn">
+                                <i class="fas fa-bolt"></i> Quick access
+                            </button>
+                        </div>
                     </div>
-                </div>
-                <div class="hero-stats">
-                    <article class="hero-stat-card">
-                        <span class="hero-stat-label">Indexed files</span>
-                        <strong class="hero-stat-value" id="overviewTotalFiles">--</strong>
-                        <span class="hero-stat-meta">Ready to browse</span>
-                    </article>
-                    <article class="hero-stat-card">
-                        <span class="hero-stat-label">Brands</span>
-                        <strong class="hero-stat-value" id="overviewBrandCount">--</strong>
-                        <span class="hero-stat-meta">Manufacturers detected</span>
-                    </article>
-                    <article class="hero-stat-card">
-                        <span class="hero-stat-label">Formats</span>
-                        <strong class="hero-stat-value" id="overviewExtensionCount">--</strong>
-                        <span class="hero-stat-meta">Available file types</span>
-                    </article>
-                    <article class="hero-stat-card">
-                        <span class="hero-stat-label">Last refresh</span>
-                        <strong class="hero-stat-value hero-stat-value-sm" id="overviewUpdatedAt">--</strong>
-                        <span class="hero-stat-meta">Source index timestamp</span>
-                    </article>
+                    <div class="hero-stats">
+                        <article class="hero-stat-card">
+                            <div class="hero-stat-icon"><i class="fas fa-file-archive"></i></div>
+                            <div class="hero-stat-content">
+                                <strong class="hero-stat-value" id="overviewTotalFiles">--</strong>
+                                <span class="hero-stat-label">Indexed files</span>
+                            </div>
+                        </article>
+                        <article class="hero-stat-card">
+                            <div class="hero-stat-icon"><i class="fas fa-mobile-alt"></i></div>
+                            <div class="hero-stat-content">
+                                <strong class="hero-stat-value" id="overviewBrandCount">--</strong>
+                                <span class="hero-stat-label">Brands</span>
+                            </div>
+                        </article>
+                        <article class="hero-stat-card">
+                            <div class="hero-stat-icon"><i class="fas fa-puzzle-piece"></i></div>
+                            <div class="hero-stat-content">
+                                <strong class="hero-stat-value" id="overviewExtensionCount">--</strong>
+                                <span class="hero-stat-label">Formats</span>
+                            </div>
+                        </article>
+                        <article class="hero-stat-card">
+                            <div class="hero-stat-icon"><i class="fas fa-clock"></i></div>
+                            <div class="hero-stat-content">
+                                <strong class="hero-stat-value hero-stat-value-sm" id="overviewUpdatedAt">--</strong>
+                                <span class="hero-stat-label">Last refresh</span>
+                            </div>
+                        </article>
+                    </div>
                 </div>
             </section>
 
+            <!-- Quick Access Panel -->
             <section class="workspace-panel" id="workspacePanel">
                 <div class="workspace-panel-section">
                     <div class="workspace-panel-header">
                         <div>
-                            <span class="workspace-panel-eyebrow">Smart access</span>
+                            <span class="workspace-panel-eyebrow"><i class="fas fa-star"></i> Quick access</span>
                             <h2>Popular brands</h2>
                         </div>
-                        <p>Jump directly into the manufacturers with the largest firmware libraries.</p>
                     </div>
                     <div class="quick-filter-rail" id="quickBrandRail"></div>
                 </div>
                 <div class="workspace-panel-section">
                     <div class="workspace-panel-header">
                         <div>
-                            <span class="workspace-panel-eyebrow">Formats</span>
+                            <span class="workspace-panel-eyebrow"><i class="fas fa-shapes"></i> Formats</span>
                             <h2>Popular file types</h2>
                         </div>
-                        <p>Switch the workspace into focused archive and package views instantly.</p>
                     </div>
                     <div class="quick-filter-rail" id="quickExtensionRail"></div>
                 </div>
             </section>
 
+            <!-- Main Content Shell -->
             <section class="content-shell">
-            <!-- Breadcrumb / Status bar -->
-            <div class="content-header">
-                <div class="breadcrumb">
-                    <span class="breadcrumb-item breadcrumb-link" data-path=""><i class="fas fa-home"></i> Home</span>
-                    <span class="breadcrumb-separator"><i class="fas fa-chevron-right"></i></span>
-                    <span class="breadcrumb-item active" id="currentFilter">All Files</span>
-                </div>
-                <div class="content-info">
-                    <span id="resultCount">Loading files...</span>
-                </div>
-            </div>
-
-            <!-- Active Filters -->
-            <div class="active-filters" id="activeFilters"></div>
-
-            <!-- Loading Spinner -->
-            <div class="loading" id="loading">
-                <div class="spinner"></div>
-                <p>Loading firmware files...</p>
-            </div>
-
-            <!-- Empty State -->
-            <div class="empty-state hidden" id="emptyState">
-                <div class="empty-state-icon">
-                    <i class="fas fa-search"></i>
-                </div>
-                <h3>No files found</h3>
-                <p>Try adjusting your search or filters</p>
-                <button class="btn btn-primary" id="clearAllFiltersBtn">
-                    <i class="fas fa-undo"></i> Clear All Filters
-                </button>
-            </div>
-
-            <!-- File Grid -->
-            <div class="file-grid" id="fileGrid"></div>
-
-            <!-- File List -->
-            <div class="file-list hidden" id="fileList">
-                <div class="file-list-header">
-                    <div class="list-col list-col-name" data-sort="name-asc">
-                        Name <i class="fas fa-sort"></i>
+                <!-- Breadcrumb / Status bar -->
+                <div class="content-header">
+                    <div class="breadcrumb">
+                        <span class="breadcrumb-item breadcrumb-link" data-path=""><i class="fas fa-home"></i> Home</span>
+                        <span class="breadcrumb-separator"><i class="fas fa-chevron-right"></i></span>
+                        <span class="breadcrumb-item active" id="currentFilter">All Files</span>
                     </div>
-                    <div class="list-col list-col-brand" data-sort="brand-asc">
-                        Brand <i class="fas fa-sort"></i>
-                    </div>
-                    <div class="list-col list-col-ext" data-sort="ext-asc">
-                        Type <i class="fas fa-sort"></i>
-                    </div>
-                    <div class="list-col list-col-action">
-                        Action
+                    <div class="content-info">
+                        <span id="resultCount">Loading files...</span>
                     </div>
                 </div>
-                <div id="fileListBody"></div>
-            </div>
 
-            <!-- Pagination -->
-            <div class="pagination" id="pagination">
-                <button class="btn btn-secondary btn-page" id="prevPage" disabled>
-                    <i class="fas fa-chevron-left"></i> <span class="btn-page-text">Previous</span>
-                </button>
-                <div class="page-numbers" id="pageNumbers"></div>
-                <span class="page-info" id="pageInfo">Page 1</span>
-                <button class="btn btn-secondary btn-page" id="nextPage">
-                    <span class="btn-page-text">Next</span> <i class="fas fa-chevron-right"></i>
-                </button>
-            </div>
+                <!-- Active Filters -->
+                <div class="active-filters" id="activeFilters"></div>
+
+                <!-- Loading Spinner -->
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>Loading firmware files...</p>
+                </div>
+
+                <!-- Empty State -->
+                <div class="empty-state hidden" id="emptyState">
+                    <div class="empty-state-icon">
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <h3>No files found</h3>
+                    <p>Try adjusting your search or filters</p>
+                    <button class="btn btn-primary" id="clearAllFiltersBtn">
+                        <i class="fas fa-undo"></i> Clear All Filters
+                    </button>
+                </div>
+
+                <!-- File Grid -->
+                <div class="file-grid" id="fileGrid"></div>
+
+                <!-- File List -->
+                <div class="file-list hidden" id="fileList">
+                    <div class="file-list-header">
+                        <div class="list-col list-col-name" data-sort="name-asc">
+                            Name <i class="fas fa-sort"></i>
+                        </div>
+                        <div class="list-col list-col-brand" data-sort="brand-asc">
+                            Brand <i class="fas fa-sort"></i>
+                        </div>
+                        <div class="list-col list-col-ext" data-sort="ext-asc">
+                            Type <i class="fas fa-sort"></i>
+                        </div>
+                        <div class="list-col list-col-action">
+                            Action
+                        </div>
+                    </div>
+                    <div id="fileListBody"></div>
+                </div>
+
+                <!-- Pagination -->
+                <div class="pagination" id="pagination">
+                    <button class="btn btn-secondary btn-page" id="prevPage" disabled>
+                        <i class="fas fa-chevron-left"></i> <span class="btn-page-text">Previous</span>
+                    </button>
+                    <div class="page-numbers" id="pageNumbers"></div>
+                    <span class="page-info" id="pageInfo">Page 1</span>
+                    <button class="btn btn-secondary btn-page" id="nextPage">
+                        <span class="btn-page-text">Next</span> <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
             </section>
         </main>
     </div>

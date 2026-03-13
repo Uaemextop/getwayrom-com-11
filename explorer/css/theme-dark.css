@@ -1,179 +1,263 @@
-/* ============================================
-   GetwayROM File Explorer - Dark Theme
-   Overrides CSS variables for dark mode
-   Supports both manual toggle and system preference
-   ============================================ */
+/* ============================================================
+   GetwayROM File Explorer – Theme: Dark (primary) + Light
+   ============================================================
+   Dark is the default design defined in variables.css.
+   This file enriches the dark palette and provides a full
+   light-theme override for [data-theme="light"].
+   ============================================================ */
 
-/* --- Manual dark mode toggle via data attribute --- */
-[data-theme="dark"] {
-    /* Background Colors */
-    --bg-primary: #0b1120;
-    --bg-secondary: rgba(15, 23, 42, 0.86);
-    --bg-tertiary: #172033;
-    --bg-hover: #1e293b;
-    --bg-active: rgba(37, 99, 235, 0.18);
+/* ── Dark theme enrichments (manual toggle) ──────────────── */
 
-    /* Text Colors */
-    --text-primary: #e2e8f0;
-    --text-secondary: #cbd5e1;
-    --text-muted: #94a3b8;
-    --text-inverse: #0b1120;
+:root[data-theme="dark"] {
+  --bg-primary:     #060a13;
+  --bg-secondary:   rgba(12, 17, 30, 0.85);
+  --bg-tertiary:    #0d1321;
+  --bg-surface:     rgba(15, 23, 42, 0.6);
+  --bg-elevated:    rgba(20, 28, 50, 0.7);
+  --bg-glass:       rgba(15, 23, 42, 0.45);
+  --bg-glass-heavy: rgba(10, 15, 30, 0.75);
+  --bg-hover:       rgba(59, 130, 246, 0.08);
+  --bg-active:      rgba(59, 130, 246, 0.14);
 
-    /* Border Colors */
-    --border-primary: rgba(148, 163, 184, 0.28);
-    --border-light: rgba(148, 163, 184, 0.14);
-    --border-focus: #60a5fa;
+  --text-primary:   #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted:     #64748b;
+  --text-inverse:   #0f172a;
+  --text-link:      var(--color-primary-light);
 
-    /* Primary Colors */
-    --color-primary: #60a5fa;
-    --color-primary-hover: #3b82f6;
-    --color-primary-light: rgba(96, 165, 250, 0.18);
-    --color-primary-dark: #2563eb;
+  --border-default: rgba(148,163,184,.10);
+  --border-subtle:  rgba(148,163,184,.06);
+  --border-strong:  rgba(148,163,184,.18);
 
-    /* Accent */
-    --color-accent: #14b8a6;
-    --color-accent-hover: #0f766e;
-
-    /* Semantic Colors */
-    --color-success: #10b981;
-    --color-warning: #f59e0b;
-    --color-error: #f87171;
-    --color-info: #60a5fa;
-
-    /* Shadows */
-    --shadow-xs: 0 8px 18px rgba(2, 6, 23, 0.24);
-    --shadow-sm: 0 12px 28px rgba(2, 6, 23, 0.3);
-    --shadow-md: 0 20px 46px rgba(2, 6, 23, 0.36);
-    --shadow-lg: 0 28px 62px rgba(2, 6, 23, 0.44);
-    --shadow-xl: 0 36px 90px rgba(2, 6, 23, 0.55);
-
-    /* File type colors (softer for dark backgrounds) */
-    --color-archive-bg: rgba(248, 113, 113, 0.15);
-    --color-android-bg: rgba(52, 211, 153, 0.15);
-    --color-image-bg: rgba(96, 165, 250, 0.15);
-    --color-disk-bg: rgba(251, 191, 36, 0.15);
-    --color-executable-bg: rgba(192, 132, 252, 0.15);
-    --color-binary-bg: rgba(148, 163, 184, 0.15);
-    --color-document-bg: rgba(129, 140, 248, 0.15);
-    --color-file-bg: rgba(148, 163, 184, 0.1);
-
-    --color-archive: #fca5a5;
-    --color-android: #6ee7b7;
-    --color-image: #93c5fd;
-    --color-disk: #fcd34d;
-    --color-executable: #d8b4fe;
-    --color-binary: #cbd5e1;
-    --color-document: #a5b4fc;
-    --color-file: #d1d5db;
-
-    color-scheme: dark;
+  --shadow-xs:  0 1px 2px  rgba(0,10,40,.30);
+  --shadow-sm:  0 2px 6px  rgba(0,10,40,.35);
+  --shadow-md:  0 4px 14px rgba(0,10,40,.40);
+  --shadow-lg:  0 8px 28px rgba(0,10,40,.45);
+  --shadow-xl:  0 16px 48px rgba(0,10,40,.55);
 }
 
-/* Dark mode scrollbar */
-[data-theme="dark"] ::-webkit-scrollbar-thumb {
-    background: #374151;
+:root[data-theme="dark"] body {
+  background: var(--bg-primary);
 }
 
-[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
-    background: #4b5563;
+:root[data-theme="dark"] ::selection {
+  background: rgba(var(--color-primary-rgb), .30);
 }
 
-/* Dark mode selection */
-[data-theme="dark"] ::selection {
-    background: rgba(96, 165, 250, 0.3);
+:root[data-theme="dark"] .highlight {
+  background: rgba(var(--color-primary-rgb), .25);
+  color: var(--color-primary-light);
 }
 
-/* Dark mode search highlight */
-[data-theme="dark"] .highlight {
-    background: rgba(251, 191, 36, 0.35);
-    color: #fef3c7;
+:root[data-theme="dark"] ::-webkit-scrollbar-thumb {
+  background: rgba(148,163,184,.15);
 }
 
-/* Dark mode toast */
-[data-theme="dark"] .toast {
-    background: #1f2937;
-    color: #e5e7eb;
+/* ── Light theme ─────────────────────────────────────────── */
+
+:root[data-theme="light"] {
+  --bg-primary:     #f8fafc;
+  --bg-secondary:   rgba(255, 255, 255, 0.85);
+  --bg-tertiary:    #ffffff;
+  --bg-surface:     rgba(241, 245, 249, 0.8);
+  --bg-elevated:    rgba(255, 255, 255, 0.9);
+  --bg-glass:       rgba(255, 255, 255, 0.55);
+  --bg-glass-heavy: rgba(255, 255, 255, 0.80);
+  --bg-hover:       rgba(59, 130, 246, 0.06);
+  --bg-active:      rgba(59, 130, 246, 0.10);
+
+  --text-primary:   #0f172a;
+  --text-secondary: #475569;
+  --text-muted:     #94a3b8;
+  --text-inverse:   #f8fafc;
+  --text-link:      var(--color-primary);
+
+  --border-default: rgba(15, 23, 42, 0.08);
+  --border-subtle:  rgba(15, 23, 42, 0.04);
+  --border-strong:  rgba(15, 23, 42, 0.14);
+
+  --shadow-xs:  0 1px 2px  rgba(0,0,0,.04);
+  --shadow-sm:  0 2px 6px  rgba(0,0,0,.06);
+  --shadow-md:  0 4px 14px rgba(0,0,0,.08);
+  --shadow-lg:  0 8px 28px rgba(0,0,0,.10);
+  --shadow-xl:  0 16px 48px rgba(0,0,0,.14);
+  --shadow-glow: 0 0 20px rgba(var(--color-primary-rgb), .12);
+  --shadow-glow-lg: 0 0 40px rgba(var(--color-primary-rgb), .10);
+
+  --color-primary-light: #2563eb;
+
+  /* File type colours – slightly richer for light backgrounds */
+  --file-archive-color:    #d97706;
+  --file-archive-bg:       rgba(245,158,11,.10);
+  --file-android-color:    #16a34a;
+  --file-android-bg:       rgba(34,197,94,.10);
+  --file-firmware-color:   #2563eb;
+  --file-firmware-bg:      rgba(59,130,246,.10);
+  --file-image-color:      #9333ea;
+  --file-image-bg:         rgba(168,85,247,.10);
+  --file-disk-color:       #475569;
+  --file-disk-bg:          rgba(100,116,139,.10);
+  --file-executable-color: #dc2626;
+  --file-executable-bg:    rgba(239,68,68,.10);
+  --file-binary-color:     #0891b2;
+  --file-binary-bg:        rgba(6,182,212,.10);
+  --file-document-color:   #0284c7;
+  --file-document-bg:      rgba(14,165,233,.10);
+  --file-scatter-color:    #ea580c;
+  --file-scatter-bg:       rgba(249,115,22,.10);
+  --file-config-color:     #7c3aed;
+  --file-config-bg:        rgba(139,92,246,.10);
+  --file-flash-color:      #ca8a04;
+  --file-flash-bg:         rgba(234,179,8,.10);
+  --file-file-color:       #64748b;
+  --file-file-bg:          rgba(148,163,184,.08);
 }
 
-[data-theme="dark"] .toast-close {
-    color: #e5e7eb;
+:root[data-theme="light"] body {
+  background: var(--bg-primary);
 }
 
-/* --- System preference dark mode (auto) --- */
+:root[data-theme="light"] body::before {
+  background: radial-gradient(
+    ellipse at center,
+    rgba(var(--color-primary-rgb), .04) 0%,
+    rgba(var(--color-accent-rgb), .02) 40%,
+    transparent 70%
+  );
+}
+
+:root[data-theme="light"] .hero-highlight {
+  background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+:root[data-theme="light"] ::selection {
+  background: rgba(var(--color-primary-rgb), .18);
+  color: var(--text-primary);
+}
+
+:root[data-theme="light"] .highlight {
+  background: rgba(var(--color-primary-rgb), .12);
+  color: var(--color-primary);
+}
+
+:root[data-theme="light"] ::-webkit-scrollbar-thumb {
+  background: rgba(15, 23, 42, .12);
+}
+
+:root[data-theme="light"] ::-webkit-scrollbar-thumb:hover {
+  background: rgba(15, 23, 42, .22);
+}
+
+/* Light brand badges – use darker tones */
+:root[data-theme="light"] .brand-samsung  { background: rgba(20,100,220,.08);  color: #1a5dc0; }
+:root[data-theme="light"] .brand-xiaomi   { background: rgba(255,108,0,.08);   color: #c06000; }
+:root[data-theme="light"] .brand-huawei   { background: rgba(207,9,11,.08);    color: #b01010; }
+:root[data-theme="light"] .brand-honor    { background: rgba(0,124,195,.08);    color: #006aa0; }
+:root[data-theme="light"] .brand-realme   { background: rgba(246,183,0,.08);    color: #a07000; }
+:root[data-theme="light"] .brand-oppo     { background: rgba(30,160,80,.08);    color: #1a8040; }
+:root[data-theme="light"] .brand-vivo     { background: rgba(70,80,220,.08);    color: #3040b0; }
+:root[data-theme="light"] .brand-motorola { background: rgba(100,100,100,.08);  color: #505050; }
+:root[data-theme="light"] .brand-oneplus  { background: rgba(235,0,30,.08);     color: #c01020; }
+:root[data-theme="light"] .brand-nokia    { background: rgba(18,75,128,.08);    color: #104080; }
+:root[data-theme="light"] .brand-lg       { background: rgba(169,25,70,.08);    color: #901040; }
+:root[data-theme="light"] .brand-google   { background: rgba(66,133,244,.08);   color: #2060d0; }
+
+/* Light toast */
+:root[data-theme="light"] .toast {
+  background: var(--bg-tertiary);
+  box-shadow: var(--shadow-lg);
+}
+
+/* ── System preference fallback ──────────────────────────── */
+
 @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-        /* Background Colors */
-        --bg-primary: #0b1120;
-        --bg-secondary: rgba(15, 23, 42, 0.86);
-        --bg-tertiary: #172033;
-        --bg-hover: #1e293b;
-        --bg-active: rgba(37, 99, 235, 0.18);
+  :root:not([data-theme="light"]) {
+    --bg-primary:     #060a13;
+    --bg-secondary:   rgba(12, 17, 30, 0.85);
+    --bg-tertiary:    #0d1321;
+    --bg-surface:     rgba(15, 23, 42, 0.6);
+    --bg-elevated:    rgba(20, 28, 50, 0.7);
+    --bg-glass:       rgba(15, 23, 42, 0.45);
+    --bg-glass-heavy: rgba(10, 15, 30, 0.75);
+    --bg-hover:       rgba(59, 130, 246, 0.08);
+    --bg-active:      rgba(59, 130, 246, 0.14);
 
-        /* Text Colors */
-        --text-primary: #e2e8f0;
-        --text-secondary: #cbd5e1;
-        --text-muted: #94a3b8;
-        --text-inverse: #0b1120;
+    --text-primary:   #f1f5f9;
+    --text-secondary: #94a3b8;
+    --text-muted:     #64748b;
+    --text-inverse:   #0f172a;
+    --text-link:      var(--color-primary-light);
 
-        /* Border Colors */
-        --border-primary: rgba(148, 163, 184, 0.28);
-        --border-light: rgba(148, 163, 184, 0.14);
-        --border-focus: #60a5fa;
+    --border-default: rgba(148,163,184,.10);
+    --border-subtle:  rgba(148,163,184,.06);
+    --border-strong:  rgba(148,163,184,.18);
 
-        /* Primary Colors */
-        --color-primary: #60a5fa;
-        --color-primary-hover: #3b82f6;
-        --color-primary-light: rgba(96, 165, 250, 0.18);
-        --color-primary-dark: #2563eb;
+    --shadow-xs:  0 1px 2px  rgba(0,10,40,.30);
+    --shadow-sm:  0 2px 6px  rgba(0,10,40,.35);
+    --shadow-md:  0 4px 14px rgba(0,10,40,.40);
+    --shadow-lg:  0 8px 28px rgba(0,10,40,.45);
+    --shadow-xl:  0 16px 48px rgba(0,10,40,.55);
+  }
+}
 
-        /* Accent */
-        --color-accent: #14b8a6;
-        --color-accent-hover: #0f766e;
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg-primary:     #f8fafc;
+    --bg-secondary:   rgba(255, 255, 255, 0.85);
+    --bg-tertiary:    #ffffff;
+    --bg-surface:     rgba(241, 245, 249, 0.8);
+    --bg-elevated:    rgba(255, 255, 255, 0.9);
+    --bg-glass:       rgba(255, 255, 255, 0.55);
+    --bg-glass-heavy: rgba(255, 255, 255, 0.80);
+    --bg-hover:       rgba(59, 130, 246, 0.06);
+    --bg-active:      rgba(59, 130, 246, 0.10);
 
-        /* Semantic Colors */
-        --color-success: #10b981;
-        --color-warning: #f59e0b;
-        --color-error: #f87171;
-        --color-info: #60a5fa;
+    --text-primary:   #0f172a;
+    --text-secondary: #475569;
+    --text-muted:     #94a3b8;
+    --text-inverse:   #f8fafc;
+    --text-link:      var(--color-primary);
 
-        /* Shadows */
-        --shadow-xs: 0 8px 18px rgba(2, 6, 23, 0.24);
-        --shadow-sm: 0 12px 28px rgba(2, 6, 23, 0.3);
-        --shadow-md: 0 20px 46px rgba(2, 6, 23, 0.36);
-        --shadow-lg: 0 28px 62px rgba(2, 6, 23, 0.44);
-        --shadow-xl: 0 36px 90px rgba(2, 6, 23, 0.55);
+    --border-default: rgba(15, 23, 42, 0.08);
+    --border-subtle:  rgba(15, 23, 42, 0.04);
+    --border-strong:  rgba(15, 23, 42, 0.14);
 
-        /* File type colors */
-        --color-archive-bg: rgba(248, 113, 113, 0.15);
-        --color-android-bg: rgba(52, 211, 153, 0.15);
-        --color-image-bg: rgba(96, 165, 250, 0.15);
-        --color-disk-bg: rgba(251, 191, 36, 0.15);
-        --color-executable-bg: rgba(192, 132, 252, 0.15);
-        --color-binary-bg: rgba(148, 163, 184, 0.15);
-        --color-document-bg: rgba(129, 140, 248, 0.15);
-        --color-file-bg: rgba(148, 163, 184, 0.1);
+    --shadow-xs:  0 1px 2px  rgba(0,0,0,.04);
+    --shadow-sm:  0 2px 6px  rgba(0,0,0,.06);
+    --shadow-md:  0 4px 14px rgba(0,0,0,.08);
+    --shadow-lg:  0 8px 28px rgba(0,0,0,.10);
+    --shadow-xl:  0 16px 48px rgba(0,0,0,.14);
+    --shadow-glow: 0 0 20px rgba(var(--color-primary-rgb), .12);
+    --shadow-glow-lg: 0 0 40px rgba(var(--color-primary-rgb), .10);
 
-        --color-archive: #fca5a5;
-        --color-android: #6ee7b7;
-        --color-image: #93c5fd;
-        --color-disk: #fcd34d;
-        --color-executable: #d8b4fe;
-        --color-binary: #cbd5e1;
-        --color-document: #a5b4fc;
-        --color-file: #d1d5db;
+    --color-primary-light: #2563eb;
 
-        color-scheme: dark;
-    }
-
-    :root:not([data-theme="light"]) ::-webkit-scrollbar-thumb {
-        background: #374151;
-    }
-
-    :root:not([data-theme="light"]) ::-webkit-scrollbar-thumb:hover {
-        background: #4b5563;
-    }
-
-    :root:not([data-theme="light"]) ::selection {
-        background: rgba(96, 165, 250, 0.3);
-    }
+    --file-archive-color:    #d97706;
+    --file-archive-bg:       rgba(245,158,11,.10);
+    --file-android-color:    #16a34a;
+    --file-android-bg:       rgba(34,197,94,.10);
+    --file-firmware-color:   #2563eb;
+    --file-firmware-bg:      rgba(59,130,246,.10);
+    --file-image-color:      #9333ea;
+    --file-image-bg:         rgba(168,85,247,.10);
+    --file-disk-color:       #475569;
+    --file-disk-bg:          rgba(100,116,139,.10);
+    --file-executable-color: #dc2626;
+    --file-executable-bg:    rgba(239,68,68,.10);
+    --file-binary-color:     #0891b2;
+    --file-binary-bg:        rgba(6,182,212,.10);
+    --file-document-color:   #0284c7;
+    --file-document-bg:      rgba(14,165,233,.10);
+    --file-scatter-color:    #ea580c;
+    --file-scatter-bg:       rgba(249,115,22,.10);
+    --file-config-color:     #7c3aed;
+    --file-config-bg:        rgba(139,92,246,.10);
+    --file-flash-color:      #ca8a04;
+    --file-flash-bg:         rgba(234,179,8,.10);
+    --file-file-color:       #64748b;
+    --file-file-bg:          rgba(148,163,184,.08);
+  }
 }

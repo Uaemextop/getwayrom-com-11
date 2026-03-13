@@ -17,6 +17,7 @@ import struct
 import sys
 import asyncio
 import time
+from http.cookies import SimpleCookie
 from urllib.parse import urlparse, parse_qs, unquote
 
 import aiohttp
@@ -91,13 +92,17 @@ def _cookies_for_playwright(raw_cookies: list[dict]) -> list[dict]:
 # ── GitHub Actions log helpers ───────────────────────────────────────
 _CI = os.environ.get("CI") == "true" or os.environ.get("GITHUB_ACTIONS") == "true"
 
-_GREEN = "\033[32m"
-_RED = "\033[31m"
-_YELLOW = "\033[33m"
-_CYAN = "\033[36m"
-_BOLD = "\033[1m"
-_RESET = "\033[0m"
-_DIM = "\033[2m"
+# Disable ANSI color codes in CI — they show up garbled in raw log downloads
+if _CI:
+    _GREEN = _RED = _YELLOW = _CYAN = _BOLD = _RESET = _DIM = ""
+else:
+    _GREEN = "\033[32m"
+    _RED = "\033[31m"
+    _YELLOW = "\033[33m"
+    _CYAN = "\033[36m"
+    _BOLD = "\033[1m"
+    _RESET = "\033[0m"
+    _DIM = "\033[2m"
 
 
 def gh_group(title: str) -> None:
@@ -919,12 +924,20 @@ async def main() -> None:
                 domain = c.get("domain", "")
                 if not name or not value:
                     continue
-                # Strip leading dot for aiohttp compatibility
-                if domain.startswith("."):
-                    domain = domain[1:]
+                # Strip leading dot for the response_url host
+                bare_domain = domain.lstrip(".")
+                # Use SimpleCookie with domain attribute so that .google.com
+                # cookies are sent to all subdomains (drive.google.com,
+                # drive.usercontent.google.com, docs.google.com, etc.)
+                sc = SimpleCookie()
+                sc[name] = value
+                sc[name]["domain"] = bare_domain
+                sc[name]["path"] = c.get("path", "/")
+                if c.get("secure"):
+                    sc[name]["secure"] = True
                 session.cookie_jar.update_cookies(
-                    {name: value},
-                    response_url=yarl.URL(f"https://{domain}/"),
+                    sc,
+                    response_url=yarl.URL(f"https://{bare_domain}/"),
                 )
             gh_info(
                 f"  {_CYAN}Loaded {len(google_cookies)} Google cookies"

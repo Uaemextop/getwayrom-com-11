@@ -150,6 +150,14 @@
                     </div>
                     <div id="extensionList" class="sidebar-scroll"></div>
                 </div>
+
+                <div class="sidebar-section">
+                    <div class="sidebar-heading" data-toggle-section>
+                        <span><i class="fas fa-cloud"></i> Sources</span>
+                        <i class="fas fa-chevron-down sidebar-heading-icon"></i>
+                    </div>
+                    <div id="sourceList" class="sidebar-scroll"></div>
+                </div>
             </nav>
 
             <div class="sidebar-footer">
@@ -195,10 +203,10 @@
                             </div>
                         </article>
                         <article class="hero-stat-card">
-                            <div class="hero-stat-icon"><i class="fas fa-puzzle-piece"></i></div>
+                            <div class="hero-stat-icon"><i class="fas fa-cloud"></i></div>
                             <div class="hero-stat-content">
                                 <strong class="hero-stat-value" id="overviewExtensionCount">--</strong>
-                                <span class="hero-stat-label">Formats</span>
+                                <span class="hero-stat-label">Sources</span>
                             </div>
                         </article>
                         <article class="hero-stat-card">
@@ -217,20 +225,20 @@
                 <div class="workspace-panel-section">
                     <div class="workspace-panel-header">
                         <div>
-                            <span class="workspace-panel-eyebrow"><i class="fas fa-star"></i> Quick access</span>
-                            <h2>Popular brands</h2>
+                            <span class="workspace-panel-eyebrow"><i class="fas fa-cloud"></i> Quick access</span>
+                            <h2>Download sources</h2>
                         </div>
                     </div>
-                    <div class="quick-filter-rail" id="quickBrandRail"></div>
+                    <div class="quick-filter-rail" id="quickSourceRail"></div>
                 </div>
                 <div class="workspace-panel-section">
                     <div class="workspace-panel-header">
                         <div>
-                            <span class="workspace-panel-eyebrow"><i class="fas fa-shapes"></i> Formats</span>
-                            <h2>Popular file types</h2>
+                            <span class="workspace-panel-eyebrow"><i class="fas fa-mobile-alt"></i> Brands</span>
+                            <h2>Popular brands</h2>
                         </div>
                     </div>
-                    <div class="quick-filter-rail" id="quickExtensionRail"></div>
+                    <div class="quick-filter-rail" id="quickBrandRail"></div>
                 </div>
             </section>
 
@@ -275,6 +283,7 @@
                 <!-- File List -->
                 <div class="file-list hidden" id="fileList">
                     <div class="file-list-header">
+                        <div class="list-col list-col-icon"></div>
                         <div class="list-col list-col-name" data-sort="name-asc">
                             Name <i class="fas fa-sort"></i>
                         </div>

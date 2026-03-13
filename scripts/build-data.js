@@ -93,6 +93,17 @@ function detectFileType(extension) {
   return types[extension] || 'file';
 }
 
+function detectSource(url) {
+  if (/drive\.google\.com|drive\.usercontent\.google\.com/i.test(url)) return 'Google Drive';
+  if (/mediafire\.com/i.test(url)) return 'MediaFire';
+  if (/onedrive\.live\.com|1drv\.ms/i.test(url)) return 'OneDrive';
+  if (/mega\.nz|mega\.co\.nz/i.test(url)) return 'MEGA';
+  if (/dropbox\.com/i.test(url)) return 'Dropbox';
+  if (/github\.com|githubusercontent\.com/i.test(url)) return 'GitHub';
+  if (/androidfilehost\.com/i.test(url)) return 'AFH';
+  return 'Direct';
+}
+
 function parseLine(line) {
   const match = line.match(/^-\s+\*\*(.+?)\*\*\s+—\s+\[Download\]\((.+?)\)/);
   if (!match) return null;
@@ -102,8 +113,9 @@ function parseLine(line) {
   const extension = detectExtension(name);
   const brand = detectBrand(name);
   const fileType = detectFileType(extension);
+  const source = detectSource(url);
 
-  return { name, url, extension, brand, fileType };
+  return { name, url, extension, brand, fileType, source };
 }
 
 async function fetchFirmwareData() {
@@ -172,9 +184,11 @@ async function main() {
   // Collect stats
   const brands = {};
   const extensions = {};
+  const sources = {};
   for (const f of files) {
     brands[f.brand] = (brands[f.brand] || 0) + 1;
     extensions[f.extension] = (extensions[f.extension] || 0) + 1;
+    sources[f.source] = (sources[f.source] || 0) + 1;
   }
 
   const output = {
@@ -182,6 +196,7 @@ async function main() {
     totalFiles: files.length,
     brands,
     extensions,
+    sources,
     files
   };
 

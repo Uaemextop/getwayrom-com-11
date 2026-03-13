@@ -678,7 +678,8 @@ async def resolve_onedrive(
                 final_url = page.url
 
                 # If redirected to login → requires auth, assume alive (private share)
-                if "login.live.com" in final_url or "login.microsoftonline.com" in final_url:
+                final_host = urlparse(final_url).hostname or ""
+                if final_host == "login.live.com" or final_host == "login.microsoftonline.com":
                     await page.close()
                     return True, None
 

@@ -190,14 +190,19 @@
 
 /* List view */
 .file-list{background:var(--bg-card);border:1px solid var(--bd);border-radius:var(--r-md);overflow:hidden}
-.file-list-header{display:grid;grid-template-columns:36px 1fr 130px 90px 80px;align-items:center;padding:var(--s2) var(--s4);background:var(--bg-card-alt);border-bottom:1px solid var(--bd);font-size:var(--fs-sm);font-weight:var(--fw-bold);color:var(--tx2)}
+.file-list-header{display:grid;grid-template-columns:36px 1fr 80px;align-items:center;padding:var(--s2) var(--s4);background:var(--bg-card-alt);border-bottom:1px solid var(--bd);font-size:var(--fs-sm);font-weight:var(--fw-bold);color:var(--tx2)}
 .list-col{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .list-col[data-sort]{cursor:pointer}
 .list-col[data-sort]:hover{color:var(--c-brand)}
-.file-row{display:grid;grid-template-columns:36px 1fr 130px 90px 80px;align-items:center;padding:var(--s2) var(--s4);border-bottom:1px solid var(--bd);transition:background var(--dur) var(--ease);cursor:pointer}
+.file-row{display:grid;grid-template-columns:36px 1fr 80px;align-items:center;padding:var(--s2) var(--s4);border-bottom:1px solid var(--bd);transition:background var(--dur) var(--ease);cursor:pointer}
 .file-row:last-child{border-bottom:none}
 .file-row:hover{background:var(--bg-hover)}
 .file-name{font-weight:var(--fw-medium);color:var(--tx)}
 .file-brand{color:var(--tx2);display:flex;align-items:center;gap:var(--s2)}
 .file-ext{font-family:var(--fm);color:var(--tx3);font-size:var(--fs-sm)}
 .file-actions{display:flex;justify-content:flex-end}
+
+/* Folder rows in list view */
+.folder-row{cursor:pointer}
+.folder-row .file-name{color:var(--c-brand)}
+.folder-row:hover{background:var(--bg-hover)}

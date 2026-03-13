@@ -26,7 +26,7 @@
     filteredFiles: [],
     currentPage: 1,
     totalPages: 1,
-    viewMode: 'grid',
+    viewMode: 'list',
     sortBy: 'name-asc',
     searchQuery: '',
     filterBrand: '',
@@ -53,6 +53,7 @@
     dom.filterName = document.getElementById('filterName');
     dom.clearFilters = document.getElementById('clearFilters');
     dom.applyFilters = document.getElementById('applyFilters');
+    dom.downloadZipBtn = document.getElementById('downloadZipBtn');
     dom.gridViewBtn = document.getElementById('gridViewBtn');
     dom.listViewBtn = document.getElementById('listViewBtn');
     dom.sortBtn = document.getElementById('sortBtn');
@@ -437,7 +438,7 @@
 
   function renderBreadcrumb() {
     if (!dom.breadcrumb) return;
-    var html = '<span class="breadcrumb-item breadcrumb-link" data-path=""><i class="fas fa-home"></i> Home</span>';
+    var html = '<span class="breadcrumb-item breadcrumb-link" data-path=""><i class="fas fa-home"></i> Root</span>';
 
     for (var i = 0; i < state.folderPath.length; i++) {
       html += '<span class="breadcrumb-separator"><i class="fas fa-chevron-right"></i></span>';
@@ -493,6 +494,24 @@
             (subCount > 0 ? ', ' + subCount + ' folders' : '') +
           '</div>' +
         '</div>' +
+      '</div>';
+    }
+
+    return html;
+  }
+
+  function renderFolderRows() {
+    var subfolders = getCurrentSubfolders();
+    var folderNames = Object.keys(subfolders).sort();
+    if (folderNames.length === 0) return '';
+
+    var html = '';
+    for (var i = 0; i < folderNames.length; i++) {
+      var name = folderNames[i];
+      html += '<div class="file-row folder-row" data-folder="' + Utils.escapeHtml(name) + '">' +
+        '<div class="list-col"><i class="fas fa-folder" style="color:var(--c-brand)"></i></div>' +
+        '<div class="list-col file-name" style="color:var(--c-brand)">' + Utils.escapeHtml(name) + '</div>' +
+        '<div class="list-col file-actions"></div>' +
       '</div>';
     }
 
@@ -555,24 +574,38 @@
     var subfolders = getCurrentSubfolders();
     var subCount = Object.keys(subfolders).length;
 
-    var catCounts = {};
+    // Direct files at current tree level (not in subfolders)
+    var directFiles;
+    if (state.folderPath.length > 0) {
+      directFiles = files;
+    } else {
+      directFiles = state.folderTree ? state.folderTree.files || [] : [];
+    }
+
     var typeCounts = {};
     for (var i = 0; i < files.length; i++) {
-      var cat = files[i].category || 'firmware';
       var ft = files[i].fileType || 'file';
-      catCounts[cat] = (catCounts[cat] || 0) + 1;
       typeCounts[ft] = (typeCounts[ft] || 0) + 1;
     }
 
+    var typePlurals = {
+      archive: 'Archives', android: 'Android', firmware: 'Firmwares',
+      image: 'Images', disk: 'Disk Images', executable: 'Executables',
+      binary: 'Binaries', document: 'Documents', scatter: 'Scatter',
+      config: 'Configs', flash: 'Flash Tools', checksum: 'Checksums',
+      media: 'Media', file: 'Files'
+    };
+
     var html = '<div class="dir-summary-grid">';
     html += '<div class="dir-summary-stat"><span class="dir-summary-label">TOTAL FILES</span><span class="dir-summary-value">' + Utils.formatNumber(files.length) + '</span></div>';
+    html += '<div class="dir-summary-stat"><span class="dir-summary-label">TOTAL SIZE</span><span class="dir-summary-value">\u2014</span></div>';
     html += '<div class="dir-summary-stat"><span class="dir-summary-label">SUBDIRECTORIES</span><span class="dir-summary-value">' + Utils.formatNumber(subCount) + '</span></div>';
+    html += '<div class="dir-summary-stat"><span class="dir-summary-label">DIRECT FILES</span><span class="dir-summary-value">' + Utils.formatNumber(directFiles.length) + '</span></div>';
 
-    var cats = Object.keys(catCounts).sort(function(a, b) { return catCounts[b] - catCounts[a]; });
-    for (var j = 0; j < cats.length; j++) {
-      var label = Utils.getCategoryLabel(cats[j]);
-      var icon = Utils.getCategoryIcon(cats[j]);
-      html += '<div class="dir-summary-stat"><span class="dir-summary-label"><i class="fas ' + icon + '"></i> ' + Utils.escapeHtml(label) + '</span><span class="dir-summary-value">' + Utils.formatNumber(catCounts[cats[j]]) + '</span></div>';
+    var types = Object.keys(typeCounts).sort(function(a, b) { return typeCounts[b] - typeCounts[a]; });
+    for (var j = 0; j < types.length; j++) {
+      var label = typePlurals[types[j]] || types[j];
+      html += '<div class="dir-summary-stat"><span class="dir-summary-label">' + Utils.escapeHtml(label).toUpperCase() + '</span><span class="dir-summary-value">' + Utils.formatNumber(typeCounts[types[j]]) + '</span></div>';
     }
     html += '</div>';
 
@@ -647,7 +680,7 @@
     dom.filterBrand.value = '';
     dom.filterExtension.value = '';
     dom.filterName.value = '';
-    dom.currentFilter.textContent = 'All Files';
+    if (dom.currentFilter) dom.currentFilter.textContent = 'All Files';
     Sidebar.setActiveItem('all');
 
     applyFiltersAndSearch();
@@ -746,13 +779,26 @@
     var start = (state.currentPage - 1) * ITEMS_PER_PAGE;
     var end = start + ITEMS_PER_PAGE;
 
-    // Get folder cards (only for first page and not searching)
-    var folderHtml = '';
-    if (state.currentPage === 1 && !state.searchQuery && state.sidebarFilter === 'all' && !state.filterBrand && !state.filterExtension) {
-      folderHtml = renderFolderCards(dom.fileGrid);
-    }
+    var shouldShowFolders = state.currentPage === 1 && !state.searchQuery && state.sidebarFilter === 'all' && !state.filterBrand && !state.filterExtension;
 
     var page = state.filteredFiles.slice(start, end);
+
+    if (page.length === 0 && !shouldShowFolders) {
+      dom.fileGrid.innerHTML = '';
+      dom.fileListBody.innerHTML = '';
+      dom.emptyState.classList.remove('hidden');
+      return;
+    }
+
+    // Check if we have any folders
+    var folderHtml = '';
+    if (shouldShowFolders) {
+      if (state.viewMode === 'grid') {
+        folderHtml = renderFolderCards(dom.fileGrid);
+      } else {
+        folderHtml = renderFolderRows();
+      }
+    }
 
     if (page.length === 0 && !folderHtml) {
       dom.fileGrid.innerHTML = '';
@@ -770,7 +816,11 @@
       }
       dom.fileGrid.innerHTML = gridHtml;
     } else {
-      FileRenderer.renderList(dom.fileListBody, page);
+      var listHtml = folderHtml;
+      for (var i = 0; i < page.length; i++) {
+        listHtml += FileRenderer.createFileRow(page[i]);
+      }
+      dom.fileListBody.innerHTML = listHtml;
     }
   }
 
@@ -858,7 +908,7 @@
         } else if (type === 'sidebar') {
           state.sidebarFilter = 'all';
           Sidebar.setActiveItem('all');
-          dom.currentFilter.textContent = 'All Files';
+          if (dom.currentFilter) dom.currentFilter.textContent = 'All Files';
         } else if (type === 'brand') {
           state.filterBrand = '';
           dom.filterBrand.value = '';
@@ -900,10 +950,10 @@
 
   // --- Folder Click Handler ---
   function handleFolderClick(e) {
-    var folderCard = e.target.closest('.folder-card');
-    if (!folderCard) return;
+    var folderEl = e.target.closest('.folder-card, .folder-row');
+    if (!folderEl) return;
 
-    var folderName = folderCard.getAttribute('data-folder');
+    var folderName = folderEl.getAttribute('data-folder');
     if (folderName) {
       state.folderPath.push(folderName);
       state.currentPage = 1;
@@ -960,42 +1010,57 @@
       applyFiltersAndSearch();
     });
 
-    // View Toggle
-    dom.gridViewBtn.addEventListener('click', function () {
-      state.viewMode = 'grid';
-      dom.gridViewBtn.classList.add('active');
-      dom.listViewBtn.classList.remove('active');
-      dom.fileGrid.classList.remove('hidden');
-      dom.fileList.classList.add('hidden');
-      renderFiles();
-    });
-
-    dom.listViewBtn.addEventListener('click', function () {
-      state.viewMode = 'list';
-      dom.listViewBtn.classList.add('active');
-      dom.gridViewBtn.classList.remove('active');
-      dom.fileList.classList.remove('hidden');
-      dom.fileGrid.classList.add('hidden');
-      renderFiles();
-    });
-
-    // Sort
-    dom.sortBtn.addEventListener('click', function (e) {
-      e.stopPropagation();
-      dom.sortMenu.classList.toggle('hidden');
-    });
-
-    dom.sortMenu.addEventListener('click', function (e) {
-      var item = e.target.closest('.dropdown-item');
-      if (!item) return;
-      state.sortBy = item.getAttribute('data-sort');
-      dom.sortMenu.querySelectorAll('.dropdown-item').forEach(function (el) {
-        el.classList.remove('active');
+    // View Toggle (guarded - buttons may not exist)
+    if (dom.gridViewBtn) {
+      dom.gridViewBtn.addEventListener('click', function () {
+        state.viewMode = 'grid';
+        dom.gridViewBtn.classList.add('active');
+        if (dom.listViewBtn) dom.listViewBtn.classList.remove('active');
+        dom.fileGrid.classList.remove('hidden');
+        dom.fileList.classList.add('hidden');
+        renderFiles();
       });
-      item.classList.add('active');
-      dom.sortMenu.classList.add('hidden');
-      applyFiltersAndSearch();
-    });
+    }
+
+    if (dom.listViewBtn) {
+      dom.listViewBtn.addEventListener('click', function () {
+        state.viewMode = 'list';
+        dom.listViewBtn.classList.add('active');
+        if (dom.gridViewBtn) dom.gridViewBtn.classList.remove('active');
+        dom.fileList.classList.remove('hidden');
+        dom.fileGrid.classList.add('hidden');
+        renderFiles();
+      });
+    }
+
+    // Sort (guarded - sort dropdown may not exist)
+    if (dom.sortBtn) {
+      dom.sortBtn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        dom.sortMenu.classList.toggle('hidden');
+      });
+    }
+
+    if (dom.sortMenu) {
+      dom.sortMenu.addEventListener('click', function (e) {
+        var item = e.target.closest('.dropdown-item');
+        if (!item) return;
+        state.sortBy = item.getAttribute('data-sort');
+        dom.sortMenu.querySelectorAll('.dropdown-item').forEach(function (el) {
+          el.classList.remove('active');
+        });
+        item.classList.add('active');
+        dom.sortMenu.classList.add('hidden');
+        applyFiltersAndSearch();
+      });
+    }
+
+    // Download .zip button
+    if (dom.downloadZipBtn) {
+      dom.downloadZipBtn.addEventListener('click', function () {
+        Toast.info('Download .zip functionality coming soon');
+      });
+    }
 
     // List header sort
     document.querySelectorAll('.file-list-header .list-col[data-sort]').forEach(function (header) {
@@ -1025,9 +1090,11 @@
         state.folderPath = [];
         Sidebar.setActiveItem(filter);
 
-        dom.currentFilter.textContent = filter === 'all'
-          ? 'All Files'
-          : filter.split(':').slice(1).join(':');
+        if (dom.currentFilter) {
+          dom.currentFilter.textContent = filter === 'all'
+            ? 'All Files'
+            : filter.split(':').slice(1).join(':');
+        }
 
         applyFiltersAndSearch();
 
@@ -1043,6 +1110,7 @@
 
     // Folder card click → navigate into folder
     dom.fileGrid.addEventListener('click', handleFolderClick);
+    dom.fileListBody.addEventListener('click', handleFolderClick);
 
     // Pagination
     dom.prevPage.addEventListener('click', function () {
@@ -1066,12 +1134,8 @@
     // Theme toggle
     if (dom.themeToggle) {
       dom.themeToggle.addEventListener('click', function () {
-        var newTheme = Theme.toggle();
-        var icon = dom.themeToggle.querySelector('i');
-        if (icon) {
-          icon.className = newTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
-        }
-        Toast.info('Switched to ' + newTheme + ' mode');
+        Theme.toggle();
+        Toast.info('Switched to ' + Theme.get() + ' mode');
       });
     }
 
@@ -1137,9 +1201,9 @@
       }
 
       Sidebar.setActiveItem(state.sidebarFilter);
-      dom.currentFilter.textContent = filterValue;
+      if (dom.currentFilter) dom.currentFilter.textContent = filterValue;
       applyFiltersAndSearch();
-      scrollContentTo(dom.workspacePanel.offsetTop);
+      if (dom.workspacePanel) scrollContentTo(dom.workspacePanel.offsetTop);
     });
 
     // Sidebar section toggles
@@ -1179,17 +1243,17 @@
         dom.filterExtension.value = '';
         dom.filterName.value = '';
         Sidebar.setActiveItem('all');
-        dom.currentFilter.textContent = 'All Files';
+        if (dom.currentFilter) dom.currentFilter.textContent = 'All Files';
         applyFiltersAndSearch();
       });
     }
 
     // Close dropdowns on outside click
     document.addEventListener('click', function (e) {
-      if (!e.target.closest('.sort-dropdown')) {
+      if (dom.sortMenu && !e.target.closest('.sort-dropdown')) {
         dom.sortMenu.classList.add('hidden');
       }
-      if (!e.target.closest('.advanced-search') && !e.target.closest('.search-filter-btn')) {
+      if (!e.target.closest('.advanced-search') && !e.target.closest('#searchFilterBtn')) {
         dom.advancedSearch.classList.add('hidden');
       }
     });
@@ -1205,16 +1269,22 @@
 
     Keyboard.register('Escape', 'Close menus and blur search', function () {
       dom.advancedSearch.classList.add('hidden');
-      dom.sortMenu.classList.add('hidden');
+      if (dom.sortMenu) dom.sortMenu.classList.add('hidden');
       FileRenderer.closeFileDialog();
     });
 
     Keyboard.register('g', 'Switch to grid view', function () {
-      dom.gridViewBtn.click();
+      state.viewMode = 'grid';
+      dom.fileGrid.classList.remove('hidden');
+      dom.fileList.classList.add('hidden');
+      renderFiles();
     });
 
     Keyboard.register('l', 'Switch to list view', function () {
-      dom.listViewBtn.click();
+      state.viewMode = 'list';
+      dom.fileList.classList.remove('hidden');
+      dom.fileGrid.classList.add('hidden');
+      renderFiles();
     });
 
     Keyboard.register('t', 'Toggle dark/light theme', function () {
@@ -1244,14 +1314,6 @@
   // --- Init ---
   document.addEventListener('DOMContentLoaded', function () {
     Theme.init();
-    // Update theme toggle icon based on current theme
-    var themeToggle = document.getElementById('themeToggle');
-    if (themeToggle) {
-      var icon = themeToggle.querySelector('i');
-      if (icon) {
-        icon.className = Theme.get() === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
-      }
-    }
     cacheDom();
     bindEvents();
     setupKeyboardShortcuts();

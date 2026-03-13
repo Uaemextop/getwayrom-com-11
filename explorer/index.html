@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GetwayROM - Firmware Explorer</title>
+    <title>RealFirmware</title>
     <link rel="icon" href="../assets/images/logo/favicon.png" type="image/png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -15,98 +15,18 @@
     <!-- Header / Toolbar -->
     <header class="header">
         <div class="header-left">
+            <a href="index.html" class="logo">
+                <div class="logo-mark"><i class="fas fa-folder"></i></div>
+                <span class="logo-text">RealFirmware</span>
+            </a>
             <button class="btn-icon sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
                 <i class="fas fa-bars"></i>
             </button>
-            <a href="index.html" class="logo">
-                <div class="logo-mark"><i class="fas fa-microchip"></i></div>
-                <span class="logo-text">GetwayROM</span>
-            </a>
-        </div>
-        <div class="header-center">
-            <div class="search-container" id="searchContainer">
-                <i class="fas fa-search search-icon"></i>
-                <input type="text" id="searchInput" class="search-input" placeholder="Search firmware files..." autocomplete="off">
-                <div class="search-options" id="searchOptions">
-                    <button class="btn-icon search-filter-btn" id="searchFilterBtn" title="Advanced search">
-                        <i class="fas fa-sliders-h"></i>
-                    </button>
-                </div>
-                <button class="btn-icon search-clear hidden" id="searchClear" title="Clear search">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <!-- Advanced Search Panel -->
-            <div class="advanced-search hidden" id="advancedSearch">
-                <div class="advanced-search-header">
-                    <h3><i class="fas fa-filter"></i> Advanced Search</h3>
-                    <button class="btn-icon" id="closeAdvancedSearch"><i class="fas fa-times"></i></button>
-                </div>
-                <div class="advanced-search-body">
-                    <div class="filter-group">
-                        <label>File Extension</label>
-                        <select id="filterExtension" class="filter-select">
-                            <option value="">All extensions</option>
-                        </select>
-                    </div>
-                    <div class="filter-group">
-                        <label>Brand</label>
-                        <select id="filterBrand" class="filter-select">
-                            <option value="">All brands</option>
-                        </select>
-                    </div>
-                    <div class="filter-group">
-                        <label>File Name Contains</label>
-                        <input type="text" id="filterName" class="filter-input" placeholder="e.g. Android-12">
-                    </div>
-                    <div class="filter-actions">
-                        <button class="btn btn-secondary" id="clearFilters">Clear</button>
-                        <button class="btn btn-primary" id="applyFilters">Apply</button>
-                    </div>
-                </div>
-            </div>
         </div>
         <div class="header-right">
-            <button class="btn-icon" id="refreshBtn" title="Refresh data">
-                <i class="fas fa-sync-alt"></i>
+            <button class="btn-icon" id="themeToggle" title="Settings">
+                <i class="fas fa-cog"></i>
             </button>
-            <button class="btn-icon" id="themeToggle" title="Toggle theme">
-                <i class="fas fa-sun"></i>
-            </button>
-            <div class="view-toggle">
-                <button class="btn-icon active" id="gridViewBtn" title="Grid view">
-                    <i class="fas fa-th-large"></i>
-                </button>
-                <button class="btn-icon" id="listViewBtn" title="List view">
-                    <i class="fas fa-list"></i>
-                </button>
-            </div>
-            <div class="sort-dropdown">
-                <button class="btn-icon" id="sortBtn" title="Sort files">
-                    <i class="fas fa-sort-amount-down"></i>
-                </button>
-                <div class="dropdown-menu hidden" id="sortMenu">
-                    <div class="dropdown-header">Sort by</div>
-                    <button class="dropdown-item active" data-sort="name-asc">
-                        <i class="fas fa-sort-alpha-down"></i> Name (A-Z)
-                    </button>
-                    <button class="dropdown-item" data-sort="name-desc">
-                        <i class="fas fa-sort-alpha-up"></i> Name (Z-A)
-                    </button>
-                    <button class="dropdown-item" data-sort="ext-asc">
-                        <i class="fas fa-file"></i> Extension (A-Z)
-                    </button>
-                    <button class="dropdown-item" data-sort="ext-desc">
-                        <i class="fas fa-file"></i> Extension (Z-A)
-                    </button>
-                    <button class="dropdown-item" data-sort="brand-asc">
-                        <i class="fas fa-tag"></i> Brand (A-Z)
-                    </button>
-                    <button class="dropdown-item" data-sort="brand-desc">
-                        <i class="fas fa-tag"></i> Brand (Z-A)
-                    </button>
-                </div>
-            </div>
         </div>
     </header>
 
@@ -178,92 +98,61 @@
 
         <!-- Content Area -->
         <main class="content" id="content">
-            <!-- Hero Section -->
-            <section class="explorer-hero">
-                <div class="hero-glow"></div>
-                <div class="hero-inner">
-                    <div class="hero-copy">
-                        <span class="hero-eyebrow"><i class="fas fa-bolt"></i> Professional firmware workspace</span>
-                        <h1 class="hero-title">Search, organize and<br>download <span class="hero-highlight">firmware</span></h1>
-                        <p class="hero-description">Explore the complete GetwayROM collection with fast filtering, organized hierarchy and instant downloads.</p>
-                        <div class="hero-actions">
-                            <button class="btn btn-primary btn-glow" id="resetWorkspaceBtn">
-                                <i class="fas fa-compass"></i> Reset workspace
-                            </button>
-                            <button class="btn btn-glass" id="jumpToQuickAccessBtn">
-                                <i class="fas fa-bolt"></i> Quick access
-                            </button>
-                        </div>
-                    </div>
-                    <div class="hero-stats">
-                        <article class="hero-stat-card">
-                            <div class="hero-stat-icon"><i class="fas fa-file-archive"></i></div>
-                            <div class="hero-stat-content">
-                                <strong class="hero-stat-value" id="overviewTotalFiles">--</strong>
-                                <span class="hero-stat-label">Indexed files</span>
-                            </div>
-                        </article>
-                        <article class="hero-stat-card">
-                            <div class="hero-stat-icon"><i class="fas fa-mobile-alt"></i></div>
-                            <div class="hero-stat-content">
-                                <strong class="hero-stat-value" id="overviewBrandCount">--</strong>
-                                <span class="hero-stat-label">Brands</span>
-                            </div>
-                        </article>
-                        <article class="hero-stat-card">
-                            <div class="hero-stat-icon"><i class="fas fa-cloud"></i></div>
-                            <div class="hero-stat-content">
-                                <strong class="hero-stat-value" id="overviewSourceCount">--</strong>
-                                <span class="hero-stat-label">Sources</span>
-                            </div>
-                        </article>
-                        <article class="hero-stat-card">
-                            <div class="hero-stat-icon"><i class="fas fa-clock"></i></div>
-                            <div class="hero-stat-content">
-                                <strong class="hero-stat-value hero-stat-value-sm" id="overviewUpdatedAt">--</strong>
-                                <span class="hero-stat-label">Last refresh</span>
-                            </div>
-                        </article>
-                    </div>
+            <!-- Breadcrumb Bar -->
+            <div class="breadcrumb-bar">
+                <div class="breadcrumb">
+                    <span class="breadcrumb-item breadcrumb-link" data-path=""><i class="fas fa-home"></i> Root</span>
                 </div>
-            </section>
+            </div>
 
-            <!-- Quick Access Panel -->
-            <section class="workspace-panel" id="workspacePanel">
-                <div class="workspace-panel-section">
-                    <div class="workspace-panel-header">
-                        <div>
-                            <span class="workspace-panel-eyebrow"><i class="fas fa-cloud"></i> Quick access</span>
-                            <h2>Download sources</h2>
+            <!-- Search Toolbar -->
+            <div class="search-toolbar" id="searchToolbar">
+                <div class="search-container" id="searchContainer">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" id="searchInput" class="search-input" placeholder="Search files... (name, device, /)" autocomplete="off">
+                    <button class="btn-icon search-clear hidden" id="searchClear" title="Clear search">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <button class="btn btn-secondary btn-toolbar-action" id="searchFilterBtn" title="Advanced search">
+                    Filters
+                </button>
+                <button class="btn btn-success btn-toolbar-action" id="downloadZipBtn">
+                    Download .zip
+                </button>
+                <!-- Advanced Search Panel -->
+                <div class="advanced-search hidden" id="advancedSearch">
+                    <div class="advanced-search-header">
+                        <h3><i class="fas fa-filter"></i> Advanced Search</h3>
+                        <button class="btn-icon" id="closeAdvancedSearch"><i class="fas fa-times"></i></button>
+                    </div>
+                    <div class="advanced-search-body">
+                        <div class="filter-group">
+                            <label>File Extension</label>
+                            <select id="filterExtension" class="filter-select">
+                                <option value="">All extensions</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>Brand</label>
+                            <select id="filterBrand" class="filter-select">
+                                <option value="">All brands</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>File Name Contains</label>
+                            <input type="text" id="filterName" class="filter-input" placeholder="e.g. Android-12">
+                        </div>
+                        <div class="filter-actions">
+                            <button class="btn btn-secondary" id="clearFilters">Clear</button>
+                            <button class="btn btn-primary" id="applyFilters">Apply</button>
                         </div>
                     </div>
-                    <div class="quick-filter-rail" id="quickSourceRail"></div>
                 </div>
-                <div class="workspace-panel-section">
-                    <div class="workspace-panel-header">
-                        <div>
-                            <span class="workspace-panel-eyebrow"><i class="fas fa-mobile-alt"></i> Brands</span>
-                            <h2>Popular brands</h2>
-                        </div>
-                    </div>
-                    <div class="quick-filter-rail" id="quickBrandRail"></div>
-                </div>
-            </section>
+            </div>
 
             <!-- Main Content Shell -->
             <section class="content-shell">
-                <!-- Breadcrumb / Status bar -->
-                <div class="content-header">
-                    <div class="breadcrumb">
-                        <span class="breadcrumb-item breadcrumb-link" data-path=""><i class="fas fa-home"></i> Home</span>
-                        <span class="breadcrumb-separator"><i class="fas fa-chevron-right"></i></span>
-                        <span class="breadcrumb-item active" id="currentFilter">All Files</span>
-                    </div>
-                    <div class="content-info">
-                        <span id="resultCount">Loading files...</span>
-                    </div>
-                </div>
-
                 <!-- Directory Summary -->
                 <div class="dir-summary" id="dirSummary">
                     <div class="dir-summary-header" id="dirSummaryToggle">
@@ -296,24 +185,18 @@
                     </button>
                 </div>
 
-                <!-- File Grid -->
-                <div class="file-grid" id="fileGrid"></div>
+                <!-- File Grid (hidden by default) -->
+                <div class="file-grid hidden" id="fileGrid"></div>
 
-                <!-- File List -->
-                <div class="file-list hidden" id="fileList">
+                <!-- File List (visible by default) -->
+                <div class="file-list" id="fileList">
                     <div class="file-list-header">
                         <div class="list-col list-col-icon"></div>
                         <div class="list-col list-col-name" data-sort="name-asc">
                             Name <i class="fas fa-sort"></i>
                         </div>
-                        <div class="list-col list-col-brand" data-sort="brand-asc">
-                            Brand <i class="fas fa-sort"></i>
-                        </div>
-                        <div class="list-col list-col-ext" data-sort="ext-asc">
-                            Type <i class="fas fa-sort"></i>
-                        </div>
                         <div class="list-col list-col-action">
-                            Action
+                            Actions
                         </div>
                     </div>
                     <div id="fileListBody"></div>

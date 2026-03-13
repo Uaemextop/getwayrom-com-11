@@ -43,25 +43,16 @@
   function createFileRow(file) {
     var icon = Utils.getFileIcon(file.fileType);
     var iconClass = Utils.getFileIconClass(file.fileType);
-    var sourceIcon = Utils.getSourceIcon(file.source);
-    var sourceClass = Utils.getSourceColorClass(file.source);
     var name = Utils.escapeHtml(file.name);
     var brand = Utils.escapeHtml(file.brand);
     var ext = Utils.escapeHtml(file.extension);
     var source = Utils.escapeHtml(file.source || 'Direct');
-
-    // Show source as the "brand" column when brand is Other
-    var brandDisplay = brand !== 'Other'
-      ? '<i class="fas ' + Utils.getBrandIcon(file.brand) + '"></i> ' + brand
-      : '<i class="' + sourceIcon + '"></i> ' + source;
 
     return '<div class="file-row" data-file-name="' + name + '" data-file-url="' + Utils.escapeHtml(file.url) + '" data-file-brand="' + brand + '" data-file-ext="' + ext + '" data-file-type="' + Utils.escapeHtml(file.fileType) + '" data-file-source="' + source + '">' +
       '<div class="list-col file-icon-small ' + iconClass + '">' +
         '<i class="fas ' + icon + '"></i>' +
       '</div>' +
       '<div class="list-col file-name" title="' + name + '">' + name + '</div>' +
-      '<div class="list-col file-brand">' + brandDisplay + '</div>' +
-      '<div class="list-col file-ext">' + (ext !== 'unknown' ? '.' + ext : '<span style="opacity:.5">—</span>') + '</div>' +
       '<div class="list-col file-actions">' +
         '<button class="btn-download btn-sm" title="Details">' +
           '<i class="fas fa-info-circle"></i>' +

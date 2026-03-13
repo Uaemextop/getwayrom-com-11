@@ -593,7 +593,7 @@ async def resolve_onedrive(
             # Wait for SPA JS to render — prefer networkidle for reliability,
             # fall back to fixed timeout if it takes too long.
             try:
-                await page.wait_for_load_state("networkidle", timeout=10_000)
+                await page.wait_for_load_state("networkidle", timeout=10000)
             except Exception:
                 await page.wait_for_timeout(5000)
 
@@ -629,7 +629,7 @@ async def resolve_onedrive(
             if not fname:
                 try:
                     body_text = await page.inner_text("body")
-                    m = re.search(r"Previewing\s+(.+\.\w{2,7})", body_text)
+                    m = re.search(r"Previewing\s+(.+\.\w{2,7})\s*$", body_text, re.M)
                     if m:
                         fname = m.group(1).strip()
                 except Exception:

@@ -92,22 +92,19 @@ def _cookies_for_playwright(raw_cookies: list[dict]) -> list[dict]:
 # ── GitHub Actions log helpers ───────────────────────────────────────
 _CI = os.environ.get("CI") == "true" or os.environ.get("GITHUB_ACTIONS") == "true"
 
-# Disable ANSI color codes in CI — they show up garbled in raw log downloads
-if _CI:
-    _GREEN = _RED = _YELLOW = _CYAN = _BOLD = _RESET = _DIM = ""
-else:
-    _GREEN = "\033[32m"
-    _RED = "\033[31m"
-    _YELLOW = "\033[33m"
-    _CYAN = "\033[36m"
-    _BOLD = "\033[1m"
-    _RESET = "\033[0m"
-    _DIM = "\033[2m"
+# ANSI color codes — GitHub Actions live log viewer renders them correctly
+_GREEN = "\033[32m"
+_RED = "\033[31m"
+_YELLOW = "\033[33m"
+_CYAN = "\033[36m"
+_BOLD = "\033[1m"
+_RESET = "\033[0m"
+_DIM = "\033[2m"
 
 
 def gh_group(title: str) -> None:
     if _CI:
-        print(f"::group::{title}", flush=True)
+        print(f"::group::{_BOLD}{title}{_RESET}", flush=True)
     else:
         print(f"\n{'─'*60}\n{_BOLD}{title}{_RESET}", flush=True)
 

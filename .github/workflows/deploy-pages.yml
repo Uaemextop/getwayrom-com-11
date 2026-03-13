@@ -3,6 +3,9 @@ name: Deploy File Explorer to GitHub Pages
 on:
   push:
     branches: [main]
+  workflow_run:
+    workflows: ["Update Firmware Data on New Release"]
+    types: [completed]
   workflow_dispatch:
 
 permissions:
@@ -17,6 +20,9 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    if: >-
+      github.event_name != 'workflow_run' ||
+      github.event.workflow_run.conclusion == 'success'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -55,6 +61,11 @@ jobs:
       - name: Update Fuse.js reference for offline use
         run: |
           find explorer -name '*.html' -exec sed -i 's|https://cdn.jsdelivr.net/npm/fuse.js@7.0.0/dist/fuse.min.js|js/fuse.min.js|g' {} +
+
+      - name: Fix favicon for deployment
+        run: |
+          cp assets/images/logo/primal_favicon.png explorer/favicon.png
+          find explorer -name '*.html' -exec sed -i 's|../assets/images/logo/favicon.png|favicon.png|g' {} +
 
       - name: Setup Pages
         uses: actions/configure-pages@v4

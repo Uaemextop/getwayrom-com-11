@@ -3,6 +3,9 @@ name: Update Firmware Data on New Release
 on:
   release:
     types: [published]
+  workflow_run:
+    workflows: ["Process Firmware Downloads"]
+    types: [completed]
   workflow_dispatch:
 
 permissions:
@@ -11,6 +14,9 @@ permissions:
 jobs:
   update-data:
     runs-on: ubuntu-latest
+    if: >-
+      github.event_name != 'workflow_run' ||
+      github.event.workflow_run.conclusion == 'success'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4

@@ -1,52 +1,53 @@
 /* ============================================================
    GetwayROM File Explorer – Theme: Dark (primary) + Light
    ============================================================
-   Dark is the default design defined in variables.css.
-   This file enriches the dark palette and provides a full
-   light-theme override for [data-theme="light"].
+   variables.css defines the light defaults for --bg-body,
+   --bg-card, --tx, --tx2, --bd, --sh-*, etc.
+   This file overrides those same tokens for [data-theme="dark"]
+   and refines light-mode values for [data-theme="light"].
    ============================================================ */
 
-/* ── Dark theme enrichments (manual toggle) ──────────────── */
+/* ── Dark theme ──────────────────────────────────────────── */
 
 :root[data-theme="dark"] {
-  --bg-primary:     #060a13;
-  --bg-secondary:   rgba(12, 17, 30, 0.85);
-  --bg-tertiary:    #0d1321;
-  --bg-surface:     rgba(15, 23, 42, 0.6);
-  --bg-elevated:    rgba(20, 28, 50, 0.7);
-  --bg-glass:       rgba(15, 23, 42, 0.45);
-  --bg-glass-heavy: rgba(10, 15, 30, 0.75);
-  --bg-hover:       rgba(59, 130, 246, 0.08);
-  --bg-active:      rgba(59, 130, 246, 0.14);
+  /* Surfaces */
+  --bg-body:      #060a13;
+  --bg-card:      #0d1321;
+  --bg-card-alt:  rgba(15, 23, 42, 0.6);
+  --bg-glass:     rgba(15, 23, 42, 0.45);
+  --bg-hover:     rgba(99,102,241, 0.08);
+  --bg-active:    rgba(99,102,241, 0.14);
 
-  --text-primary:   #f1f5f9;
-  --text-secondary: #94a3b8;
-  --text-muted:     #64748b;
-  --text-inverse:   #0f172a;
-  --text-link:      var(--color-primary-light);
+  /* Text */
+  --tx:     #f1f5f9;
+  --tx2:    #94a3b8;
+  --tx3:    #64748b;
+  --tx-inv: #0f172a;
 
-  --border-default: rgba(148,163,184,.10);
-  --border-subtle:  rgba(148,163,184,.06);
-  --border-strong:  rgba(148,163,184,.18);
+  /* Borders */
+  --bd:        rgba(148,163,184,.10);
+  --bd-strong: rgba(148,163,184,.18);
 
-  --shadow-xs:  0 1px 2px  rgba(0,10,40,.30);
-  --shadow-sm:  0 2px 6px  rgba(0,10,40,.35);
-  --shadow-md:  0 4px 14px rgba(0,10,40,.40);
-  --shadow-lg:  0 8px 28px rgba(0,10,40,.45);
-  --shadow-xl:  0 16px 48px rgba(0,10,40,.55);
-}
+  /* Shadows */
+  --sh-xs: 0 1px 2px  rgba(0,10,40,.30);
+  --sh-sm: 0 2px 6px  rgba(0,10,40,.35);
+  --sh-md: 0 4px 14px rgba(0,10,40,.40);
+  --sh-lg: 0 8px 28px rgba(0,10,40,.45);
 
-:root[data-theme="dark"] body {
-  background: var(--bg-primary);
+  /* Brand palette adjustments */
+  --c-brand-dim:  rgba(99,102,241,.18);
+  --c-brand-glow: rgba(99,102,241,.40);
+  --c-accent-dim: rgba(34,211,238,.10);
 }
 
 :root[data-theme="dark"] ::selection {
-  background: rgba(var(--color-primary-rgb), .30);
+  background: var(--c-brand-dim);
+  color: var(--tx);
 }
 
 :root[data-theme="dark"] .highlight {
-  background: rgba(var(--color-primary-rgb), .25);
-  color: var(--color-primary-light);
+  background: var(--c-brand-dim);
+  color: var(--c-brand-hover);
 }
 
 :root[data-theme="dark"] ::-webkit-scrollbar-thumb {
@@ -56,208 +57,152 @@
 /* ── Light theme ─────────────────────────────────────────── */
 
 :root[data-theme="light"] {
-  --bg-primary:     #f8fafc;
-  --bg-secondary:   rgba(255, 255, 255, 0.85);
-  --bg-tertiary:    #ffffff;
-  --bg-surface:     rgba(241, 245, 249, 0.8);
-  --bg-elevated:    rgba(255, 255, 255, 0.9);
-  --bg-glass:       rgba(255, 255, 255, 0.55);
-  --bg-glass-heavy: rgba(255, 255, 255, 0.80);
-  --bg-hover:       rgba(59, 130, 246, 0.06);
-  --bg-active:      rgba(59, 130, 246, 0.10);
+  /* Surfaces — match / refine defaults from variables.css */
+  --bg-body:      #f8fafc;
+  --bg-card:      #ffffff;
+  --bg-card-alt:  #f0f2f8;
+  --bg-glass:     rgba(255,255,255,.72);
+  --bg-hover:     rgba(0,0,0,.04);
+  --bg-active:    var(--c-brand-dim);
 
-  --text-primary:   #0f172a;
-  --text-secondary: #475569;
-  --text-muted:     #94a3b8;
-  --text-inverse:   #f8fafc;
-  --text-link:      var(--color-primary);
+  /* Text */
+  --tx:     #0f172a;
+  --tx2:    #475569;
+  --tx3:    #94a3b8;
+  --tx-inv: #f8fafc;
 
-  --border-default: rgba(15, 23, 42, 0.08);
-  --border-subtle:  rgba(15, 23, 42, 0.04);
-  --border-strong:  rgba(15, 23, 42, 0.14);
+  /* Borders */
+  --bd:        rgba(15,23,42,.08);
+  --bd-strong: rgba(15,23,42,.14);
 
-  --shadow-xs:  0 1px 2px  rgba(0,0,0,.04);
-  --shadow-sm:  0 2px 6px  rgba(0,0,0,.06);
-  --shadow-md:  0 4px 14px rgba(0,0,0,.08);
-  --shadow-lg:  0 8px 28px rgba(0,0,0,.10);
-  --shadow-xl:  0 16px 48px rgba(0,0,0,.14);
-  --shadow-glow: 0 0 20px rgba(var(--color-primary-rgb), .12);
-  --shadow-glow-lg: 0 0 40px rgba(var(--color-primary-rgb), .10);
+  /* Shadows */
+  --sh-xs: 0 1px 2px  rgba(0,0,0,.04);
+  --sh-sm: 0 2px 6px  rgba(0,0,0,.06);
+  --sh-md: 0 4px 14px rgba(0,0,0,.08);
+  --sh-lg: 0 8px 28px rgba(0,0,0,.10);
 
-  --color-primary-light: #2563eb;
-
-  /* File type colours – slightly richer for light backgrounds */
-  --file-archive-color:    #d97706;
-  --file-archive-bg:       rgba(245,158,11,.10);
-  --file-android-color:    #16a34a;
-  --file-android-bg:       rgba(34,197,94,.10);
-  --file-firmware-color:   #2563eb;
-  --file-firmware-bg:      rgba(59,130,246,.10);
-  --file-image-color:      #9333ea;
-  --file-image-bg:         rgba(168,85,247,.10);
-  --file-disk-color:       #475569;
-  --file-disk-bg:          rgba(100,116,139,.10);
-  --file-executable-color: #dc2626;
-  --file-executable-bg:    rgba(239,68,68,.10);
-  --file-binary-color:     #0891b2;
-  --file-binary-bg:        rgba(6,182,212,.10);
-  --file-document-color:   #0284c7;
-  --file-document-bg:      rgba(14,165,233,.10);
-  --file-scatter-color:    #ea580c;
-  --file-scatter-bg:       rgba(249,115,22,.10);
-  --file-config-color:     #7c3aed;
-  --file-config-bg:        rgba(139,92,246,.10);
-  --file-flash-color:      #ca8a04;
-  --file-flash-bg:         rgba(234,179,8,.10);
-  --file-file-color:       #64748b;
-  --file-file-bg:          rgba(148,163,184,.08);
-}
-
-:root[data-theme="light"] body {
-  background: var(--bg-primary);
+  /* File type colours — richer for light backgrounds */
+  --ft-archive:    #d97706;  --ft-archive-bg:    rgba(245,158,11,.10);
+  --ft-android:    #16a34a;  --ft-android-bg:    rgba(34,197,94,.10);
+  --ft-firmware:   #2563eb;  --ft-firmware-bg:   rgba(59,130,246,.10);
+  --ft-image:      #9333ea;  --ft-image-bg:      rgba(168,85,247,.10);
+  --ft-disk:       #475569;  --ft-disk-bg:       rgba(100,116,139,.10);
+  --ft-exec:       #dc2626;  --ft-exec-bg:       rgba(239,68,68,.10);
+  --ft-bin:        #0891b2;  --ft-bin-bg:        rgba(6,182,212,.10);
+  --ft-doc:        #0284c7;  --ft-doc-bg:        rgba(14,165,233,.10);
+  --ft-scatter:    #ea580c;  --ft-scatter-bg:    rgba(249,115,22,.10);
+  --ft-config:     #7c3aed;  --ft-config-bg:     rgba(139,92,246,.10);
+  --ft-flash:      #ca8a04;  --ft-flash-bg:      rgba(234,179,8,.10);
+  --ft-file:       #64748b;  --ft-file-bg:       rgba(148,163,184,.08);
 }
 
 :root[data-theme="light"] body::before {
-  background: radial-gradient(
-    ellipse at center,
-    rgba(var(--color-primary-rgb), .04) 0%,
-    rgba(var(--color-accent-rgb), .02) 40%,
-    transparent 70%
-  );
-}
-
-:root[data-theme="light"] .hero-highlight {
-  background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
+  background:
+    radial-gradient(ellipse 60% 50% at 10% 0%, rgba(99,102,241,.04), transparent),
+    radial-gradient(ellipse 50% 40% at 90% 0%, rgba(34,211,238,.02), transparent);
 }
 
 :root[data-theme="light"] ::selection {
-  background: rgba(var(--color-primary-rgb), .18);
-  color: var(--text-primary);
+  background: var(--c-brand-dim);
+  color: var(--tx);
 }
 
 :root[data-theme="light"] .highlight {
-  background: rgba(var(--color-primary-rgb), .12);
-  color: var(--color-primary);
+  background: rgba(99,102,241,.12);
+  color: var(--c-brand);
 }
 
 :root[data-theme="light"] ::-webkit-scrollbar-thumb {
-  background: rgba(15, 23, 42, .12);
+  background: rgba(15,23,42,.12);
 }
 
 :root[data-theme="light"] ::-webkit-scrollbar-thumb:hover {
-  background: rgba(15, 23, 42, .22);
+  background: rgba(15,23,42,.22);
 }
 
-/* Light brand badges – use darker tones */
-:root[data-theme="light"] .brand-samsung  { background: rgba(20,100,220,.08);  color: #1a5dc0; }
-:root[data-theme="light"] .brand-xiaomi   { background: rgba(255,108,0,.08);   color: #c06000; }
-:root[data-theme="light"] .brand-huawei   { background: rgba(207,9,11,.08);    color: #b01010; }
-:root[data-theme="light"] .brand-honor    { background: rgba(0,124,195,.08);    color: #006aa0; }
-:root[data-theme="light"] .brand-realme   { background: rgba(246,183,0,.08);    color: #a07000; }
-:root[data-theme="light"] .brand-oppo     { background: rgba(30,160,80,.08);    color: #1a8040; }
-:root[data-theme="light"] .brand-vivo     { background: rgba(70,80,220,.08);    color: #3040b0; }
-:root[data-theme="light"] .brand-motorola { background: rgba(100,100,100,.08);  color: #505050; }
-:root[data-theme="light"] .brand-oneplus  { background: rgba(235,0,30,.08);     color: #c01020; }
-:root[data-theme="light"] .brand-nokia    { background: rgba(18,75,128,.08);    color: #104080; }
-:root[data-theme="light"] .brand-lg       { background: rgba(169,25,70,.08);    color: #901040; }
-:root[data-theme="light"] .brand-google   { background: rgba(66,133,244,.08);   color: #2060d0; }
+/* Light brand badges — darker tones for legibility */
+:root[data-theme="light"] .brand-badge.brand-samsung  { background: rgba(20,100,220,.08);  color: #1a5dc0; }
+:root[data-theme="light"] .brand-badge.brand-xiaomi   { background: rgba(255,108,0,.08);   color: #c06000; }
+:root[data-theme="light"] .brand-badge.brand-huawei   { background: rgba(207,9,11,.08);    color: #b01010; }
+:root[data-theme="light"] .brand-badge.brand-honor    { background: rgba(0,124,195,.08);    color: #006aa0; }
+:root[data-theme="light"] .brand-badge.brand-realme   { background: rgba(246,183,0,.08);    color: #a07000; }
+:root[data-theme="light"] .brand-badge.brand-oppo     { background: rgba(30,160,80,.08);    color: #1a8040; }
+:root[data-theme="light"] .brand-badge.brand-vivo     { background: rgba(70,80,220,.08);    color: #3040b0; }
+:root[data-theme="light"] .brand-badge.brand-motorola { background: rgba(100,100,100,.08);  color: #505050; }
+:root[data-theme="light"] .brand-badge.brand-oneplus  { background: rgba(235,0,30,.08);     color: #c01020; }
+:root[data-theme="light"] .brand-badge.brand-nokia    { background: rgba(18,75,128,.08);    color: #104080; }
+:root[data-theme="light"] .brand-badge.brand-lg       { background: rgba(169,25,70,.08);    color: #901040; }
+:root[data-theme="light"] .brand-badge.brand-google   { background: rgba(66,133,244,.08);   color: #2060d0; }
 
 /* Light toast */
 :root[data-theme="light"] .toast {
-  background: var(--bg-tertiary);
-  box-shadow: var(--shadow-lg);
+  background: var(--bg-card);
+  box-shadow: var(--sh-lg);
 }
 
 /* ── System preference fallback ──────────────────────────── */
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg-primary:     #060a13;
-    --bg-secondary:   rgba(12, 17, 30, 0.85);
-    --bg-tertiary:    #0d1321;
-    --bg-surface:     rgba(15, 23, 42, 0.6);
-    --bg-elevated:    rgba(20, 28, 50, 0.7);
-    --bg-glass:       rgba(15, 23, 42, 0.45);
-    --bg-glass-heavy: rgba(10, 15, 30, 0.75);
-    --bg-hover:       rgba(59, 130, 246, 0.08);
-    --bg-active:      rgba(59, 130, 246, 0.14);
+    --bg-body:      #060a13;
+    --bg-card:      #0d1321;
+    --bg-card-alt:  rgba(15, 23, 42, 0.6);
+    --bg-glass:     rgba(15, 23, 42, 0.45);
+    --bg-hover:     rgba(99,102,241, 0.08);
+    --bg-active:    rgba(99,102,241, 0.14);
 
-    --text-primary:   #f1f5f9;
-    --text-secondary: #94a3b8;
-    --text-muted:     #64748b;
-    --text-inverse:   #0f172a;
-    --text-link:      var(--color-primary-light);
+    --tx:     #f1f5f9;
+    --tx2:    #94a3b8;
+    --tx3:    #64748b;
+    --tx-inv: #0f172a;
 
-    --border-default: rgba(148,163,184,.10);
-    --border-subtle:  rgba(148,163,184,.06);
-    --border-strong:  rgba(148,163,184,.18);
+    --bd:        rgba(148,163,184,.10);
+    --bd-strong: rgba(148,163,184,.18);
 
-    --shadow-xs:  0 1px 2px  rgba(0,10,40,.30);
-    --shadow-sm:  0 2px 6px  rgba(0,10,40,.35);
-    --shadow-md:  0 4px 14px rgba(0,10,40,.40);
-    --shadow-lg:  0 8px 28px rgba(0,10,40,.45);
-    --shadow-xl:  0 16px 48px rgba(0,10,40,.55);
+    --sh-xs: 0 1px 2px  rgba(0,10,40,.30);
+    --sh-sm: 0 2px 6px  rgba(0,10,40,.35);
+    --sh-md: 0 4px 14px rgba(0,10,40,.40);
+    --sh-lg: 0 8px 28px rgba(0,10,40,.45);
+
+    --c-brand-dim:  rgba(99,102,241,.18);
+    --c-brand-glow: rgba(99,102,241,.40);
+    --c-accent-dim: rgba(34,211,238,.10);
   }
 }
 
 @media (prefers-color-scheme: light) {
   :root:not([data-theme="dark"]) {
-    --bg-primary:     #f8fafc;
-    --bg-secondary:   rgba(255, 255, 255, 0.85);
-    --bg-tertiary:    #ffffff;
-    --bg-surface:     rgba(241, 245, 249, 0.8);
-    --bg-elevated:    rgba(255, 255, 255, 0.9);
-    --bg-glass:       rgba(255, 255, 255, 0.55);
-    --bg-glass-heavy: rgba(255, 255, 255, 0.80);
-    --bg-hover:       rgba(59, 130, 246, 0.06);
-    --bg-active:      rgba(59, 130, 246, 0.10);
+    --bg-body:      #f8fafc;
+    --bg-card:      #ffffff;
+    --bg-card-alt:  #f0f2f8;
+    --bg-glass:     rgba(255,255,255,.72);
+    --bg-hover:     rgba(0,0,0,.04);
+    --bg-active:    var(--c-brand-dim);
 
-    --text-primary:   #0f172a;
-    --text-secondary: #475569;
-    --text-muted:     #94a3b8;
-    --text-inverse:   #f8fafc;
-    --text-link:      var(--color-primary);
+    --tx:     #0f172a;
+    --tx2:    #475569;
+    --tx3:    #94a3b8;
+    --tx-inv: #f8fafc;
 
-    --border-default: rgba(15, 23, 42, 0.08);
-    --border-subtle:  rgba(15, 23, 42, 0.04);
-    --border-strong:  rgba(15, 23, 42, 0.14);
+    --bd:        rgba(15,23,42,.08);
+    --bd-strong: rgba(15,23,42,.14);
 
-    --shadow-xs:  0 1px 2px  rgba(0,0,0,.04);
-    --shadow-sm:  0 2px 6px  rgba(0,0,0,.06);
-    --shadow-md:  0 4px 14px rgba(0,0,0,.08);
-    --shadow-lg:  0 8px 28px rgba(0,0,0,.10);
-    --shadow-xl:  0 16px 48px rgba(0,0,0,.14);
-    --shadow-glow: 0 0 20px rgba(var(--color-primary-rgb), .12);
-    --shadow-glow-lg: 0 0 40px rgba(var(--color-primary-rgb), .10);
+    --sh-xs: 0 1px 2px  rgba(0,0,0,.04);
+    --sh-sm: 0 2px 6px  rgba(0,0,0,.06);
+    --sh-md: 0 4px 14px rgba(0,0,0,.08);
+    --sh-lg: 0 8px 28px rgba(0,0,0,.10);
 
-    --color-primary-light: #2563eb;
-
-    --file-archive-color:    #d97706;
-    --file-archive-bg:       rgba(245,158,11,.10);
-    --file-android-color:    #16a34a;
-    --file-android-bg:       rgba(34,197,94,.10);
-    --file-firmware-color:   #2563eb;
-    --file-firmware-bg:      rgba(59,130,246,.10);
-    --file-image-color:      #9333ea;
-    --file-image-bg:         rgba(168,85,247,.10);
-    --file-disk-color:       #475569;
-    --file-disk-bg:          rgba(100,116,139,.10);
-    --file-executable-color: #dc2626;
-    --file-executable-bg:    rgba(239,68,68,.10);
-    --file-binary-color:     #0891b2;
-    --file-binary-bg:        rgba(6,182,212,.10);
-    --file-document-color:   #0284c7;
-    --file-document-bg:      rgba(14,165,233,.10);
-    --file-scatter-color:    #ea580c;
-    --file-scatter-bg:       rgba(249,115,22,.10);
-    --file-config-color:     #7c3aed;
-    --file-config-bg:        rgba(139,92,246,.10);
-    --file-flash-color:      #ca8a04;
-    --file-flash-bg:         rgba(234,179,8,.10);
-    --file-file-color:       #64748b;
-    --file-file-bg:          rgba(148,163,184,.08);
+    --ft-archive:    #d97706;  --ft-archive-bg:    rgba(245,158,11,.10);
+    --ft-android:    #16a34a;  --ft-android-bg:    rgba(34,197,94,.10);
+    --ft-firmware:   #2563eb;  --ft-firmware-bg:   rgba(59,130,246,.10);
+    --ft-image:      #9333ea;  --ft-image-bg:      rgba(168,85,247,.10);
+    --ft-disk:       #475569;  --ft-disk-bg:       rgba(100,116,139,.10);
+    --ft-exec:       #dc2626;  --ft-exec-bg:       rgba(239,68,68,.10);
+    --ft-bin:        #0891b2;  --ft-bin-bg:        rgba(6,182,212,.10);
+    --ft-doc:        #0284c7;  --ft-doc-bg:        rgba(14,165,233,.10);
+    --ft-scatter:    #ea580c;  --ft-scatter-bg:    rgba(249,115,22,.10);
+    --ft-config:     #7c3aed;  --ft-config-bg:     rgba(139,92,246,.10);
+    --ft-flash:      #ca8a04;  --ft-flash-bg:      rgba(234,179,8,.10);
+    --ft-file:       #64748b;  --ft-file-bg:       rgba(148,163,184,.08);
   }
 }

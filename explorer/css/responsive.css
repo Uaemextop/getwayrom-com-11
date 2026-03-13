@@ -54,7 +54,7 @@
     }
 
     .content {
-        padding: 0 var(--space-4) var(--space-4);
+        padding: var(--space-3) var(--space-4) var(--space-4);
     }
 }
 
@@ -75,7 +75,7 @@
     }
 
     .content {
-        padding: 0 var(--space-3) var(--space-3);
+        padding: var(--space-3) var(--space-3) var(--space-3);
     }
 
     .file-grid {
@@ -272,7 +272,7 @@
     }
 
     .content {
-        padding: 0 var(--space-2) var(--space-2);
+        padding: var(--space-2) var(--space-2) var(--space-2);
     }
 }
 

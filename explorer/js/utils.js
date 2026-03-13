@@ -74,7 +74,9 @@
       document: 'fa-file-lines',
       scatter: 'fa-sitemap',
       config: 'fa-sliders',
-      flash: 'fa-bolt'
+      flash: 'fa-bolt',
+      checksum: 'fa-hashtag',
+      media: 'fa-photo-film'
     };
     return icons[fileType] || 'fa-file';
   }
@@ -94,7 +96,9 @@
       document: 'document',
       scatter: 'scatter',
       config: 'config',
-      flash: 'flash'
+      flash: 'flash',
+      checksum: 'checksum',
+      media: 'media'
     };
     return classes[fileType] || 'file';
   }
@@ -279,6 +283,104 @@
     return 'Direct';
   }
 
+  /**
+   * Return a human-readable label for a category.
+   */
+  function getCategoryLabel(category) {
+    var labels = {
+      firmware: 'Firmware',
+      frp: 'FRP Bypass',
+      unlock: 'Unlock',
+      repair: 'Repair',
+      dump: 'Dump',
+      nvdata: 'NV Data',
+      emmc: 'eMMC/RPMB',
+      recovery: 'Recovery',
+      scatter: 'Scatter',
+      flash_tool: 'Flash Tool',
+      flash_file: 'Flash File',
+      driver: 'Driver',
+      root: 'Root',
+      combination: 'Combination',
+      imei: 'IMEI',
+      modem: 'Modem',
+      bootloader: 'Bootloader',
+      security: 'Security',
+      preloader: 'Preloader',
+      upgrade: 'Update/OTA',
+      downgrade: 'Downgrade',
+      backup: 'Backup',
+      custom_rom: 'Custom ROM',
+      da_file: 'DA File'
+    };
+    return labels[category] || category;
+  }
+
+  /**
+   * Return a Font Awesome icon for a category.
+   */
+  function getCategoryIcon(category) {
+    var icons = {
+      firmware: 'fa-microchip',
+      frp: 'fa-shield-halved',
+      unlock: 'fa-lock-open',
+      repair: 'fa-wrench',
+      dump: 'fa-download',
+      nvdata: 'fa-database',
+      emmc: 'fa-memory',
+      recovery: 'fa-life-ring',
+      scatter: 'fa-sitemap',
+      flash_tool: 'fa-toolbox',
+      flash_file: 'fa-bolt',
+      driver: 'fa-plug',
+      root: 'fa-user-shield',
+      combination: 'fa-puzzle-piece',
+      imei: 'fa-fingerprint',
+      modem: 'fa-signal',
+      bootloader: 'fa-power-off',
+      security: 'fa-shield',
+      preloader: 'fa-play',
+      upgrade: 'fa-arrow-up',
+      downgrade: 'fa-arrow-down',
+      backup: 'fa-box-archive',
+      custom_rom: 'fa-wand-magic-sparkles',
+      da_file: 'fa-key'
+    };
+    return icons[category] || 'fa-file';
+  }
+
+  /**
+   * Return a CSS color class for a category.
+   */
+  function getCategoryColorClass(category) {
+    var classes = {
+      firmware: 'cat-firmware',
+      frp: 'cat-frp',
+      unlock: 'cat-unlock',
+      repair: 'cat-repair',
+      dump: 'cat-dump',
+      nvdata: 'cat-nvdata',
+      emmc: 'cat-emmc',
+      recovery: 'cat-recovery',
+      scatter: 'cat-scatter',
+      flash_tool: 'cat-flash-tool',
+      flash_file: 'cat-flash-file',
+      driver: 'cat-driver',
+      root: 'cat-root',
+      combination: 'cat-combination',
+      imei: 'cat-imei',
+      modem: 'cat-modem',
+      bootloader: 'cat-bootloader',
+      security: 'cat-security',
+      preloader: 'cat-preloader',
+      upgrade: 'cat-upgrade',
+      downgrade: 'cat-downgrade',
+      backup: 'cat-backup',
+      custom_rom: 'cat-custom-rom'
+    };
+    return classes[category] || 'cat-other';
+  }
+
   GWR.Utils = {
     debounce: debounce,
     throttle: throttle,
@@ -294,7 +396,10 @@
     detectSource: detectSource,
     truncateText: truncateText,
     copyToClipboard: copyToClipboard,
-    generateId: generateId
+    generateId: generateId,
+    getCategoryLabel: getCategoryLabel,
+    getCategoryIcon: getCategoryIcon,
+    getCategoryColorClass: getCategoryColorClass
   };
 
 })();

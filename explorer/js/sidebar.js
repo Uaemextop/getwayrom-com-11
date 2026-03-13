@@ -165,6 +165,31 @@
   }
 
   /**
+   * Populate category list in sidebar.
+   */
+  function populateCategories(container, categories) {
+    if (!container || !categories) return;
+
+    var html = '';
+    var catNames = Object.keys(categories).sort(function (a, b) {
+      return categories[b] - categories[a];
+    });
+    for (var i = 0; i < catNames.length; i++) {
+      var cat = catNames[i];
+      var count = categories[cat];
+      var icon = Utils.getCategoryIcon(cat);
+      var label = Utils.getCategoryLabel(cat);
+      html += '<div class="sidebar-item" data-filter="cat:' + Utils.escapeHtml(cat) + '">' +
+        '<i class="fas ' + icon + '"></i>' +
+        '<span>' + Utils.escapeHtml(label) + '</span>' +
+        '<span class="sidebar-count">' + Utils.formatNumber(count) + '</span>' +
+      '</div>';
+    }
+
+    container.innerHTML = html;
+  }
+
+  /**
    * Toggle sidebar open/collapsed.
    */
   function toggle(sidebarEl) {
@@ -248,6 +273,7 @@
     populateBrands: populateBrands,
     populateExtensions: populateExtensions,
     populateSources: populateSources,
+    populateCategories: populateCategories,
     toggle: toggle,
     open: open,
     close: close,

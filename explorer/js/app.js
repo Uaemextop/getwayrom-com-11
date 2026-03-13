@@ -92,6 +92,10 @@
     dom.backToTop = document.getElementById('backToTop');
     dom.sidebarSearch = document.getElementById('sidebarSearch');
     dom.clearAllFiltersBtn = document.getElementById('clearAllFiltersBtn');
+    dom.categoryList = document.getElementById('categoryList');
+    dom.dirSummary = document.getElementById('dirSummary');
+    dom.dirSummaryToggle = document.getElementById('dirSummaryToggle');
+    dom.dirSummaryBody = document.getElementById('dirSummaryBody');
   }
 
   // --- Data Loading ---
@@ -183,6 +187,7 @@
     var brands = {};
     var extensions = {};
     var sources = {};
+    var categories = {};
 
     var brandPatterns = [
       { pattern: /\bSM-[A-Z]\d/i, brand: 'Samsung' },
@@ -236,14 +241,22 @@
 
     var typeMap = {
       zip: 'archive', rar: 'archive', '7z': 'archive', gz: 'archive',
-      tgz: 'archive', ozip: 'archive',
-      apk: 'android', img: 'image', iso: 'disk',
+      tgz: 'archive', ozip: 'archive', tar: 'archive', bz2: 'archive', xz: 'archive',
+      apk: 'android', asec: 'android',
+      img: 'image', raw: 'image',
+      iso: 'disk', dmg: 'disk',
       exe: 'executable', msi: 'executable', bat: 'executable',
-      bin: 'binary', mbn: 'binary', dat: 'binary', elf: 'binary',
+      bin: 'binary', mbn: 'binary', dat: 'binary', elf: 'binary', db: 'binary',
       md: 'document', txt: 'document', pdf: 'document',
+      rtf: 'document', docx: 'document', pptx: 'document', man: 'document',
       scatter: 'scatter',
       xml: 'config', json: 'config', cfg: 'config', ini: 'config',
-      ofp: 'flash', pac: 'flash', ops: 'flash'
+      auth: 'config', key: 'config', xdft: 'config', ddft: 'config',
+      pac: 'flash', ofp: 'flash', ops: 'flash',
+      ipsw: 'firmware', qcn: 'firmware', xqcn: 'firmware',
+      skb: 'firmware', ef: 'firmware', rpkg: 'firmware', ueb: 'firmware', rtc: 'firmware',
+      md5: 'checksum',
+      mp4: 'media', mkv: 'media', jpg: 'media', png: 'media'
     };
 
     function cleanFilename(raw) {
@@ -251,6 +264,65 @@
       try { n = decodeURIComponent(n); } catch (_) { /* keep as-is */ }
       n = n.replace(/&amp;/gi, '&').replace(/&lt;/gi, '<').replace(/&gt;/gi, '>');
       return n;
+    }
+
+    var categoryRules = [
+      ['flash_tool', /\bflash.?tool\b|\bsp.?flash\b|\bodin\b|\bqfil\b|\bdownload.?tool\b|\bflashing.?tool\b|\bsptool\b|\bcarlcare\b|\bMiFlash\b/i],
+      ['driver', /\bdriver\b|\busb.?driver\b/i],
+      ['combination', /\bcombination\b/i],
+      ['frp', /\bfrp\b/i],
+      ['unlock', /\bunlock\b|\bknox.?off\b|\bmdm.?remove\b|\bremove.?mdm\b|\bunlocktool\b/i],
+      ['root', /\broot\b|\bmagisk\b|\bsupersu\b/i],
+      ['imei', /\bimei\b/i],
+      ['repair', /\brepair\b|\bdead.?boot\b|\bhang.?on.?logo\b|\bstuck.?on.?logo\b|\bbrick\b|\bunbrick\b|\bfix\b/i],
+      ['dump', /\bdump\b|\bread.?file\b|\bread_file\b/i],
+      ['nvdata', /\bnvram\b|\bnv.?data\b|\befs\b|\bqcn\b/i],
+      ['emmc', /\bemmc\b|\brpmb\b/i],
+      ['backup', /\bbackup\b/i],
+      ['recovery', /\brecovery\b|\btwrp\b|\bcwm\b/i],
+      ['scatter', /\bscatter\b/i],
+      ['preloader', /\bpreloader\b/i],
+      ['modem', /\bmodem\b|\bbaseband\b/i],
+      ['bootloader', /\bbootloader\b/i],
+      ['security', /\bsecurity\b|\bpatch\b/i],
+      ['upgrade', /\bupgrade\b|\bota[_\s.]\b/i],
+      ['downgrade', /\bdowngrade\b/i],
+      ['flash_file', /\bflash.?file\b|\bjust.?flash\b|\bflashing\b|\bflash\b/i],
+      ['custom_rom', /\bcustom.?rom\b|\blineage\b|\bcyanogen\b/i],
+      ['firmware', /\bfirmware\b|\bfirmw\b|\bofficial\b|\bstock.?rom\b/i]
+    ];
+
+    var fwPatterns = [
+      /^samfw\.com_/i, /^CP_Samsung/i, /^CP_SM-/i,
+      /SM-[A-Z]\d{3,4}[A-Z]?_.*_fac\b/i,
+      /\b\w+_global_images_V\d/i, /\b\w+_in_global_images/i, /\bmiui\b/i,
+      /PD\d{4}[A-Z]*_EX_[A-Z]/i, /[A-Z]\d{4}export/i, /HMDSW_/i, /EMUI/i,
+      /release.?keys/i, /user.?ship/i, /CPH\d{4}export/i, /RMX\d{4}export/i,
+      /^WW-[A-Z]{2}\d{3}/i, /givemerom/i, /getwayrom/i, /filewale/i,
+      /blankflash/i, /fullflash|full_flash/i, /fastboot_.*_retail/i,
+      /fastboot_.*_user/i, /forceflash/i, /\bMT\d{4}\b/i, /\bqcom\b/i, /\balps\b/i,
+      /OxygenOS/i, /ColorOS/i,
+      /^SM-[A-Z]\d{3}/i, /^GT-[A-Z]\d{3}/i, /^RMX\d{4}/i, /^CPH\d{4}/i,
+      /^XT\d{4}/i, /^moto/i, /^TA-\d{4}/i, /^OnePlus/i, /^Redmi/i,
+      /^Poco/i, /^Huawei/i, /^Honor/i, /^Realme/i, /^Oppo\b/i, /^Infinix/i,
+      /^ASUS/i, /^Vivo/i, /^Samsung/i, /^Xiaomi/i, /^Tecno/i,
+      /^Nokia/i, /^Lenovo/i, /^Google/i, /^Alcatel/i, /^LG\s/i, /^ZTE/i,
+      /^Sony/i, /^HTC/i, /^itel/i, /^Jio/i, /\.ipsw$/i,
+      /_fac$/i, /_fac\b/i, /^Samfw/i,
+      /^[A-Z]\d{3,5}[A-Z]*[-_][A-Z]\d{3,5}/i, /^[A-Z]{2}\d{3,4}[-_]/i,
+      /^LAVA_/i, /ravig/i, /gsm.?firmware/i, /firmwaretech/i,
+      /^[A-Z]{2,4}\d{3,6}/i, /_ROM_/i
+    ];
+
+    function detectCat(name) {
+      var ci, cj;
+      for (ci = 0; ci < categoryRules.length; ci++) {
+        if (categoryRules[ci][1].test(name)) return categoryRules[ci][0];
+      }
+      for (cj = 0; cj < fwPatterns.length; cj++) {
+        if (fwPatterns[cj].test(name)) return 'firmware';
+      }
+      return 'firmware';
     }
 
     for (var i = 0; i < lines.length; i++) {
@@ -265,11 +337,13 @@
       var brand = detectBrand(name);
       var fileType = typeMap[ext] || 'file';
       var source = Utils.detectSource(url);
+      var cat = detectCat(name);
 
-      files.push({ name: name, url: url, extension: ext, brand: brand, fileType: fileType, source: source });
+      files.push({ name: name, url: url, extension: ext, brand: brand, fileType: fileType, source: source, category: cat });
       brands[brand] = (brands[brand] || 0) + 1;
       extensions[ext] = (extensions[ext] || 0) + 1;
       sources[source] = (sources[source] || 0) + 1;
+      categories[cat] = (categories[cat] || 0) + 1;
     }
 
     files.sort(function (a, b) {
@@ -282,6 +356,7 @@
       brands: brands,
       extensions: extensions,
       sources: sources,
+      categories: categories,
       files: files
     };
   }
@@ -431,7 +506,8 @@
       totalFiles: data.totalFiles,
       brands: data.brands,
       extensions: data.extensions,
-      sources: data.sources || {}
+      sources: data.sources || {},
+      categories: data.categories || {}
     };
 
     // Initialize search engine
@@ -442,6 +518,9 @@
     Sidebar.populateBrands(dom.brandList, state.metadata.brands);
     Sidebar.populateExtensions(dom.extensionList, state.metadata.extensions);
     Sidebar.populateSources(dom.sourceList, state.metadata.sources);
+    if (dom.categoryList) {
+      Sidebar.populateCategories(dom.categoryList, state.metadata.categories);
+    }
 
     // Populate filter dropdowns
     populateFilters();
@@ -465,6 +544,38 @@
     renderBreadcrumb();
 
     Toast.success('Loaded ' + Utils.formatNumber(state.allFiles.length) + ' firmware files');
+
+    updateDirectorySummary();
+  }
+
+  function updateDirectorySummary() {
+    if (!dom.dirSummary) return;
+    var files = state.folderPath.length > 0 ? getCurrentFolderFiles() : state.allFiles;
+    var subfolders = getCurrentSubfolders();
+    var subCount = Object.keys(subfolders).length;
+
+    var catCounts = {};
+    var typeCounts = {};
+    for (var i = 0; i < files.length; i++) {
+      var cat = files[i].category || 'firmware';
+      var ft = files[i].fileType || 'file';
+      catCounts[cat] = (catCounts[cat] || 0) + 1;
+      typeCounts[ft] = (typeCounts[ft] || 0) + 1;
+    }
+
+    var html = '<div class="dir-summary-grid">';
+    html += '<div class="dir-summary-stat"><span class="dir-summary-label">TOTAL FILES</span><span class="dir-summary-value">' + Utils.formatNumber(files.length) + '</span></div>';
+    html += '<div class="dir-summary-stat"><span class="dir-summary-label">SUBDIRECTORIES</span><span class="dir-summary-value">' + Utils.formatNumber(subCount) + '</span></div>';
+
+    var cats = Object.keys(catCounts).sort(function(a, b) { return catCounts[b] - catCounts[a]; });
+    for (var j = 0; j < cats.length; j++) {
+      var label = Utils.getCategoryLabel(cats[j]);
+      var icon = Utils.getCategoryIcon(cats[j]);
+      html += '<div class="dir-summary-stat"><span class="dir-summary-label"><i class="fas ' + icon + '"></i> ' + Utils.escapeHtml(label) + '</span><span class="dir-summary-value">' + Utils.formatNumber(catCounts[cats[j]]) + '</span></div>';
+    }
+    html += '</div>';
+
+    if (dom.dirSummaryBody) dom.dirSummaryBody.innerHTML = html;
   }
 
   function populateFilters() {
@@ -563,6 +674,8 @@
         results = results.filter(function (f) { return f.extension === filterValue; });
       } else if (filterType === 'source') {
         results = results.filter(function (f) { return f.source === filterValue; });
+      } else if (filterType === 'cat') {
+        results = results.filter(function (f) { return f.category === filterValue; });
       }
     }
 
@@ -594,6 +707,7 @@
     updatePagination();
     updateActiveFilterBadges();
     renderBreadcrumb();
+    updateDirectorySummary();
   }
 
   // --- Sorting ---
@@ -957,6 +1071,13 @@
           icon.className = newTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
         }
         Toast.info('Switched to ' + newTheme + ' mode');
+      });
+    }
+
+    // Directory summary toggle
+    if (dom.dirSummaryToggle) {
+      dom.dirSummaryToggle.addEventListener('click', function () {
+        dom.dirSummary.classList.toggle('collapsed');
       });
     }
 

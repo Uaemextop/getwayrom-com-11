@@ -75,14 +75,14 @@ function detectBrand(filename) {
 
 function detectExtension(filename) {
   // Strip known temporary/download suffixes
-  var cleaned = filename.replace(/\.(download|tempFTPDown|tmp|temp)$/i, '');
+  const cleaned = filename.replace(/\.(download|tempFTPDown|tmp|temp)$/i, '');
 
   // Match extension: alphanumeric only (no underscores), 1-7 chars after last dot
-  var match = cleaned.match(/\.([a-zA-Z0-9]{1,7})$/);
+  const match = cleaned.match(/\.([a-zA-Z0-9]{1,7})$/);
   if (match) {
-    var ext = match[1].toLowerCase();
+    const ext = match[1].toLowerCase();
     // Fix merged extensions like comrar → rar, com7z → 7z
-    var merged = ext.match(/^(?:com|www|net)(rar|zip|7z|gz|tgz|apk|img|iso|bin)$/);
+    const merged = ext.match(/^(?:com|www|net)(rar|zip|7z|gz|tgz|apk|img|iso|bin)$/);
     if (merged) return merged[1];
     // Skip domain-like or non-extension strings
     if (/^(com|net|org|www|asp|html?)$/.test(ext)) return 'unknown';
@@ -92,7 +92,7 @@ function detectExtension(filename) {
   }
 
   // Fallback: look for _extension at end of filename
-  var underMatch = cleaned.match(/[_](zip|rar|7z|gz|tgz|apk|bin|img|exe|ozip|ofp|pac)$/i);
+  const underMatch = cleaned.match(/[_](zip|rar|7z|gz|tgz|apk|bin|img|exe|ozip|ofp|pac)$/i);
   if (underMatch) return underMatch[1].toLowerCase();
 
   return 'unknown';

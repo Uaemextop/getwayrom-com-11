@@ -27,6 +27,8 @@
       includeScore: true,
       includeMatches: true,
       useExtendedSearch: true,
+      // Position matters: matches near the start of a filename are more relevant
+      // (e.g. "Moto G05" at the start is a stronger match than buried in the middle)
       ignoreLocation: false
     });
   }

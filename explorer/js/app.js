@@ -693,6 +693,18 @@
     });
   }
 
+  function setViewMode(mode) {
+    state.viewMode = mode;
+    if (mode === 'grid') {
+      dom.fileGrid.classList.remove('hidden');
+      dom.fileList.classList.add('hidden');
+    } else {
+      dom.fileList.classList.remove('hidden');
+      dom.fileGrid.classList.add('hidden');
+    }
+    renderFiles();
+  }
+
   // --- Search & Filter ---
   function applyFiltersAndSearch() {
     var results = state.folderPath.length > 0 ? getCurrentFolderFiles() : state.allFiles;
@@ -1013,23 +1025,13 @@
     // View Toggle (guarded - buttons may not exist)
     if (dom.gridViewBtn) {
       dom.gridViewBtn.addEventListener('click', function () {
-        state.viewMode = 'grid';
-        dom.gridViewBtn.classList.add('active');
-        if (dom.listViewBtn) dom.listViewBtn.classList.remove('active');
-        dom.fileGrid.classList.remove('hidden');
-        dom.fileList.classList.add('hidden');
-        renderFiles();
+        setViewMode('grid');
       });
     }
 
     if (dom.listViewBtn) {
       dom.listViewBtn.addEventListener('click', function () {
-        state.viewMode = 'list';
-        dom.listViewBtn.classList.add('active');
-        if (dom.gridViewBtn) dom.gridViewBtn.classList.remove('active');
-        dom.fileList.classList.remove('hidden');
-        dom.fileGrid.classList.add('hidden');
-        renderFiles();
+        setViewMode('list');
       });
     }
 
@@ -1274,17 +1276,11 @@
     });
 
     Keyboard.register('g', 'Switch to grid view', function () {
-      state.viewMode = 'grid';
-      dom.fileGrid.classList.remove('hidden');
-      dom.fileList.classList.add('hidden');
-      renderFiles();
+      setViewMode('grid');
     });
 
     Keyboard.register('l', 'Switch to list view', function () {
-      state.viewMode = 'list';
-      dom.fileList.classList.remove('hidden');
-      dom.fileGrid.classList.add('hidden');
-      renderFiles();
+      setViewMode('list');
     });
 
     Keyboard.register('t', 'Toggle dark/light theme', function () {

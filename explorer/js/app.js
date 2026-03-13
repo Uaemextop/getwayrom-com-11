@@ -68,7 +68,7 @@
     dom.resultCount = document.getElementById('resultCount');
     dom.overviewTotalFiles = document.getElementById('overviewTotalFiles');
     dom.overviewBrandCount = document.getElementById('overviewBrandCount');
-    dom.overviewExtensionCount = document.getElementById('overviewExtensionCount');
+    dom.overviewSourceCount = document.getElementById('overviewSourceCount');
     dom.overviewUpdatedAt = document.getElementById('overviewUpdatedAt');
     dom.quickBrandRail = document.getElementById('quickBrandRail');
     dom.quickSourceRail = document.getElementById('quickSourceRail');
@@ -218,12 +218,32 @@
       return 'Other';
     }
 
+    function detectExt(filename) {
+      var cleaned = filename.replace(/\.(download|tempFTPDown|tmp|temp)$/i, '');
+      var m = cleaned.match(/\.([a-zA-Z0-9]{1,7})$/);
+      if (m) {
+        var e = m[1].toLowerCase();
+        var merged = e.match(/^(?:com|www|net)(rar|zip|7z|gz|tgz|apk|img|iso|bin)$/);
+        if (merged) return merged[1];
+        if (/^(com|net|org|www|asp|html?)$/.test(e)) return 'unknown';
+        if (/^7z(7z|zip|rar)$/.test(e)) return '7z';
+        return e;
+      }
+      var um = cleaned.match(/[_](zip|rar|7z|gz|tgz|apk|bin|img|exe|ozip|ofp|pac)$/i);
+      if (um) return um[1].toLowerCase();
+      return 'unknown';
+    }
+
     var typeMap = {
       zip: 'archive', rar: 'archive', '7z': 'archive', gz: 'archive',
+      tgz: 'archive', ozip: 'archive',
       apk: 'android', img: 'image', iso: 'disk',
-      exe: 'executable', bin: 'binary', mbn: 'binary', dat: 'binary',
+      exe: 'executable', msi: 'executable', bat: 'executable',
+      bin: 'binary', mbn: 'binary', dat: 'binary', elf: 'binary',
       md: 'document', txt: 'document', pdf: 'document',
-      ozip: 'archive', ofp: 'flash', pac: 'flash'
+      scatter: 'scatter',
+      xml: 'config', json: 'config', cfg: 'config', ini: 'config',
+      ofp: 'flash', pac: 'flash', ops: 'flash'
     };
 
     for (var i = 0; i < lines.length; i++) {
@@ -234,8 +254,7 @@
       if (seen[url]) continue;
       seen[url] = true;
 
-      var extMatch = name.match(/\.(\w+)$/);
-      var ext = extMatch ? extMatch[1].toLowerCase() : 'unknown';
+      var ext = detectExt(name);
       var brand = detectBrand(name);
       var fileType = typeMap[ext] || 'file';
       var source = Utils.detectSource(url);
@@ -424,7 +443,7 @@
     dom.fileStats.textContent = Utils.formatNumber(state.allFiles.length) + ' firmware files';
     if (dom.overviewTotalFiles) dom.overviewTotalFiles.textContent = Utils.formatNumber(state.allFiles.length);
     if (dom.overviewBrandCount) dom.overviewBrandCount.textContent = Utils.formatNumber(Object.keys(state.metadata.brands).length);
-    if (dom.overviewExtensionCount) dom.overviewExtensionCount.textContent = Utils.formatNumber(Object.keys(state.metadata.sources || {}).length);
+    if (dom.overviewSourceCount) dom.overviewSourceCount.textContent = Utils.formatNumber(Object.keys(state.metadata.sources || {}).length);
     if (dom.overviewUpdatedAt) {
       var updatedAt = new Date(state.metadata.generated);
       dom.overviewUpdatedAt.textContent = isNaN(updatedAt.getTime())

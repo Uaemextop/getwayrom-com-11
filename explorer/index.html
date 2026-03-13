@@ -115,6 +115,12 @@
         <!-- Sidebar -->
         <aside class="sidebar" id="sidebar">
             <nav class="sidebar-nav">
+                <!-- Sidebar Search -->
+                <div class="sidebar-search-container">
+                    <i class="fas fa-search sidebar-search-icon"></i>
+                    <input type="text" id="sidebarSearch" class="sidebar-search-input" placeholder="Filter brands & types..." autocomplete="off">
+                </div>
+
                 <div class="sidebar-section">
                     <button class="sidebar-item active" data-filter="all">
                         <i class="fas fa-folder"></i>
@@ -124,12 +130,18 @@
                 </div>
 
                 <div class="sidebar-section">
-                    <div class="sidebar-heading">Brands</div>
+                    <div class="sidebar-heading" data-toggle-section>
+                        <span><i class="fas fa-mobile-alt"></i> Brands</span>
+                        <i class="fas fa-chevron-down sidebar-heading-icon"></i>
+                    </div>
                     <div id="brandList" class="sidebar-scroll"></div>
                 </div>
 
                 <div class="sidebar-section">
-                    <div class="sidebar-heading">File Types</div>
+                    <div class="sidebar-heading" data-toggle-section>
+                        <span><i class="fas fa-file-archive"></i> File Types</span>
+                        <i class="fas fa-chevron-down sidebar-heading-icon"></i>
+                    </div>
                     <div id="extensionList" class="sidebar-scroll"></div>
                 </div>
             </nav>
@@ -167,9 +179,14 @@
 
             <!-- Empty State -->
             <div class="empty-state hidden" id="emptyState">
-                <i class="fas fa-search"></i>
+                <div class="empty-state-icon">
+                    <i class="fas fa-search"></i>
+                </div>
                 <h3>No files found</h3>
                 <p>Try adjusting your search or filters</p>
+                <button class="btn btn-primary" id="clearAllFiltersBtn">
+                    <i class="fas fa-undo"></i> Clear All Filters
+                </button>
             </div>
 
             <!-- File Grid -->
@@ -196,23 +213,29 @@
 
             <!-- Pagination -->
             <div class="pagination" id="pagination">
-                <button class="btn btn-secondary" id="prevPage" disabled>
-                    <i class="fas fa-chevron-left"></i> Previous
+                <button class="btn btn-secondary btn-page" id="prevPage" disabled>
+                    <i class="fas fa-chevron-left"></i> <span class="btn-page-text">Previous</span>
                 </button>
+                <div class="page-numbers" id="pageNumbers"></div>
                 <span class="page-info" id="pageInfo">Page 1</span>
-                <button class="btn btn-secondary" id="nextPage">
-                    Next <i class="fas fa-chevron-right"></i>
+                <button class="btn btn-secondary btn-page" id="nextPage">
+                    <span class="btn-page-text">Next</span> <i class="fas fa-chevron-right"></i>
                 </button>
             </div>
         </main>
     </div>
 
+    <!-- Back to Top Button -->
+    <button class="back-to-top hidden" id="backToTop" title="Back to top">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
     <!-- Footer Navigation -->
     <footer class="footer-nav">
         <div class="footer-nav-inner">
-            <a href="index.html" class="footer-link active"><i class="fas fa-folder"></i> Explorer</a>
-            <a href="about.html" class="footer-link"><i class="fas fa-info-circle"></i> About</a>
-            <a href="help.html" class="footer-link"><i class="fas fa-keyboard"></i> Help</a>
+            <a href="index.html" class="footer-link active"><i class="fas fa-folder"></i> <span>Explorer</span></a>
+            <a href="about.html" class="footer-link"><i class="fas fa-info-circle"></i> <span>About</span></a>
+            <a href="help.html" class="footer-link"><i class="fas fa-keyboard"></i> <span>Help</span></a>
         </div>
     </footer>
 

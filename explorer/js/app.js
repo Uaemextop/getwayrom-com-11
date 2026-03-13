@@ -73,11 +73,15 @@
     dom.prevPage = document.getElementById('prevPage');
     dom.nextPage = document.getElementById('nextPage');
     dom.pageInfo = document.getElementById('pageInfo');
+    dom.pageNumbers = document.getElementById('pageNumbers');
     dom.pagination = document.getElementById('pagination');
     dom.content = document.getElementById('content');
     dom.themeToggle = document.getElementById('themeToggle');
     dom.breadcrumb = document.querySelector('.breadcrumb');
     dom.refreshBtn = document.getElementById('refreshBtn');
+    dom.backToTop = document.getElementById('backToTop');
+    dom.sidebarSearch = document.getElementById('sidebarSearch');
+    dom.clearAllFiltersBtn = document.getElementById('clearAllFiltersBtn');
   }
 
   // --- Data Loading ---
@@ -551,6 +555,36 @@
     dom.nextPage.disabled = state.currentPage >= state.totalPages;
     dom.pageInfo.textContent = 'Page ' + state.currentPage + ' of ' + state.totalPages;
     dom.pagination.classList.toggle('hidden', state.totalPages <= 1);
+
+    // Render page number buttons
+    if (dom.pageNumbers) {
+      var html = '';
+      var total = state.totalPages;
+      var current = state.currentPage;
+      var maxVisible = 5;
+      var start = Math.max(1, current - Math.floor(maxVisible / 2));
+      var end = Math.min(total, start + maxVisible - 1);
+
+      if (end - start < maxVisible - 1) {
+        start = Math.max(1, end - maxVisible + 1);
+      }
+
+      if (start > 1) {
+        html += '<button class="btn-page-num" data-page="1">1</button>';
+        if (start > 2) html += '<span class="page-ellipsis">...</span>';
+      }
+
+      for (var i = start; i <= end; i++) {
+        html += '<button class="btn-page-num' + (i === current ? ' active' : '') + '" data-page="' + i + '">' + i + '</button>';
+      }
+
+      if (end < total) {
+        if (end < total - 1) html += '<span class="page-ellipsis">...</span>';
+        html += '<button class="btn-page-num" data-page="' + total + '">' + total + '</button>';
+      }
+
+      dom.pageNumbers.innerHTML = html;
+    }
   }
 
   function updateActiveFilterBadges() {
@@ -812,6 +846,65 @@
         dom.fileGrid.innerHTML = '';
         Toast.info('Refreshing file list...');
         tryFetchFromRelease();
+      });
+    }
+
+    // Back to top button
+    if (dom.backToTop && dom.content) {
+      dom.content.addEventListener('scroll', function () {
+        dom.backToTop.classList.toggle('hidden', dom.content.scrollTop < 300);
+      });
+      dom.backToTop.addEventListener('click', function () {
+        dom.content.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+    }
+
+    // Sidebar search
+    if (dom.sidebarSearch) {
+      dom.sidebarSearch.addEventListener('input', function () {
+        Sidebar.filterSidebarItems(this.value);
+      });
+    }
+
+    // Sidebar section toggles
+    document.querySelectorAll('[data-toggle-section]').forEach(function (heading) {
+      heading.addEventListener('click', function () {
+        Sidebar.toggleSection(this);
+      });
+    });
+
+    // Page number clicks
+    if (dom.pageNumbers) {
+      dom.pageNumbers.addEventListener('click', function (e) {
+        var btn = e.target.closest('.btn-page-num');
+        if (!btn) return;
+        var page = parseInt(btn.getAttribute('data-page'), 10);
+        if (page && page !== state.currentPage) {
+          state.currentPage = page;
+          renderFiles();
+          updatePagination();
+          dom.content.scrollTop = 0;
+        }
+      });
+    }
+
+    // Clear all filters button (in empty state)
+    if (dom.clearAllFiltersBtn) {
+      dom.clearAllFiltersBtn.addEventListener('click', function () {
+        dom.searchInput.value = '';
+        dom.searchClear.classList.add('hidden');
+        state.searchQuery = '';
+        state.filterBrand = '';
+        state.filterExtension = '';
+        state.filterName = '';
+        state.sidebarFilter = 'all';
+        state.folderPath = [];
+        dom.filterBrand.value = '';
+        dom.filterExtension.value = '';
+        dom.filterName.value = '';
+        Sidebar.setActiveItem('all');
+        dom.currentFilter.textContent = 'All Files';
+        applyFiltersAndSearch();
       });
     }
 

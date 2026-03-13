@@ -135,6 +135,7 @@
       '</div>' +
       '<div class="modal-footer">' +
         '<button class="btn btn-secondary" id="modalCancelBtn"><i class="fas fa-times"></i> Close</button>' +
+        '<button class="btn btn-secondary btn-copy-link" id="modalCopyBtn" title="Copy download link"><i class="fas fa-link"></i> Copy Link</button>' +
         '<a href="' + Utils.escapeHtml(fileData.url) + '" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-download-lg">' +
           '<i class="fas fa-download"></i> Download' +
         '</a>' +
@@ -149,6 +150,7 @@
     // Event listeners for closing
     var closeBtn = document.getElementById('modalCloseBtn');
     var cancelBtn = document.getElementById('modalCancelBtn');
+    var copyBtn = document.getElementById('modalCopyBtn');
 
     function handleClose() {
       closeFileDialog();
@@ -156,6 +158,16 @@
 
     if (closeBtn) closeBtn.addEventListener('click', handleClose);
     if (cancelBtn) cancelBtn.addEventListener('click', handleClose);
+
+    if (copyBtn) {
+      copyBtn.addEventListener('click', function () {
+        Utils.copyToClipboard(fileData.url);
+        copyBtn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+        setTimeout(function () {
+          copyBtn.innerHTML = '<i class="fas fa-link"></i> Copy Link';
+        }, 2000);
+      });
+    }
 
     backdrop.addEventListener('click', function (e) {
       if (e.target === backdrop) {

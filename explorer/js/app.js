@@ -246,10 +246,17 @@
       ofp: 'flash', pac: 'flash', ops: 'flash'
     };
 
+    function cleanFilename(raw) {
+      var n = raw;
+      try { n = decodeURIComponent(n); } catch (_) { /* keep as-is */ }
+      n = n.replace(/&amp;/gi, '&').replace(/&lt;/gi, '<').replace(/&gt;/gi, '>');
+      return n;
+    }
+
     for (var i = 0; i < lines.length; i++) {
       var match = lines[i].match(/^-\s+\*\*(.+?)\*\*\s+—\s+\[Download\]\((.+?)\)/);
       if (!match) continue;
-      var name = match[1].trim();
+      var name = cleanFilename(match[1].trim());
       var url = match[2].trim();
       if (seen[url]) continue;
       seen[url] = true;

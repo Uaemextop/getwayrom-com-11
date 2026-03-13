@@ -124,11 +124,20 @@ function detectSource(url) {
   return 'Direct';
 }
 
+function cleanFilename(raw) {
+  let name = raw;
+  // Decode URL-encoded characters (%24 → $, %26 → &, etc.)
+  try { name = decodeURIComponent(name); } catch (_) { /* malformed sequence – keep as-is */ }
+  // Decode HTML entities that may leak from source (&amp; → &)
+  name = name.replace(/&amp;/gi, '&').replace(/&lt;/gi, '<').replace(/&gt;/gi, '>');
+  return name;
+}
+
 function parseLine(line) {
   const match = line.match(/^-\s+\*\*(.+?)\*\*\s+—\s+\[Download\]\((.+?)\)/);
   if (!match) return null;
 
-  const name = match[1].trim();
+  const name = cleanFilename(match[1].trim());
   const url = match[2].trim();
   const extension = detectExtension(name);
   const brand = detectBrand(name);

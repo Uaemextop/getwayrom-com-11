@@ -53,6 +53,10 @@
           close(sidebar);
         }
       });
+      // Prevent overlay touch from scrolling the page
+      overlayEl.addEventListener('touchmove', function (e) {
+        if (e.target === overlayEl) e.preventDefault();
+      }, { passive: false });
       document.body.appendChild(overlayEl);
     }
     return overlayEl;
@@ -185,6 +189,8 @@
     if (isMobileViewport()) {
       sidebarEl.classList.add('open');
       getOverlay().classList.add('active');
+      // Lock body scroll while sidebar is open
+      document.body.style.overflow = 'hidden';
     } else {
       sidebarEl.classList.remove('open');
       getOverlay().classList.remove('active');
@@ -203,6 +209,8 @@
     }
     var overlay = getOverlay();
     overlay.classList.remove('active');
+    // Restore body scroll
+    document.body.style.overflow = '';
   }
 
   /**

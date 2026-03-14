@@ -5,7 +5,7 @@
   'use strict';
 
   var STORAGE_KEY = 'gwr-theme';
-  var currentTheme = 'light';
+  var currentTheme = 'dark';
 
   /**
    * Apply the given theme to the document.
@@ -29,8 +29,8 @@
     if (saved === 'dark' || saved === 'light') {
       applyTheme(saved);
     } else {
-      // Default to light theme
-      applyTheme('light');
+      // Default to dark theme
+      applyTheme('dark');
     }
   }
 

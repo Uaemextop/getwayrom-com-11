@@ -320,8 +320,9 @@ kbd{
 .dir-summary-chevron{
   font-size:var(--fs-xs);color:var(--tx3);
   transition:transform var(--dur) var(--ease);
+  transform:rotate(90deg);
 }
-.dir-summary.collapsed .dir-summary-chevron{transform:rotate(-90deg)}
+.dir-summary.collapsed .dir-summary-chevron{transform:rotate(0deg)}
 .dir-summary.collapsed .dir-summary-body{display:none}
 .dir-summary-body{padding:0 var(--s4) var(--s4)}
 .dir-summary-grid{

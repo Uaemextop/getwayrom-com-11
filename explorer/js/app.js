@@ -96,6 +96,8 @@
     dom.dirSummary = document.getElementById('dirSummary');
     dom.dirSummaryToggle = document.getElementById('dirSummaryToggle');
     dom.dirSummaryBody = document.getElementById('dirSummaryBody');
+    dom.searchToolbar = document.getElementById('searchToolbar');
+    dom.header = document.querySelector('.header');
   }
 
   // --- Data Loading ---
@@ -1163,13 +1165,11 @@
 
     // Back to top button + dynamic header shrink on scroll
     if (dom.backToTop && dom.content) {
-      var searchToolbar = document.getElementById('searchToolbar');
-      var header = document.querySelector('.header');
       dom.content.addEventListener('scroll', function () {
         var scrolled = dom.content.scrollTop > 60;
         dom.backToTop.classList.toggle('hidden', dom.content.scrollTop < 300);
-        if (searchToolbar) searchToolbar.classList.toggle('scrolled', scrolled);
-        if (header) header.classList.toggle('scrolled', scrolled);
+        if (dom.searchToolbar) dom.searchToolbar.classList.toggle('scrolled', scrolled);
+        if (dom.header) dom.header.classList.toggle('scrolled', scrolled);
       });
       dom.backToTop.addEventListener('click', function () {
         dom.content.scrollTo({ top: 0, behavior: 'smooth' });

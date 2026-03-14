@@ -15,8 +15,8 @@
   --bg-card:      #0d1321;
   --bg-card-alt:  rgba(15, 23, 42, 0.6);
   --bg-glass:     rgba(15, 23, 42, 0.45);
-  --bg-hover:     rgba(99,102,241, 0.08);
-  --bg-active:    rgba(99,102,241, 0.14);
+  --bg-hover:     rgba(21,116,214, 0.08);
+  --bg-active:    rgba(21,116,214, 0.14);
 
   /* Text */
   --tx:     #f1f5f9;
@@ -35,9 +35,9 @@
   --sh-lg: 0 8px 28px rgba(0,10,40,.45);
 
   /* Brand palette adjustments */
-  --c-brand-dim:  rgba(99,102,241,.18);
-  --c-brand-glow: rgba(99,102,241,.40);
-  --c-accent-dim: rgba(34,211,238,.10);
+  --c-brand-dim:  rgba(21,116,214,.18);
+  --c-brand-glow: rgba(21,116,214,.40);
+  --c-accent-dim: rgba(160,185,58,.10);
 }
 
 :root[data-theme="dark"] ::selection {
@@ -58,7 +58,7 @@
 
 :root[data-theme="light"] {
   /* Surfaces — match / refine defaults from variables.css */
-  --bg-body:      #f8fafc;
+  --bg-body:      #f5f5f5;
   --bg-card:      #ffffff;
   --bg-card-alt:  #f0f2f8;
   --bg-glass:     rgba(255,255,255,.72);
@@ -98,8 +98,8 @@
 
 :root[data-theme="light"] body::before {
   background:
-    radial-gradient(ellipse 60% 50% at 10% 0%, rgba(99,102,241,.04), transparent),
-    radial-gradient(ellipse 50% 40% at 90% 0%, rgba(34,211,238,.02), transparent);
+    radial-gradient(ellipse 60% 50% at 10% 0%, rgba(21,116,214,.04), transparent),
+    radial-gradient(ellipse 50% 40% at 90% 0%, rgba(160,185,58,.02), transparent);
 }
 
 :root[data-theme="light"] ::selection {
@@ -108,7 +108,7 @@
 }
 
 :root[data-theme="light"] .highlight {
-  background: rgba(99,102,241,.12);
+  background: rgba(21,116,214,.12);
   color: var(--c-brand);
 }
 
@@ -148,8 +148,8 @@
     --bg-card:      #0d1321;
     --bg-card-alt:  rgba(15, 23, 42, 0.6);
     --bg-glass:     rgba(15, 23, 42, 0.45);
-    --bg-hover:     rgba(99,102,241, 0.08);
-    --bg-active:    rgba(99,102,241, 0.14);
+    --bg-hover:     rgba(21,116,214, 0.08);
+    --bg-active:    rgba(21,116,214, 0.14);
 
     --tx:     #f1f5f9;
     --tx2:    #94a3b8;
@@ -164,15 +164,15 @@
     --sh-md: 0 4px 14px rgba(0,10,40,.40);
     --sh-lg: 0 8px 28px rgba(0,10,40,.45);
 
-    --c-brand-dim:  rgba(99,102,241,.18);
-    --c-brand-glow: rgba(99,102,241,.40);
-    --c-accent-dim: rgba(34,211,238,.10);
+    --c-brand-dim:  rgba(21,116,214,.18);
+    --c-brand-glow: rgba(21,116,214,.40);
+    --c-accent-dim: rgba(160,185,58,.10);
   }
 }
 
 @media (prefers-color-scheme: light) {
   :root:not([data-theme="dark"]) {
-    --bg-body:      #f8fafc;
+    --bg-body:      #f5f5f5;
     --bg-card:      #ffffff;
     --bg-card-alt:  #f0f2f8;
     --bg-glass:     rgba(255,255,255,.72);

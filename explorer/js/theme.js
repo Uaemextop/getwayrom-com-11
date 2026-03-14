@@ -16,7 +16,7 @@
   }
 
   /**
-   * Initialize theme: load from localStorage or default to dark.
+   * Initialize theme: load from localStorage or default to light.
    */
   function init() {
     var saved = null;
@@ -29,8 +29,8 @@
     if (saved === 'dark' || saved === 'light') {
       applyTheme(saved);
     } else {
-      // Default to dark theme
-      applyTheme('dark');
+      // Default to light theme
+      applyTheme('light');
     }
   }
 

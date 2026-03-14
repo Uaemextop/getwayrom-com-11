@@ -67,6 +67,11 @@ jobs:
           cp assets/images/logo/primal_favicon.png explorer/favicon.png
           find explorer -name '*.html' -exec sed -i 's|../assets/images/logo/favicon.png|favicon.png|g' {} +
 
+      - name: Fix logo for deployment
+        run: |
+          cp assets/images/logo/getwayrom_logo.png explorer/getwayrom_logo.png
+          find explorer -name '*.html' -exec sed -i 's|../assets/images/logo/getwayrom_logo.png|getwayrom_logo.png|g' {} +
+
       - name: Setup Pages
         uses: actions/configure-pages@v4
 

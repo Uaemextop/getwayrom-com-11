@@ -17,6 +17,7 @@
 
 /* Logo */
 .logo{display:flex;align-items:center;gap:var(--s2);text-decoration:none}
+.logo-img{height:36px;width:auto;display:block}
 .logo-mark{
   width:32px;height:32px;border-radius:var(--r-sm);
   background:linear-gradient(135deg,var(--c-brand),var(--c-accent));
@@ -24,6 +25,16 @@
   color:#fff;font-size:15px;flex-shrink:0;
 }
 .logo-text{font-size:var(--fs-lg);font-weight:var(--fw-bold);letter-spacing:-.3px;color:var(--tx)}
+
+/* Header navigation */
+.header-nav{display:flex;align-items:center;gap:var(--s4);margin-left:var(--s4)}
+.header-nav-link{
+  font-size:var(--fs-sm);font-weight:var(--fw-semi);color:var(--tx2);
+  padding:var(--s1) var(--s2);border-radius:var(--r-xs);
+  transition:color var(--dur) var(--ease),background var(--dur) var(--ease);
+}
+.header-nav-link:hover{color:var(--tx);background:var(--bg-hover)}
+.header-nav-link.active{color:var(--c-brand);font-weight:var(--fw-bold)}
 
 /* ── Main layout ── */
 .main-layout{
@@ -210,6 +221,7 @@
   height:40px;
   transition:height .25s ease;
 }
+.header.scrolled .logo-img{height:28px;transition:height .25s ease}
 .header.scrolled .logo-mark{width:26px;height:26px;font-size:12px;transition:all .25s ease}
 .header.scrolled .logo-text{font-size:var(--fs-md);transition:font-size .25s ease}
 

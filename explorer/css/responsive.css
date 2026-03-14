@@ -318,6 +318,14 @@
     font-size: 13px;
   }
 
+  .logo-img {
+    height: 30px;
+  }
+
+  .header-nav {
+    display: none;
+  }
+
   .btn-icon {
     width: 32px;
     height: 32px;

@@ -10,7 +10,6 @@ Dependencies: aiohttp, cryptography, playwright
 """
 
 import base64
-import gc
 import json
 import os
 import re
@@ -945,6 +944,12 @@ async def main() -> None:
             # Always close Playwright even if an error occurred
             await _close_playwright()
 
+    # Yield to the event loop so SSL transports spawned by the now-closed
+    # aiohttp connector can finish their close-notify handshake.  Without
+    # this, the transports are orphaned and their __del__ fires after the
+    # loop is gone, producing "Exception ignored in:" noise on stderr.
+    await asyncio.sleep(0.25)
+
     alive_entries.sort(key=lambda x: x[0])
 
     # ── Write output ──────────────────────────────────────────────
@@ -982,34 +987,6 @@ async def main() -> None:
         f"({restricted_count} login-restricted) in {elapsed:.1f}s"
     )
 
-    # Brief sleep so aiohttp/Playwright transports can finalize cleanly,
-    # then force a GC pass while the event loop is still open.  This
-    # prevents "Exception ignored in:" messages from __del__ methods that
-    # would otherwise fire after asyncio.run() closes the loop.
-    await asyncio.sleep(0.25)
-    gc.collect()
-
 
 if __name__ == "__main__":
-    # ── Suppress "Event loop is closed" noise ────────────────────
-    # After asyncio.run() completes, CPython's GC may finalize leftover
-    # SSL transports whose __del__ calls loop.call_soon() on the now-
-    # closed loop.  This surfaces as either a raised RuntimeError *or*
-    # an "Exception ignored in:" message via sys.unraisablehook.
-    # We suppress both.
-    _orig_unraisablehook = sys.unraisablehook
-
-    def _quiet_event_loop_closed(unraisable):
-        if (isinstance(unraisable.exc_value, RuntimeError)
-                and "Event loop is closed" in str(unraisable.exc_value)):
-            return
-        _orig_unraisablehook(unraisable)
-
-    sys.unraisablehook = _quiet_event_loop_closed
-    try:
-        asyncio.run(main())
-    except RuntimeError as exc:
-        if "Event loop is closed" not in str(exc):
-            raise
-    finally:
-        sys.unraisablehook = _orig_unraisablehook
+    asyncio.run(main())

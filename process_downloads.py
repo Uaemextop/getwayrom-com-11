@@ -944,6 +944,12 @@ async def main() -> None:
             # Always close Playwright even if an error occurred
             await _close_playwright()
 
+    # Yield to the event loop so SSL transports spawned by the now-closed
+    # aiohttp connector can finish their close-notify handshake.  Without
+    # this, the transports are orphaned and their __del__ fires after the
+    # loop is gone, producing "Exception ignored in:" noise on stderr.
+    await asyncio.sleep(0.25)
+
     alive_entries.sort(key=lambda x: x[0])
 
     # ── Write output ──────────────────────────────────────────────
@@ -981,18 +987,6 @@ async def main() -> None:
         f"({restricted_count} login-restricted) in {elapsed:.1f}s"
     )
 
-    # Brief sleep to let aiohttp/Playwright transports finalize cleanly
-    # before asyncio.run() closes the event loop (avoids "Event loop is
-    # closed" RuntimeError from __del__ on SSL transports).
-    await asyncio.sleep(0.25)
-
 
 if __name__ == "__main__":
-    # Suppress "Event loop is closed" RuntimeError that aiohttp/Playwright
-    # may raise during garbage collection after asyncio.run() completes.
-    # This is a known issue with transports finalizing on a closed loop.
-    try:
-        asyncio.run(main())
-    except RuntimeError as exc:
-        if "Event loop is closed" not in str(exc):
-            raise
+    asyncio.run(main())

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -16,19 +16,16 @@
     <header class="header">
         <div class="header-left">
             <a href="index.html" class="logo">
-                <img src="../assets/images/logo/getwayrom_logo.png" alt="Getwayrom" class="logo-img">
+                <i class="fas fa-folder" style="color:var(--c-brand);font-size:20px"></i>
+                <span class="logo-text">RealFirmware</span>
             </a>
             <button class="btn-icon sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
                 <i class="fas fa-bars"></i>
             </button>
         </div>
-        <nav class="header-nav">
-            <a href="../index.html" class="header-nav-link">Home</a>
-            <a href="index.html" class="header-nav-link active">Firmware</a>
-        </nav>
         <div class="header-right">
             <button class="btn-icon" id="themeToggle" title="Toggle theme">
-                <i class="fas fa-adjust"></i>
+                <i class="fas fa-cog"></i>
             </button>
         </div>
     </header>
@@ -121,6 +118,9 @@
                 <button class="btn btn-secondary btn-toolbar-action" id="searchFilterBtn" title="Advanced search">
                     Filters
                 </button>
+                <button class="btn btn-success btn-toolbar-action" id="downloadZipBtn" title="Download .zip">
+                    Download .zip
+                </button>
                 <!-- Advanced Search Panel -->
                 <div class="advanced-search hidden" id="advancedSearch">
                     <div class="advanced-search-header">
@@ -158,7 +158,7 @@
                 <div class="dir-summary" id="dirSummary">
                     <div class="dir-summary-header" id="dirSummaryToggle">
                         <span class="dir-summary-title"><i class="fas fa-chart-pie"></i> Directory summary</span>
-                        <i class="fas fa-chevron-down dir-summary-chevron"></i>
+                        <i class="fas fa-chevron-right dir-summary-chevron"></i>
                     </div>
                     <div class="dir-summary-body" id="dirSummaryBody">
                         <!-- Populated dynamically -->

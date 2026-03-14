@@ -53,7 +53,6 @@
     dom.filterName = document.getElementById('filterName');
     dom.clearFilters = document.getElementById('clearFilters');
     dom.applyFilters = document.getElementById('applyFilters');
-    dom.downloadZipBtn = document.getElementById('downloadZipBtn');
     dom.gridViewBtn = document.getElementById('gridViewBtn');
     dom.listViewBtn = document.getElementById('listViewBtn');
     dom.sortBtn = document.getElementById('sortBtn');
@@ -837,6 +836,7 @@
   }
 
   function updateResultCount() {
+    if (!dom.resultCount) return;
     var total = state.filteredFiles.length;
     var prefix = state.folderPath.length > 0 ? state.folderPath[state.folderPath.length - 1] + ': ' : '';
     if (state.searchQuery) {
@@ -1057,13 +1057,6 @@
       });
     }
 
-    // Download .zip button
-    if (dom.downloadZipBtn) {
-      dom.downloadZipBtn.addEventListener('click', function () {
-        Toast.info('Download .zip functionality coming soon');
-      });
-    }
-
     // List header sort
     document.querySelectorAll('.file-list-header .list-col[data-sort]').forEach(function (header) {
       header.addEventListener('click', function () {
@@ -1168,10 +1161,15 @@
       });
     }
 
-    // Back to top button
+    // Back to top button + dynamic header shrink on scroll
     if (dom.backToTop && dom.content) {
+      var searchToolbar = document.getElementById('searchToolbar');
+      var header = document.querySelector('.header');
       dom.content.addEventListener('scroll', function () {
+        var scrolled = dom.content.scrollTop > 60;
         dom.backToTop.classList.toggle('hidden', dom.content.scrollTop < 300);
+        if (searchToolbar) searchToolbar.classList.toggle('scrolled', scrolled);
+        if (header) header.classList.toggle('scrolled', scrolled);
       });
       dom.backToTop.addEventListener('click', function () {
         dom.content.scrollTo({ top: 0, behavior: 'smooth' });

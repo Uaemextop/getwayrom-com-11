@@ -54,13 +54,21 @@ jobs:
             node scripts/build-data.js --test
           fi
 
-      - name: Copy Fuse.js from node_modules
+      - name: Copy vendor libraries from node_modules
         run: |
           cp node_modules/fuse.js/dist/fuse.min.js explorer/js/fuse.min.js
+          cp node_modules/dayjs/dayjs.min.js explorer/js/dayjs.min.js
+          cp node_modules/dayjs/plugin/relativeTime.js explorer/js/dayjs-relativeTime.js
+          cp node_modules/sortablejs/Sortable.min.js explorer/js/Sortable.min.js
+          cp node_modules/animate.css/animate.min.css explorer/css/animate.min.css
 
-      - name: Update Fuse.js reference for offline use
+      - name: Update vendor references for offline use
         run: |
           find explorer -name '*.html' -exec sed -i 's|https://cdn.jsdelivr.net/npm/fuse.js@7.0.0/dist/fuse.min.js|js/fuse.min.js|g' {} +
+          find explorer -name '*.html' -exec sed -i 's|https://cdn.jsdelivr.net/npm/dayjs@1.11.13/dayjs.min.js|js/dayjs.min.js|g' {} +
+          find explorer -name '*.html' -exec sed -i 's|https://cdn.jsdelivr.net/npm/dayjs@1.11.13/plugin/relativeTime.js|js/dayjs-relativeTime.js|g' {} +
+          find explorer -name '*.html' -exec sed -i 's|https://cdn.jsdelivr.net/npm/sortablejs@1.15.6/Sortable.min.js|js/Sortable.min.js|g' {} +
+          find explorer -name '*.html' -exec sed -i 's|https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css|css/animate.min.css|g' {} +
 
       - name: Fix favicon for deployment
         run: |

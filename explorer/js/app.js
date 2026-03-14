@@ -1,6 +1,7 @@
 /**
- * GetwayROM File Explorer - Main Application Controller
- * Orchestrates all modules: search, rendering, sidebar, theme, keyboard, notifications
+ * GetwayROM File Explorer - Main Application Controller (v2)
+ * Rebuilt from scratch using EventBus, Store, Router, and VirtualList modules.
+ * Orchestrates: search, rendering, sidebar, theme, keyboard, notifications.
  */
 
 (function () {
@@ -13,6 +14,9 @@
   var Theme = GWR.Theme;
   var Keyboard = GWR.Keyboard;
   var Toast = GWR.Toast;
+  var EventBus = GWR.EventBus;
+  var Store = GWR.Store;
+  var Router = GWR.Router;
 
   // --- Configuration ---
   var ITEMS_PER_PAGE = 60;
@@ -20,23 +24,8 @@
   var GITHUB_OWNER = 'Uaemextop';
   var GITHUB_REPO = 'getwayrom-com-11';
 
-  // --- State ---
-  var state = {
-    allFiles: [],
-    filteredFiles: [],
-    currentPage: 1,
-    totalPages: 1,
-    viewMode: 'list',
-    sortBy: 'name-asc',
-    searchQuery: '',
-    filterBrand: '',
-    filterExtension: '',
-    filterName: '',
-    sidebarFilter: 'all',
-    currentFolder: null,
-    folderPath: [],
-    metadata: null
-  };
+  // Alias Store.get for shorter access to state
+  var state = Store.getState();
 
   // --- DOM References ---
   var dom = {};
@@ -438,35 +427,7 @@
   }
 
   function renderBreadcrumb() {
-    if (!dom.breadcrumb) return;
-    var html = '<span class="breadcrumb-item breadcrumb-link" data-path=""><i class="fas fa-home"></i> Root</span>';
-
-    for (var i = 0; i < state.folderPath.length; i++) {
-      html += '<span class="breadcrumb-separator"><i class="fas fa-chevron-right"></i></span>';
-      var pathUpTo = state.folderPath.slice(0, i + 1).join('/');
-      var isLast = (i === state.folderPath.length - 1);
-      html += '<span class="breadcrumb-item' + (isLast ? ' active' : ' breadcrumb-link') + '" data-path="' + Utils.escapeHtml(pathUpTo) + '">' +
-        '<i class="fas ' + (state.folderPath.length === 1 ? 'fa-folder' : 'fa-folder-open') + '"></i> ' +
-        Utils.escapeHtml(state.folderPath[i]) +
-      '</span>';
-    }
-
-    dom.breadcrumb.innerHTML = html;
-
-    // Bind breadcrumb click events
-    dom.breadcrumb.querySelectorAll('.breadcrumb-link').forEach(function (el) {
-      el.addEventListener('click', function () {
-        var pathStr = this.getAttribute('data-path');
-        if (pathStr === '') {
-          state.folderPath = [];
-        } else {
-          state.folderPath = pathStr.split('/');
-        }
-        state.currentPage = 1;
-        applyFiltersAndSearch();
-        renderBreadcrumb();
-      });
-    });
+    Router.renderBreadcrumb(dom.breadcrumb);
   }
 
   function renderFolderCards(container) {
@@ -521,18 +482,27 @@
 
   // --- Initialization ---
   function initializeApp(data) {
-    state.allFiles = data.files;
-    state.metadata = {
-      generated: data.generated,
-      totalFiles: data.totalFiles,
-      brands: data.brands,
-      extensions: data.extensions,
-      sources: data.sources || {},
-      categories: data.categories || {}
-    };
+    Store.set({
+      allFiles: data.files,
+      metadata: {
+        generated: data.generated,
+        totalFiles: data.totalFiles,
+        brands: data.brands,
+        extensions: data.extensions,
+        sources: data.sources || {},
+        categories: data.categories || {}
+      },
+      isLoading: false
+    });
+
+    // Re-read state ref after store update
+    state = Store.getState();
 
     // Initialize search engine
     SearchEngine.init(state.allFiles);
+
+    // Initialize router (reads hash if present)
+    Router.init();
 
     // Populate sidebar using module
     Sidebar.init({ onFilterChange: function () { applyFiltersAndSearch(); } });
@@ -554,10 +524,17 @@
     if (dom.overviewBrandCount) dom.overviewBrandCount.textContent = Utils.formatNumber(Object.keys(state.metadata.brands).length);
     if (dom.overviewSourceCount) dom.overviewSourceCount.textContent = Utils.formatNumber(Object.keys(state.metadata.sources || {}).length);
     if (dom.overviewUpdatedAt) {
-      var updatedAt = new Date(state.metadata.generated);
-      dom.overviewUpdatedAt.textContent = isNaN(updatedAt.getTime())
-        ? 'Recently'
-        : updatedAt.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+      // Use dayjs for human-readable date formatting
+      var generated = state.metadata.generated;
+      if (typeof dayjs !== 'undefined' && generated) {
+        var d = dayjs(generated);
+        dom.overviewUpdatedAt.textContent = d.isValid() ? d.fromNow() : 'Recently';
+      } else {
+        var updatedAt = new Date(generated);
+        dom.overviewUpdatedAt.textContent = isNaN(updatedAt.getTime())
+          ? 'Recently'
+          : updatedAt.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+      }
     }
 
     applyFiltersAndSearch();
@@ -567,6 +544,12 @@
     Toast.success('Loaded ' + Utils.formatNumber(state.allFiles.length) + ' firmware files');
 
     updateDirectorySummary();
+
+    // Listen for navigation events from Router
+    EventBus.on('navigate', function () {
+      state = Store.getState();
+      applyFiltersAndSearch();
+    });
   }
 
   function updateDirectorySummary() {
@@ -666,15 +649,8 @@
   }
 
   function resetWorkspace() {
-    state.searchQuery = '';
-    state.filterBrand = '';
-    state.filterExtension = '';
-    state.filterName = '';
-    state.sidebarFilter = 'all';
-    state.folderPath = [];
-    state.currentFolder = null;
-    state.sortBy = 'name-asc';
-    state.currentPage = 1;
+    Store.resetFilters();
+    state = Store.getState();
 
     dom.searchInput.value = '';
     dom.searchClear.classList.add('hidden');
@@ -683,6 +659,7 @@
     dom.filterName.value = '';
     if (dom.currentFilter) dom.currentFilter.textContent = 'All Files';
     Sidebar.setActiveItem('all');
+    Router.navigateToRoot();
 
     applyFiltersAndSearch();
   }
@@ -918,7 +895,7 @@
       btn.addEventListener('click', function () {
         var type = this.getAttribute('data-clear');
         if (type === 'folder') {
-          state.folderPath = [];
+          Router.navigateToRoot();
         } else if (type === 'sidebar') {
           state.sidebarFilter = 'all';
           Sidebar.setActiveItem('all');
@@ -969,9 +946,7 @@
 
     var folderName = folderEl.getAttribute('data-folder');
     if (folderName) {
-      state.folderPath.push(folderName);
-      state.currentPage = 1;
-      applyFiltersAndSearch();
+      Router.navigateTo(folderName);
     }
   }
 
@@ -1083,9 +1058,10 @@
       var item = e.target.closest('.sidebar-item[data-filter]');
       if (item) {
         var filter = item.getAttribute('data-filter');
-        state.sidebarFilter = filter;
-        state.folderPath = [];
+        Store.set({ sidebarFilter: filter, folderPath: [], currentPage: 1 });
+        state = Store.getState();
         Sidebar.setActiveItem(filter);
+        Router.navigateToRoot();
 
         if (dom.currentFilter) {
           dom.currentFilter.textContent = filter === 'all'
@@ -1231,20 +1207,7 @@
     // Clear all filters button (in empty state)
     if (dom.clearAllFiltersBtn) {
       dom.clearAllFiltersBtn.addEventListener('click', function () {
-        dom.searchInput.value = '';
-        dom.searchClear.classList.add('hidden');
-        state.searchQuery = '';
-        state.filterBrand = '';
-        state.filterExtension = '';
-        state.filterName = '';
-        state.sidebarFilter = 'all';
-        state.folderPath = [];
-        dom.filterBrand.value = '';
-        dom.filterExtension.value = '';
-        dom.filterName.value = '';
-        Sidebar.setActiveItem('all');
-        if (dom.currentFilter) dom.currentFilter.textContent = 'All Files';
-        applyFiltersAndSearch();
+        resetWorkspace();
       });
     }
 
@@ -1298,10 +1261,7 @@
     });
 
     Keyboard.register('Alt+ArrowUp', 'Go up one folder', function () {
-      if (state.folderPath.length > 0) {
-        state.folderPath.pop();
-        applyFiltersAndSearch();
-      }
+      Router.navigateUp();
     });
   }
 

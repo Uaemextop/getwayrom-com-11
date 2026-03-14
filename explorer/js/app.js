@@ -24,7 +24,8 @@
   var GITHUB_OWNER = 'Uaemextop';
   var GITHUB_REPO = 'getwayrom-com-11';
 
-  // Alias Store.get for shorter access to state
+  // Direct reference to Store's internal state for efficient reads.
+  // Always use Store.set() for writes to ensure change notifications fire.
   var state = Store.getState();
 
   // --- DOM References ---
@@ -495,9 +496,6 @@
       isLoading: false
     });
 
-    // Re-read state ref after store update
-    state = Store.getState();
-
     // Initialize search engine
     SearchEngine.init(state.allFiles);
 
@@ -547,7 +545,6 @@
 
     // Listen for navigation events from Router
     EventBus.on('navigate', function () {
-      state = Store.getState();
       applyFiltersAndSearch();
     });
   }
@@ -650,7 +647,6 @@
 
   function resetWorkspace() {
     Store.resetFilters();
-    state = Store.getState();
 
     dom.searchInput.value = '';
     dom.searchClear.classList.add('hidden');
@@ -1059,7 +1055,6 @@
       if (item) {
         var filter = item.getAttribute('data-filter');
         Store.set({ sidebarFilter: filter, folderPath: [], currentPage: 1 });
-        state = Store.getState();
         Sidebar.setActiveItem(filter);
         Router.navigateToRoot();
 

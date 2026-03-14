@@ -102,7 +102,7 @@
       var pathUpTo = folderPath.slice(0, i + 1).join('/');
       var isLast = (i === folderPath.length - 1);
       html += '<span class="breadcrumb-item' + (isLast ? ' active' : ' breadcrumb-link') + '" data-path="' + Utils.escapeHtml(pathUpTo) + '">' +
-        '<i class="fas ' + (folderPath.length === 1 ? 'fa-folder' : 'fa-folder-open') + '"></i> ' +
+        '<i class="fas ' + (isLast ? 'fa-folder-open' : 'fa-folder') + '"></i> ' +
         Utils.escapeHtml(folderPath[i]) +
       '</span>';
     }

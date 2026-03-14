@@ -28,7 +28,9 @@
   };
 
   /**
-   * Get the full state object (read-only copy).
+   * Get the full state object reference.
+   * Note: Returns direct reference for read performance.
+   * Always use Store.set() to modify state to ensure change notifications fire.
    * @returns {Object}
    */
   function getState() {
